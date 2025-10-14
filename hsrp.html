@@ -1,0 +1,1680 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>人类被试招募平台</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif, 'Microsoft YaHei', '微软雅黑', sans-serif;
+            min-height: 100vh;
+            background: linear-gradient(-45deg, #2E86AB, #A23B72, #3A86FF, #06FFB4, #8338EC, #06FFA5);
+            background-size: 600% 600%;
+            animation: gradientFlow 20s ease infinite;
+            color: #fff;
+            overflow-x: hidden;
+        }
+
+        @keyframes gradientFlow {
+            0% { background-position: 0% 50%; }
+            25% { background-position: 50% 25%; }
+            50% { background-position: 100% 50%; }
+            75% { background-position: 50% 75%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        .glass-container {
+            background: rgba(255, 255, 255, 0.12);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border-radius: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.25);
+            box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.4);
+            padding: 25px;
+            margin: 20px;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            position: relative;
+            overflow: hidden;
+            z-index: 1;
+        }
+
+        .glass-container::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(45deg, 
+                transparent, 
+                rgba(255, 255, 255, 0.1), 
+                transparent);
+            transform: rotate(45deg);
+            transition: all 0.6s;
+            opacity: 0;
+        }
+
+        .glass-container:hover::before {
+            animation: shimmer 0.6s ease;
+        }
+
+        @keyframes shimmer {
+            0% { transform: translateX(-100%) translateY(-100%) rotate(45deg); opacity: 0; }
+            50% { opacity: 1; }
+            100% { transform: translateX(100%) translateY(100%) rotate(45deg); opacity: 0; }
+        }
+
+        .glass-container:hover {
+            transform: translateY(-8px) scale(1.02);
+            box-shadow: 0 15px 45px 0 rgba(31, 38, 135, 0.5);
+            border-color: rgba(255, 255, 255, 0.35);
+        }
+
+        .glass-button {
+            background: linear-gradient(135deg, rgba(58, 134, 255, 0.3), rgba(162, 59, 114, 0.3));
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(255, 255, 255, 0.35);
+            color: white;
+            padding: 12px 24px;
+            border-radius: 30px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 500;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .glass-button::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.3);
+            transform: translate(-50%, -50%);
+            transition: width 0.6s, height 0.6s;
+        }
+
+        .glass-button:hover::before {
+            width: 300px;
+            height: 300px;
+        }
+
+        .glass-button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(58, 134, 255, 0.4);
+            border-color: rgba(255, 255, 255, 0.5);
+        }
+
+        .glass-input {
+            background: rgba(255, 255, 255, 0.15);
+            border: 1px solid rgba(255, 255, 255, 0.35);
+            border-radius: 12px;
+            padding: 12px 18px;
+            color: white;
+            width: 100%;
+            transition: all 0.3s ease;
+        }
+
+        .glass-input::placeholder {
+            color: rgba(255, 255, 255, 0.75);
+        }
+
+        .glass-input:focus {
+            outline: none;
+            background: rgba(255, 255, 255, 0.25);
+            border-color: rgba(58, 134, 255, 0.6);
+            box-shadow: 0 0 20px rgba(58, 134, 255, 0.3);
+        }
+
+        .glass-card {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(6px);
+            border-radius: 15px;
+            border: 1px solid rgba(255, 255, 255, 0.25);
+            padding: 18px;
+            margin: 12px 0;
+            transition: all 0.3s ease;
+            position: relative;
+            z-index: 1;
+        }
+
+        .glass-card:hover {
+            background: rgba(255, 255, 255, 0.15);
+            transform: translateX(8px) scale(1.02);
+            box-shadow: 0 5px 20px rgba(58, 134, 255, 0.3);
+        }
+
+        .navbar {
+            background: rgba(255, 255, 255, 0.12);
+            backdrop-filter: blur(12px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.25);
+            padding: 15px 30px;
+            position: relative;
+            z-index: 1000;
+        }
+
+        .navbar-brand {
+            font-size: 1.6rem;
+            font-weight: bold;
+            background: linear-gradient(135deg, #3A86FF, #06FFB4);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .nav-link {
+            color: rgba(255, 255, 255, 0.95) !important;
+            margin: 0 12px;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .nav-link::after {
+            content: '';
+            position: absolute;
+            bottom: -5px;
+            left: 50%;
+            width: 0;
+            height: 2px;
+            background: linear-gradient(90deg, #3A86FF, #06FFB4);
+            transform: translateX(-50%);
+            transition: width 0.3s ease;
+        }
+
+        .nav-link:hover::after {
+            width: 80%;
+        }
+
+        .nav-link:hover {
+            color: white !important;
+            transform: translateY(-2px);
+        }
+
+        /* Fix dropdown menu z-index and styling */
+        .dropdown-menu {
+            background: rgba(255, 255, 255, 0.15) !important;
+            backdrop-filter: blur(12px) !important;
+            -webkit-backdrop-filter: blur(12px) !important;
+            border: 1px solid rgba(255, 255, 255, 0.35) !important;
+            border-radius: 15px !important;
+            box-shadow: 0 8px 32px rgba(31, 38, 135, 0.4) !important;
+            z-index: 1050 !important;
+            margin-top: 10px !important;
+        }
+
+        .dropdown-item {
+            color: rgba(255, 255, 255, 0.95) !important;
+            transition: all 0.3s ease !important;
+            padding: 10px 20px !important;
+        }
+
+        .dropdown-item:hover {
+            background: rgba(255, 255, 255, 0.2) !important;
+            color: white !important;
+            transform: translateX(5px);
+        }
+
+        .dropdown-divider {
+            border-color: rgba(255, 255, 255, 0.2) !important;
+        }
+
+        .status-badge {
+            padding: 6px 18px;
+            border-radius: 25px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            display: inline-block;
+            backdrop-filter: blur(5px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .status-open {
+            background: linear-gradient(135deg, rgba(6, 255, 180, 0.3), rgba(6, 255, 165, 0.3));
+            border-color: rgba(6, 255, 180, 0.5);
+            color: #06FFB4;
+        }
+
+        .status-pending {
+            background: linear-gradient(135deg, rgba(255, 193, 7, 0.3), rgba(255, 235, 59, 0.3));
+            border-color: rgba(255, 193, 7, 0.5);
+            color: #FFC107;
+        }
+
+        .status-posted {
+            background: linear-gradient(135deg, rgba(58, 134, 255, 0.3), rgba(46, 134, 171, 0.3));
+            border-color: rgba(58, 134, 255, 0.5);
+            color: #3A86FF;
+        }
+
+        .status-closed {
+            background: linear-gradient(135deg, rgba(239, 68, 68, 0.3), rgba(220, 38, 38, 0.3));
+            border-color: rgba(239, 68, 68, 0.5);
+            color: #EF4444;
+        }
+
+        .role-badge {
+            padding: 4px 12px;
+            border-radius: 18px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            backdrop-filter: blur(5px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .role-admin {
+            background: linear-gradient(135deg, rgba(239, 68, 68, 0.3), rgba(220, 38, 38, 0.3));
+            color: #EF4444;
+        }
+
+        .role-researcher {
+            background: linear-gradient(135deg, rgba(58, 134, 255, 0.3), rgba(46, 134, 171, 0.3));
+            color: #3A86FF;
+        }
+
+        .role-participant {
+            background: linear-gradient(135deg, rgba(6, 255, 180, 0.3), rgba(6, 255, 165, 0.3));
+            color: #06FFB4;
+        }
+
+        .experiment-card {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(8px);
+            border-radius: 18px;
+            border: 1px solid rgba(255, 255, 255, 0.25);
+            padding: 22px;
+            margin: 18px 0;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+            z-index: 1;
+        }
+
+        .experiment-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, 
+                transparent, 
+                rgba(255, 255, 255, 0.1), 
+                transparent);
+            transition: left 0.6s;
+        }
+
+        .experiment-card:hover::before {
+            left: 100%;
+        }
+
+        .experiment-card:hover {
+            background: rgba(255, 255, 255, 0.15);
+            transform: translateY(-5px) scale(1.02);
+            box-shadow: 0 12px 35px rgba(58, 134, 255, 0.3);
+            border-color: rgba(255, 255, 255, 0.35);
+        }
+
+        .floating-button {
+            position: fixed;
+            bottom: 35px;
+            right: 35px;
+            width: 65px;
+            height: 65px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #3A86FF, #A23B72);
+            border: none;
+            color: white;
+            font-size: 26px;
+            cursor: pointer;
+            box-shadow: 0 8px 25px rgba(58, 134, 255, 0.4);
+            transition: all 0.3s ease;
+            z-index: 1000;
+        }
+
+        .floating-button:hover {
+            transform: scale(1.15) rotate(90deg);
+            box-shadow: 0 12px 35px rgba(162, 59, 114, 0.5);
+        }
+
+        .modal-content {
+            background: rgba(255, 255, 255, 0.12);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.25);
+            border-radius: 20px;
+        }
+
+        .modal-header {
+            border-bottom: 1px solid rgba(255, 255, 255, 0.25);
+        }
+
+        .modal-footer {
+            border-top: 1px solid rgba(255, 255, 255, 0.25);
+        }
+
+        .tab-content {
+            margin-top: 25px;
+        }
+
+        .nav-tabs .nav-link {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.25);
+            color: white;
+            margin-right: 8px;
+            border-radius: 12px 12px 0 0;
+            transition: all 0.3s ease;
+        }
+
+        .nav-tabs .nav-link.active {
+            background: rgba(255, 255, 255, 0.2);
+            border-color: rgba(255, 255, 255, 0.35);
+            color: white;
+        }
+
+        .search-container {
+            position: relative;
+            margin: 25px 0;
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 18px 55px 18px 25px;
+            border-radius: 35px;
+            background: rgba(255, 255, 255, 0.15);
+            border: 1px solid rgba(255, 255, 255, 0.35);
+            color: white;
+            font-size: 16px;
+            transition: all 0.3s ease;
+        }
+
+        .search-input:focus {
+            background: rgba(255, 255, 255, 0.25);
+            border-color: rgba(58, 134, 255, 0.6);
+            box-shadow: 0 0 25px rgba(58, 134, 255, 0.3);
+        }
+
+        .search-button {
+            position: absolute;
+            right: 8px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: linear-gradient(135deg, rgba(58, 134, 255, 0.4), rgba(162, 59, 114, 0.4));
+            border: none;
+            border-radius: 50%;
+            width: 45px;
+            height: 45px;
+            color: white;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .search-button:hover {
+            transform: translateY(-50%) scale(1.1);
+            box-shadow: 0 5px 15px rgba(58, 134, 255, 0.4);
+        }
+
+        .notification {
+            position: fixed;
+            top: 120px;
+            right: 25px;
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.2), rgba(255, 255, 255, 0.15));
+            backdrop-filter: blur(12px);
+            border-radius: 15px;
+            padding: 18px 25px;
+            border: 1px solid rgba(255, 255, 255, 0.35);
+            z-index: 2000;
+            animation: slideIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            box-shadow: 0 8px 25px rgba(58, 134, 255, 0.3);
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(120%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        .calendar-view {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 12px;
+            margin-top: 25px;
+        }
+
+        .calendar-day {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            padding: 12px;
+            min-height: 110px;
+            border: 1px solid rgba(255, 255, 255, 0.25);
+            transition: all 0.3s ease;
+        }
+
+        .calendar-day:hover {
+            background: rgba(255, 255, 255, 0.15);
+            transform: scale(1.05);
+        }
+
+        .calendar-event {
+            background: linear-gradient(135deg, rgba(58, 134, 255, 0.4), rgba(46, 134, 171, 0.4));
+            border-radius: 8px;
+            padding: 4px 10px;
+            margin: 3px 0;
+            font-size: 0.8rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .calendar-event:hover {
+            transform: scale(1.05);
+            box-shadow: 0 3px 10px rgba(58, 134, 255, 0.3);
+        }
+
+        .session-card {
+            background: rgba(255, 255, 255, 0.08);
+            border-radius: 12px;
+            padding: 15px;
+            margin: 8px 0;
+            border: 1px solid rgba(255, 255, 255, 0.25);
+            transition: all 0.3s ease;
+        }
+
+        .session-card:hover {
+            background: rgba(255, 255, 255, 0.12);
+            transform: translateX(5px);
+        }
+
+        .attendance-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+            gap: 18px;
+            margin-top: 25px;
+        }
+
+        .attendance-card {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            padding: 18px;
+            text-align: center;
+            border: 1px solid rgba(255, 255, 255, 0.25);
+            transition: all 0.3s ease;
+        }
+
+        .attendance-card:hover {
+            transform: translateY(-5px) scale(1.05);
+            box-shadow: 0 8px 20px rgba(58, 134, 255, 0.3);
+        }
+
+        .attendance-present {
+            border-color: rgba(6, 255, 180, 0.5);
+            background: linear-gradient(135deg, rgba(6, 255, 180, 0.15), rgba(6, 255, 165, 0.15));
+        }
+
+        .attendance-absent {
+            border-color: rgba(239, 68, 68, 0.5);
+            background: linear-gradient(135deg, rgba(239, 68, 68, 0.15), rgba(220, 38, 38, 0.15));
+        }
+
+        /* Language Switcher Styles */
+        .language-switcher {
+            position: relative;
+            display: inline-block;
+        }
+
+        .language-dropdown {
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(255, 255, 255, 0.35);
+            border-radius: 25px;
+            padding: 8px 16px;
+            color: white;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            user-select: none;
+        }
+
+        .language-dropdown:hover {
+            background: rgba(255, 255, 255, 0.25);
+            transform: translateY(-2px);
+        }
+
+        .language-menu {
+            position: absolute;
+            top: 100%;
+            right: 0;
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.35);
+            border-radius: 15px;
+            padding: 8px;
+            margin-top: 8px;
+            min-width: 150px;
+            display: none;
+            z-index: 1050;
+        }
+
+        .language-menu.show {
+            display: block;
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .language-option {
+            padding: 8px 12px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            user-select: none;
+        }
+
+        .language-option:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .language-option.active {
+            background: rgba(58, 134, 255, 0.3);
+        }
+
+        /* Enhanced animations */
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+
+        .pulse {
+            animation: pulse 2s infinite;
+        }
+
+        /* Loading animation */
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top-color: #3A86FF;
+            animation: spin 1s ease-in-out infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Fade transition for language switching */
+        .fade-transition {
+            transition: opacity 0.3s ease;
+        }
+
+        .fade-out {
+            opacity: 0;
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="#">
+                <i class="fas fa-brain me-2"></i><span data-i18n="system.title">人类被试招募平台</span>
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="#" onclick="showDashboard()">
+                            <i class="fas fa-home me-1"></i><span data-i18n="nav.dashboard">仪表板</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#" onclick="showExperiments()">
+                            <i class="fas fa-flask me-1"></i><span data-i18n="nav.experiments">实验</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#" onclick="showSchedule()">
+                            <i class="fas fa-calendar me-1"></i><span data-i18n="nav.schedule">我的日程</span>
+                        </a>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                            <i class="fas fa-user me-1"></i><span data-i18n="nav.account">账户</span>
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="#" onclick="showProfile()"><span data-i18n="account.profile">个人资料</span></a></li>
+                            <li><a class="dropdown-item" href="#" onclick="showSettings()"><span data-i18n="account.settings">设置</span></a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item" href="#" onclick="logout()"><span data-i18n="account.logout">退出登录</span></a></li>
+                        </ul>
+                    </li>
+                </ul>
+                <div class="d-flex align-items-center">
+                    <!-- Language Switcher -->
+                    <div class="language-switcher me-3">
+                        <div class="language-dropdown" id="languageDropdown">
+                            <i class="fas fa-globe"></i>
+                            <span id="currentLang">中文</span>
+                            <i class="fas fa-chevron-down"></i>
+                        </div>
+                        <div class="language-menu" id="languageMenu">
+                            <div class="language-option active" data-lang="zh">
+                                <i class="fas fa-flag"></i>
+                                <span>中文</span>
+                            </div>
+                            <div class="language-option" data-lang="en">
+                                <i class="fas fa-flag-usa"></i>
+                                <span>English</span>
+                            </div>
+                        </div>
+                    </div>
+                    <span class="role-badge role-researcher me-3" data-i18n="role.researcher">研究员</span>
+                    <span class="me-3">Genghu</span>
+                    <i class="fas fa-bell"></i>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="container-fluid mt-4 fade-transition">
+        <!-- Dashboard View -->
+        <div id="dashboardView" class="row">
+            <div class="col-lg-8">
+                <!-- Statistics Overview -->
+                <div class="glass-container">
+                    <h2><i class="fas fa-chart-line me-2"></i><span data-i18n="dashboard.overview">仪表板概览</span></h2>
+                    <div class="row mt-4">
+                        <div class="col-md-3">
+                            <div class="glass-card text-center pulse">
+                                <h3>12</h3>
+                                <p data-i18n="dashboard.activeExperiments">活跃实验</p>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="glass-card text-center pulse">
+                                <h3>48</h3>
+                                <p data-i18n="dashboard.totalParticipants">总参与者</p>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="glass-card text-center pulse">
+                                <h3>5</h3>
+                                <p data-i18n="dashboard.pendingApproval">待审批</p>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="glass-card text-center pulse">
+                                <h3>92%</h3>
+                                <p data-i18n="dashboard.attendanceRate">出勤率</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Upcoming Sessions -->
+                <div class="glass-container mt-4">
+                    <h3><i class="fas fa-clock me-2"></i><span data-i18n="dashboard.upcomingSessions">即将进行的会话</span></h3>
+                    <div class="experiment-card">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <h5 data-i18n="experiment.cognitiveMemory">认知记忆研究</h5>
+                                <p class="mb-1"><i class="fas fa-calendar me-2"></i>2023年12月15日 - 下午2:00</p>
+                                <p class="mb-1"><i class="fas fa-map-marker-alt me-2"></i><span data-i18n="location.room305">305室，心理学大楼</span></p>
+                            </div>
+                            <div class="text-center">
+                                <div class="status-badge status-posted" data-i18n="status.posted">已发布</div>
+                                <p class="mt-2 mb-0">8/10 <span data-i18n="common.slots">名额</span></p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="experiment-card">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <h5 data-i18n="experiment.socialBehavior">社会行为分析</h5>
+                                <p class="mb-1"><i class="fas fa-calendar me-2"></i>2023年12月16日 - 上午10:00</p>
+                                <p class="mb-1"><i class="fas fa-map-marker-alt me-2"></i><span data-i18n="location.room201">201室，心理学大楼</span></p>
+                            </div>
+                            <div class="text-center">
+                                <div class="status-badge status-posted" data-i18n="status.posted">已发布</div>
+                                <p class="mt-2 mb-0">5/15 <span data-i18n="common.slots">名额</span></p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-4">
+                <!-- Quick Actions -->
+                <div class="glass-container">
+                    <h3><i class="fas fa-tasks me-2"></i><span data-i18n="dashboard.quickActions">快速操作</span></h3>
+                    <div class="d-grid gap-2 mt-3">
+                        <button class="glass-button" onclick="showCreateExperiment()">
+                            <i class="fas fa-plus me-2"></i><span data-i18n="action.createExperiment">创建新实验</span>
+                        </button>
+                        <button class="glass-button" onclick="showMyExperiments()">
+                            <i class="fas fa-list me-2"></i><span data-i18n="action.myExperiments">我的实验</span>
+                        </button>
+                        <button class="glass-button" onclick="showAttendance()">
+                            <i class="fas fa-check-circle me-2"></i><span data-i18n="action.updateAttendance">更新出勤</span>
+                        </button>
+                        <button class="glass-button" onclick="exportData()">
+                            <i class="fas fa-download me-2"></i><span data-i18n="action.exportData">导出数据</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Notifications -->
+                <div class="glass-container mt-4">
+                    <h3><i class="fas fa-bell me-2"></i><span data-i18n="dashboard.notifications">通知</span></h3>
+                    <div class="glass-card">
+                        <p class="mb-1"><strong data-i18n="notification.newParticipant">新参与者</strong></p>
+                        <p class="mb-0 small" data-i18n="notification.participantMessage">John Doe 报名参加了认知记忆研究</p>
+                        <p class="mb-0 small text-muted">2 <span data-i18n="common.hoursAgo">小时前</span></p>
+                    </div>
+                    <div class="glass-card">
+                        <p class="mb-1"><strong data-i18n="notification.experimentApproved">实验已批准</strong></p>
+                        <p class="mb-0 small" data-i18n="notification.approvalMessage">您的实验"注意力持续时间研究"已获批准</p>
+                        <p class="mb-0 small text-muted">5 <span data-i18n="common.hoursAgo">小时前</span></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Experiments View -->
+        <div id="experimentsView" style="display: none;">
+            <div class="glass-container">
+                <h2><i class="fas fa-flask me-2"></i><span data-i18n="experiments.title">实验管理</span></h2>
+                
+                <!-- Search Bar -->
+                <div class="search-container">
+                    <input type="text" class="search-input" data-i18n-placeholder="search.placeholder" placeholder="按标题、位置或描述搜索实验...">
+                    <button class="search-button">
+                        <i class="fas fa-search"></i>
+                    </button>
+                </div>
+
+                <!-- Filter Tabs -->
+                <ul class="nav nav-tabs" role="tablist">
+                    <li class="nav-item">
+                        <a class="nav-link active" data-bs-toggle="tab" href="#allExperiments" data-i18n="tabs.allExperiments">所有实验</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" data-bs-toggle="tab" href="#myExperiments" data-i18n="tabs.myExperiments">我的实验</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" data-bs-toggle="tab" href="#pendingApproval" data-i18n="tabs.pendingApproval">待审批</a>
+                    </li>
+                </ul>
+
+                <div class="tab-content">
+                    <div class="tab-pane fade show active" id="allExperiments">
+                        <div class="experiment-card">
+                            <div class="row">
+                                <div class="col-md-8">
+                                    <h4 data-i18n="experiment.cognitiveMemory">认知记忆研究</h4>
+                                    <p class="mb-2" data-i18n="experiment.cognitiveDesc">关于年轻人短期记忆保持和回忆模式的研究。</p>
+                                    <div class="d-flex gap-3 mb-2">
+                                        <span><i class="fas fa-user me-1"></i> Dr. Smith</span>
+                                        <span><i class="fas fa-clock me-1"></i> 60 <span data-i18n="common.minutes">分钟</span></span>
+                                        <span><i class="fas fa-users me-1"></i> 10 <span data-i18n="common.participants">参与者</span></span>
+                                    </div>
+                                    <div class="d-flex gap-3">
+                                        <span><i class="fas fa-calendar me-1"></i> 2023年12月15日</span>
+                                        <span><i class="fas fa-map-marker-alt me-1"></i><span data-i18n="location.room305">305室</span></span>
+                                    </div>
+                                </div>
+                                <div class="col-md-4 text-end">
+                                    <div class="status-badge status-posted" data-i18n="status.posted">已发布</div>
+                                    <button class="glass-button me-2" onclick="viewExperimentDetails()">
+                                        <i class="fas fa-eye"></i> <span data-i18n="action.view">查看</span>
+                                    </button>
+                                    <button class="glass-button" onclick="signupForExperiment()">
+                                        <i class="fas fa-user-plus"></i> <span data-i18n="action.signup">报名</span>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="experiment-card">
+                            <div class="row">
+                                <div class="col-md-8">
+                                    <h4 data-i18n="experiment.socialBehavior">社会行为分析</h4>
+                                    <p class="mb-2" data-i18n="experiment.socialDesc">研究群体动态和社会互动模式。</p>
+                                    <div class="d-flex gap-3 mb-2">
+                                        <span><i class="fas fa-user me-1"></i> Dr. Johnson</span>
+                                        <span><i class="fas fa-clock me-1"></i> 90 <span data-i18n="common.minutes">分钟</span></span>
+                                        <span><i class="fas fa-users me-1"></i> 15 <span data-i18n="common.participants">参与者</span></span>
+                                    </div>
+                                    <div class="d-flex gap-3">
+                                        <span><i class="fas fa-calendar me-1"></i> 2023年12月16日</span>
+                                        <span><i class="fas fa-map-marker-alt me-1"></i><span data-i18n="location.room201">201室</span></span>
+                                    </div>
+                                </div>
+                                <div class="col-md-4 text-end">
+                                    <div class="status-badge status-posted" data-i18n="status.posted">已发布</div>
+                                    <button class="glass-button me-2" onclick="viewExperimentDetails()">
+                                        <i class="fas fa-eye"></i> <span data-i18n="action.view">查看</span>
+                                    </button>
+                                    <button class="glass-button" onclick="signupForExperiment()">
+                                        <i class="fas fa-user-plus"></i> <span data-i18n="action.signup">报名</span>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="experiment-card">
+                            <div class="row">
+                                <div class="col-md-8">
+                                    <h4 data-i18n="experiment.attentionSpan">注意力持续时间研究</h4>
+                                    <p class="mb-2" data-i18n="experiment.attentionDesc">调查数字环境中注意力持续时间和注意力因素。</p>
+                                    <div class="d-flex gap-3 mb-2">
+                                        <span><i class="fas fa-user me-1"></i> Genghu</span>
+                                        <span><i class="fas fa-clock me-1"></i> 45 <span data-i18n="common.minutes">分钟</span></span>
+                                        <span><i class="fas fa-users me-1"></i> 8 <span data-i18n="common.participants">参与者</span></span>
+                                    </div>
+                                    <div class="d-flex gap-3">
+                                        <span><i class="fas fa-calendar me-1"></i> 2023年12月18日</span>
+                                        <span><i class="fas fa-map-marker-alt me-1"></i><span data-i18n="location.room102">102室</span></span>
+                                    </div>
+                                </div>
+                                <div class="col-md-4 text-end">
+                                    <div class="status-badge status-pending" data-i18n="status.pending">待审批</div>
+                                    <button class="glass-button me-2" onclick="viewExperimentDetails()">
+                                        <i class="fas fa-eye"></i> <span data-i18n="action.view">查看</span>
+                                    </button>
+                                    <button class="glass-button" onclick="editExperiment()">
+                                        <i class="fas fa-edit"></i> <span data-i18n="action.edit">编辑</span>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="tab-pane fade" id="myExperiments">
+                        <div class="experiment-card">
+                            <div class="row">
+                                <div class="col-md-8">
+                                    <h4 data-i18n="experiment.attentionSpan">注意力持续时间研究</h4>
+                                    <p class="mb-2" data-i18n="experiment.attentionDesc">调查数字环境中注意力持续时间和注意力因素。</p>
+                                    <div class="d-flex gap-3 mb-2">
+                                        <span><i class="fas fa-clock me-1"></i> 45 <span data-i18n="common.minutes">分钟</span></span>
+                                        <span><i class="fas fa-users me-1"></i> 8 <span data-i18n="common.participants">参与者</span></span>
+                                    </div>
+                                    <div class="d-flex gap-3">
+                                        <span><i class="fas fa-calendar me-1"></i> 2023年12月18日</span>
+                                        <span><i class="fas fa-map-marker-alt me-1"></i><span data-i18n="location.room102">102室</span></span>
+                                    </div>
+                                </div>
+                                <div class="col-md-4 text-end">
+                                    <div class="status-badge status-pending" data-i18n="status.pending">待审批</div>
+                                    <button class="glass-button me-2" onclick="editExperiment()">
+                                        <i class="fas fa-edit"></i> <span data-i18n="action.edit">编辑</span>
+                                    </button>
+                                    <button class="glass-button" onclick="updateAttendance()">
+                                        <i class="fas fa-check-circle"></i> <span data-i18n="action.attendance">出勤</span>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="tab-pane fade" id="pendingApproval">
+                        <div class="experiment-card">
+                            <div class="row">
+                                <div class="col-md-8">
+                                    <h4 data-i18n="experiment.attentionSpan">注意力持续时间研究</h4>
+                                    <p class="mb-2" data-i18n="experiment.attentionDesc">调查数字环境中注意力持续时间和注意力因素。</p>
+                                    <div class="d-flex gap-3 mb-2">
+                                        <span><i class="fas fa-user me-1"></i> Genghu</span>
+                                        <span><i class="fas fa-clock me-1"></i> 45 <span data-i18n="common.minutes">分钟</span></span>
+                                    </div>
+                                </div>
+                                <div class="col-md-4 text-end">
+                                    <button class="glass-button me-2 mb-2" onclick="approveExperiment()">
+                                        <i class="fas fa-check"></i> <span data-i18n="action.approve">批准</span>
+                                    </button>
+                                    <button class="glass-button mb-2" onclick="rejectExperiment()">
+                                        <i class="fas fa-times"></i> <span data-i18n="action.reject">拒绝</span>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Schedule View -->
+        <div id="scheduleView" style="display: none;">
+            <div class="glass-container">
+                <h2><i class="fas fa-calendar-alt me-2"></i><span data-i18n="schedule.title">我的日程</span></h2>
+                
+                <div class="row mt-4">
+                    <div class="col-md-8">
+                        <h4 data-i18n="schedule.december">2023年12月</h4>
+                        <div class="calendar-view">
+                            <div class="calendar-day">
+                                <strong data-i18n="calendar.sun">日</strong>
+                            </div>
+                            <div class="calendar-day">
+                                <strong data-i18n="calendar.mon">一</strong>
+                            </div>
+                            <div class="calendar-day">
+                                <strong data-i18n="calendar.tue">二</strong>
+                            </div>
+                            <div class="calendar-day">
+                                <strong data-i18n="calendar.wed">三</strong>
+                            </div>
+                            <div class="calendar-day">
+                                <strong data-i18n="calendar.thu">四</strong>
+                            </div>
+                            <div class="calendar-day">
+                                <strong data-i18n="calendar.fri">五</strong>
+                            </div>
+                            <div class="calendar-day">
+                                <strong data-i18n="calendar.sat">六</strong>
+                            </div>
+                            <!-- Calendar days -->
+                            <div class="calendar-day">10</div>
+                            <div class="calendar-day">11</div>
+                            <div class="calendar-day">12</div>
+                            <div class="calendar-day">13</div>
+                            <div class="calendar-day">14</div>
+                            <div class="calendar-day">
+                                15
+                                <div class="calendar-event" data-i18n="experiment.cognitiveShort">认知研究</div>
+                            </div>
+                            <div class="calendar-day">16</div>
+                            <div class="calendar-day">17</div>
+                            <div class="calendar-day">
+                                18
+                                <div class="calendar-event" data-i18n="experiment.attentionShort">注意力研究</div>
+                            </div>
+                            <div class="calendar-day">19</div>
+                            <div class="calendar-day">20</div>
+                            <div class="calendar-day">21</div>
+                            <div class="calendar-day">22</div>
+                            <div class="calendar-day">23</div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-4">
+                        <h4 data-i18n="schedule.upcoming">即将参与的实验</h4>
+                        <div class="glass-card">
+                            <h6 data-i18n="experiment.cognitiveMemory">认知记忆研究</h6>
+                            <p class="mb-1"><i class="fas fa-calendar me-2"></i>2023年12月15日</p>
+                            <p class="mb-1"><i class="fas fa-clock me-2"></i>下午2:00 - 下午3:00</p>
+                            <p class="mb-0"><i class="fas fa-map-marker-alt me-2"></i><span data-i18n="location.room305">305室</span></p>
+                            <button class="glass-button mt-2" onclick="cancelParticipation()">
+                                <i class="fas fa-times"></i> <span data-i18n="action.cancel">取消</span>
+                            </button>
+                        </div>
+                        <div class="glass-card">
+                            <h6 data-i18n="experiment.attentionSpan">注意力持续时间研究</h6>
+                            <p class="mb-1"><i class="fas fa-calendar me-2"></i>2023年12月18日</p>
+                            <p class="mb-1"><i class="fas fa-clock me-2"></i>上午10:00 - 上午10:45</p>
+                            <p class="mb-0"><i class="fas fa-map-marker-alt me-2"></i><span data-i18n="location.room102">102室</span></p>
+                            <button class="glass-button mt-2" onclick="cancelParticipation()">
+                                <i class="fas fa-times"></i> <span data-i18n="action.cancel">取消</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Floating Action Button -->
+    <button class="floating-button" onclick="showCreateExperiment()">
+        <i class="fas fa-plus"></i>
+    </button>
+
+    <!-- Create Experiment Modal -->
+    <div class="modal fade" id="createExperimentModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" data-i18n="modal.createExperiment">创建新实验</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="experimentForm">
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label" data-i18n="form.experimentTitle">实验标题</label>
+                                <input type="text" class="glass-input" data-i18n-placeholder="form.titlePlaceholder" placeholder="输入实验标题">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label" data-i18n="form.studyType">研究类型</label>
+                                <select class="glass-input">
+                                    <option data-i18n="form.type331">331 - 实验心理学</option>
+                                    <option data-i18n="form.typeHonors">荣誉课程</option>
+                                    <option data-i18n="form.typeFaculty">教师</option>
+                                    <option data-i18n="form.typeOthers">其他</option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label" data-i18n="form.description">描述</label>
+                            <textarea class="glass-input" rows="3" data-i18n-placeholder="form.descriptionPlaceholder" placeholder="描述您的实验"></textarea>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label" data-i18n="form.facultyAdvisor">指导教师</label>
+                                <input type="text" class="glass-input" data-i18n-placeholder="form.facultyPlaceholder" placeholder="教师姓名">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label" data-i18n="form.studyLength">研究时长（分钟）</label>
+                                <select class="glass-input">
+                                    <option>30</option>
+                                    <option>60</option>
+                                    <option>90</option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label" data-i18n="form.specialRequirements">特殊要求</label>
+                            <input type="text" class="glass-input" data-i18n-placeholder="form.requirementsPlaceholder" placeholder="任何特殊要求">
+                        </div>
+                        
+                        <h5 class="mt-4" data-i18n="form.sessions">会话</h5>
+                        <div id="sessionsContainer">
+                            <div class="session-card">
+                                <div class="row">
+                                    <div class="col-md-3 mb-2">
+                                        <label class="form-label" data-i18n="form.date">日期</label>
+                                        <input type="date" class="glass-input">
+                                    </div>
+                                    <div class="col-md-3 mb-2">
+                                        <label class="form-label" data-i18n="form.startTime">开始时间</label>
+                                        <input type="time" class="glass-input">
+                                    </div>
+                                    <div class="col-md-3 mb-2">
+                                        <label class="form-label" data-i18n="form.endTime">结束时间</label>
+                                        <input type="time" class="glass-input">
+                                    </div>
+                                    <div class="col-md-3 mb-2">
+                                        <label class="form-label" data-i18n="form.capacity">容量</label>
+                                        <input type="number" class="glass-input" placeholder="10">
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-md-6 mb-2">
+                                        <label class="form-label" data-i18n="form.building">大楼</label>
+                                        <input type="text" class="glass-input" data-i18n-placeholder="form.buildingPlaceholder" placeholder="心理学大楼">
+                                    </div>
+                                    <div class="col-md-6 mb-2">
+                                        <label class="form-label" data-i18n="form.roomNumber">房间号</label>
+                                        <input type="text" class="glass-input" placeholder="305">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <button type="button" class="glass-button mt-2" onclick="addSession()">
+                            <i class="fas fa-plus"></i> <span data-i18n="form.addSession">添加另一个会话</span>
+                        </button>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="glass-button" data-bs-dismiss="modal" data-i18n="action.cancel">取消</button>
+                    <button type="button" class="glass-button" onclick="saveExperiment()">
+                        <i class="fas fa-save"></i> <span data-i18n="action.saveDraft">保存为草稿</span>
+                    </button>
+                    <button type="button" class="glass-button" onclick="submitForApproval()">
+                        <i class="fas fa-paper-plane"></i> <span data-i18n="action.submitApproval">提交审批</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Attendance Modal -->
+    <div class="modal fade" id="attendanceModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" data-i18n="modal.updateAttendance">更新出勤</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <h6 data-i18n="attendance.title">认知记忆研究 - 2023年12月15日</h6>
+                    <div class="attendance-grid">
+                        <div class="attendance-card attendance-present">
+                            <i class="fas fa-user-circle fa-3x mb-2"></i>
+                            <h6>John Doe</h6>
+                            <p class="mb-0 small" data-i18n="attendance.studentId">学生ID：12345</p>
+                            <div class="form-check form-switch mt-2">
+                                <input class="form-check-input" type="checkbox" checked>
+                                <label class="form-check-label" data-i18n="attendance.present">出席</label>
+                            </div>
+                        </div>
+                        <div class="attendance-card attendance-absent">
+                            <i class="fas fa-user-circle fa-3x mb-2"></i>
+                            <h6>Jane Smith</h6>
+                            <p class="mb-0 small" data-i18n="attendance.studentId">学生ID：67890</p>
+                            <div class="form-check form-switch mt-2">
+                                <input class="form-check-input" type="checkbox">
+                                <label class="form-check-label" data-i18n="attendance.present">出席</label>
+                            </div>
+                        </div>
+                        <div class="attendance-card attendance-present">
+                            <i class="fas fa-user-circle fa-3x mb-2"></i>
+                            <h6>Mike Johnson</h6>
+                            <p class="mb-0 small" data-i18n="attendance.studentId">学生ID：54321</p>
+                            <div class="form-check form-switch mt-2">
+                                <input class="form-check-input" type="checkbox" checked>
+                                <label class="form-check-label" data-i18n="attendance.present">出席</label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="glass-button" data-bs-dismiss="modal" data-i18n="action.cancel">取消</button>
+                    <button type="button" class="glass-button" onclick="exportAttendance()">
+                        <i class="fas fa-download"></i> <span data-i18n="action.exportExcel">导出到Excel</span>
+                    </button>
+                    <button type="button" class="glass-button" onclick="saveAttendance()">
+                        <i class="fas fa-save"></i> <span data-i18n="action.saveAttendance">保存出勤</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Notification -->
+    <div id="notification" class="notification" style="display: none;">
+        <div class="d-flex align-items-center">
+            <i class="fas fa-check-circle me-2"></i>
+            <span id="notificationText">操作成功完成！</span>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Translation dictionary
+        const translations = {
+            zh: {
+                "system.title": "人类被试招募平台",
+                "nav.dashboard": "仪表板",
+                "nav.experiments": "实验",
+                "nav.schedule": "我的日程",
+                "nav.account": "账户",
+                "account.profile": "个人资料",
+                "account.settings": "设置",
+                "account.logout": "退出登录",
+                "role.researcher": "研究员",
+                "dashboard.overview": "仪表板概览",
+                "dashboard.activeExperiments": "活跃实验",
+                "dashboard.totalParticipants": "总参与者",
+                "dashboard.pendingApproval": "待审批",
+                "dashboard.attendanceRate": "出勤率",
+                "dashboard.upcomingSessions": "即将进行的会话",
+                "dashboard.quickActions": "快速操作",
+                "dashboard.notifications": "通知",
+                "experiment.cognitiveMemory": "认知记忆研究",
+                "experiment.cognitiveDesc": "关于年轻人短期记忆保持和回忆模式的研究。",
+                "experiment.socialBehavior": "社会行为分析",
+                "experiment.socialDesc": "研究群体动态和社会互动模式。",
+                "experiment.attentionSpan": "注意力持续时间研究",
+                "experiment.attentionDesc": "调查数字环境中注意力持续时间和注意力因素。",
+                "experiment.cognitiveShort": "认知研究",
+                "experiment.attentionShort": "注意力研究",
+                "location.room305": "305室，心理学大楼",
+                "location.room201": "201室，心理学大楼",
+                "location.room102": "102室",
+                "status.posted": "已发布",
+                "status.pending": "待审批",
+                "status.open": "开放",
+                "status.closed": "已关闭",
+                "common.slots": "名额",
+                "common.hoursAgo": "小时前",
+                "common.minutes": "分钟",
+                "common.participants": "参与者",
+                "action.createExperiment": "创建新实验",
+                "action.myExperiments": "我的实验",
+                "action.updateAttendance": "更新出勤",
+                "action.exportData": "导出数据",
+                "action.view": "查看",
+                "action.signup": "报名",
+                "action.edit": "编辑",
+                "action.attendance": "出勤",
+                "action.approve": "批准",
+                "action.reject": "拒绝",
+                "action.cancel": "取消",
+                "action.saveDraft": "保存为草稿",
+                "action.submitApproval": "提交审批",
+                "action.exportExcel": "导出到Excel",
+                "action.saveAttendance": "保存出勤",
+                "notification.newParticipant": "新参与者",
+                "notification.participantMessage": "John Doe 报名参加了认知记忆研究",
+                "notification.experimentApproved": "实验已批准",
+                "notification.approvalMessage": "您的实验"注意力持续时间研究"已获批准",
+                "experiments.title": "实验管理",
+                "search.placeholder": "按标题、位置或描述搜索实验...",
+                "tabs.allExperiments": "所有实验",
+                "tabs.myExperiments": "我的实验",
+                "tabs.pendingApproval": "待审批",
+                "schedule.title": "我的日程",
+                "schedule.december": "2023年12月",
+                "schedule.upcoming": "即将参与的实验",
+                "calendar.sun": "日",
+                "calendar.mon": "一",
+                "calendar.tue": "二",
+                "calendar.wed": "三",
+                "calendar.thu": "四",
+                "calendar.fri": "五",
+                "calendar.sat": "六",
+                "modal.createExperiment": "创建新实验",
+                "modal.updateAttendance": "更新出勤",
+                "form.experimentTitle": "实验标题",
+                "form.titlePlaceholder": "输入实验标题",
+                "form.studyType": "研究类型",
+                "form.type331": "331 - 实验心理学",
+                "form.typeHonors": "荣誉课程",
+                "form.typeFaculty": "教师",
+                "form.typeOthers": "其他",
+                "form.description": "描述",
+                "form.descriptionPlaceholder": "描述您的实验",
+                "form.facultyAdvisor": "指导教师",
+                "form.facultyPlaceholder": "教师姓名",
+                "form.studyLength": "研究时长（分钟）",
+                "form.specialRequirements": "特殊要求",
+                "form.requirementsPlaceholder": "任何特殊要求",
+                "form.sessions": "会话",
+                "form.date": "日期",
+                "form.startTime": "开始时间",
+                "form.endTime": "结束时间",
+                "form.capacity": "容量",
+                "form.building": "大楼",
+                "form.buildingPlaceholder": "心理学大楼",
+                "form.roomNumber": "房间号",
+                "form.addSession": "添加另一个会话",
+                "attendance.title": "认知记忆研究 - 2023年12月15日",
+                "attendance.studentId": "学生ID：",
+                "attendance.present": "出席"
+            },
+            en: {
+                "system.title": "Human Subject Recruitment Platform",
+                "nav.dashboard": "Dashboard",
+                "nav.experiments": "Experiments",
+                "nav.schedule": "My Schedule",
+                "nav.account": "Account",
+                "account.profile": "Profile",
+                "account.settings": "Settings",
+                "account.logout": "Logout",
+                "role.researcher": "Researcher",
+                "dashboard.overview": "Dashboard Overview",
+                "dashboard.activeExperiments": "Active Experiments",
+                "dashboard.totalParticipants": "Total Participants",
+                "dashboard.pendingApproval": "Pending Approval",
+                "dashboard.attendanceRate": "Attendance Rate",
+                "dashboard.upcomingSessions": "Upcoming Sessions",
+                "dashboard.quickActions": "Quick Actions",
+                "dashboard.notifications": "Notifications",
+                "experiment.cognitiveMemory": "Cognitive Memory Study",
+                "experiment.cognitiveDesc": "Research on short-term memory retention and recall patterns in young adults.",
+                "experiment.socialBehavior": "Social Behavior Analysis",
+                "experiment.socialDesc": "Study examining group dynamics and social interaction patterns.",
+                "experiment.attentionSpan": "Attention Span Study",
+                "experiment.attentionDesc": "Investigation of attention duration and focus factors in digital environments.",
+                "experiment.cognitiveShort": "Cognitive Study",
+                "experiment.attentionShort": "Attention Study",
+                "location.room305": "Room 305, Psychology Building",
+                "location.room201": "Room 201, Psychology Building",
+                "location.room102": "Room 102",
+                "status.posted": "Posted",
+                "status.pending": "Pending Approval",
+                "status.open": "Open",
+                "status.closed": "Closed",
+                "common.slots": "Slots",
+                "common.hoursAgo": "hours ago",
+                "common.minutes": "minutes",
+                "common.participants": "participants",
+                "action.createExperiment": "Create New Experiment",
+                "action.myExperiments": "My Experiments",
+                "action.updateAttendance": "Update Attendance",
+                "action.exportData": "Export Data",
+                "action.view": "View",
+                "action.signup": "Sign Up",
+                "action.edit": "Edit",
+                "action.attendance": "Attendance",
+                "action.approve": "Approve",
+                "action.reject": "Reject",
+                "action.cancel": "Cancel",
+                "action.saveDraft": "Save as Draft",
+                "action.submitApproval": "Submit for Approval",
+                "action.exportExcel": "Export to Excel",
+                "action.saveAttendance": "Save Attendance",
+                "notification.newParticipant": "New Participant",
+                "notification.participantMessage": "John Doe signed up for Cognitive Memory Study",
+                "notification.experimentApproved": "Experiment Approved",
+                "notification.approvalMessage": "Your experiment \"Attention Span Study\" has been approved",
+                "experiments.title": "Experiment Management",
+                "search.placeholder": "Search experiments by title, location, or description...",
+                "tabs.allExperiments": "All Experiments",
+                "tabs.myExperiments": "My Experiments",
+                "tabs.pendingApproval": "Pending Approval",
+                "schedule.title": "My Schedule",
+                "schedule.december": "December 2023",
+                "schedule.upcoming": "Upcoming Participations",
+                "calendar.sun": "Sun",
+                "calendar.mon": "Mon",
+                "calendar.tue": "Tue",
+                "calendar.wed": "Wed",
+                "calendar.thu": "Thu",
+                "calendar.fri": "Fri",
+                "calendar.sat": "Sat",
+                "modal.createExperiment": "Create New Experiment",
+                "modal.updateAttendance": "Update Attendance",
+                "form.experimentTitle": "Experiment Title",
+                "form.titlePlaceholder": "Enter experiment title",
+                "form.studyType": "Study Type",
+                "form.type331": "331 - Experimental Psychology",
+                "form.typeHonors": "Honors",
+                "form.typeFaculty": "Faculty",
+                "form.typeOthers": "Others",
+                "form.description": "Description",
+                "form.descriptionPlaceholder": "Describe your experiment",
+                "form.facultyAdvisor": "Faculty Advisor",
+                "form.facultyPlaceholder": "Faculty name",
+                "form.studyLength": "Study Length (minutes)",
+                "form.specialRequirements": "Special Requirements",
+                "form.requirementsPlaceholder": "Any special requirements",
+                "form.sessions": "Sessions",
+                "form.date": "Date",
+                "form.startTime": "Start Time",
+                "form.endTime": "End Time",
+                "form.capacity": "Capacity",
+                "form.building": "Building",
+                "form.buildingPlaceholder": "Psychology Building",
+                "form.roomNumber": "Room Number",
+                "form.addSession": "Add Another Session",
+                "attendance.title": "Cognitive Memory Study - Dec 15, 2023",
+                "attendance.studentId": "Student ID:",
+                "attendance.present": "Present"
+            }
+        };
+
+        let currentLanguage = 'zh';
+
+        // Initialize language switcher
+        document.addEventListener('DOMContentLoaded', function() {
+            // Get DOM elements
+            const languageDropdown = document.getElementById('languageDropdown');
+            const languageMenu = document.getElementById('languageMenu');
+            const currentLangSpan = document.getElementById('currentLang');
+            
+            // Toggle language menu
+            languageDropdown.addEventListener('click', function(e) {
+                e.stopPropagation();
+                languageMenu.classList.toggle('show');
+            });
+            
+            // Handle language option clicks
+            const languageOptions = document.querySelectorAll('.language-option');
+            languageOptions.forEach(option => {
+                option.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    const selectedLang = this.getAttribute('data-lang');
+                    switchLanguage(selectedLang);
+                });
+            });
+            
+            // Close menu when clicking outside
+            document.addEventListener('click', function() {
+                languageMenu.classList.remove('show');
+            });
+            
+            // Prevent menu from closing when clicking inside
+            languageMenu.addEventListener('click', function(e) {
+                e.stopPropagation();
+            });
+            
+            // Initialize language
+            updateLanguage();
+            showDashboard();
+        });
+
+        function switchLanguage(lang) {
+            if (lang === currentLanguage) return;
+            
+            // Add fade transition
+            const container = document.querySelector('.container-fluid');
+            container.classList.add('fade-out');
+            
+            setTimeout(() => {
+                currentLanguage = lang;
+                updateLanguage();
+                
+                // Update current language display
+                document.getElementById('currentLang').textContent = lang === 'zh' ? '中文' : 'English';
+                
+                // Update active state in menu
+                document.querySelectorAll('.language-option').forEach(option => {
+                    option.classList.remove('active');
+                    if (option.getAttribute('data-lang') === lang) {
+                        option.classList.add('active');
+                    }
+                });
+                
+                // Remove fade transition
+                container.classList.remove('fade-out');
+                
+                // Close menu
+                document.getElementById('languageMenu').classList.remove('show');
+                
+                // Show notification
+                showNotification(lang === 'zh' ? '语言已切换为中文' : 'Language changed to English');
+            }, 300);
+        }
+
+        function updateLanguage() {
+            document.querySelectorAll('[data-i18n]').forEach(element => {
+                const key = element.getAttribute('data-i18n');
+                if (translations[currentLanguage][key]) {
+                    element.textContent = translations[currentLanguage][key];
+                }
+            });
+            
+            document.querySelectorAll('[data-i18n-placeholder]').forEach(element => {
+                const key = element.getAttribute('data-i18n-placeholder');
+                if (translations[currentLanguage][key]) {
+                    element.placeholder = translations[currentLanguage][key];
+                }
+            });
+            
+            // Update page title
+            document.title = translations[currentLanguage]['system.title'];
+        }
+
+        // View Management
+        function showDashboard() {
+            hideAllViews();
+            document.getElementById('dashboardView').style.display = 'block';
+        }
+
+        function showExperiments() {
+            hideAllViews();
+            document.getElementById('experimentsView').style.display = 'block';
+        }
+
+        function showSchedule() {
+            hideAllViews();
+            document.getElementById('scheduleView').style.display = 'block';
+        }
+
+        function hideAllViews() {
+            document.getElementById('dashboardView').style.display = 'none';
+            document.getElementById('experimentsView').style.display = 'none';
+            document.getElementById('scheduleView').style.display = 'none';
+        }
+
+        // Experiment Management
+        function showCreateExperiment() {
+            const modal = new bootstrap.Modal(document.getElementById('createExperimentModal'));
+            modal.show();
+        }
+
+        function showMyExperiments() {
+            showExperiments();
+            const tabTrigger = new bootstrap.Tab(document.querySelector('[href="#myExperiments"]'));
+            tabTrigger.show();
+        }
+
+        function viewExperimentDetails() {
+            showNotification(currentLanguage === 'zh' ? '正在打开实验详情...' : 'Opening experiment details...');
+        }
+
+        function editExperiment() {
+            showCreateExperiment();
+            showNotification(currentLanguage === 'zh' ? '正在加载实验以编辑...' : 'Loading experiment for editing...');
+        }
+
+        function saveExperiment() {
+            showNotification(currentLanguage === 'zh' ? '实验已保存为草稿！' : 'Experiment saved as draft!');
+            bootstrap.Modal.getInstance(document.getElementById('createExperimentModal')).hide();
+        }
+
+        function submitForApproval() {
+            showNotification(currentLanguage === 'zh' ? '实验已提交审批！' : 'Experiment submitted for approval!');
+            bootstrap.Modal.getInstance(document.getElementById('createExperimentModal')).hide();
+        }
+
+        function approveExperiment() {
+            showNotification(currentLanguage === 'zh' ? '实验已批准并发布！' : 'Experiment approved and posted!');
+        }
+
+        function rejectExperiment() {
+            showNotification(currentLanguage === 'zh' ? '实验已拒绝。原因已发送给研究员。' : 'Experiment rejected. Reason sent to researcher.');
+        }
+
+        function signupForExperiment() {
+            showNotification(currentLanguage === 'zh' ? '成功报名参加实验！' : 'Successfully signed up for experiment!');
+        }
+
+        function cancelParticipation() {
+            showNotification(currentLanguage === 'zh' ? '参与已取消。' : 'Participation cancelled.');
+        }
+
+        // Session Management
+        function addSession() {
+            const sessionHtml = `
+                <div class="session-card">
+                    <div class="row">
+                        <div class="col-md-3 mb-2">
+                            <label class="form-label" data-i18n="form.date">${translations[currentLanguage]['form.date']}</label>
+                            <input type="date" class="glass-input">
+                        </div>
+                        <div class="col-md-3 mb-2">
+                            <label class="form-label" data-i18n="form.startTime">${translations[currentLanguage]['form.startTime']}</label>
+                            <input type="time" class="glass-input">
+                        </div>
+                        <div class="col-md-3 mb-2">
+                            <label class="form-label" data-i18n="form.endTime">${translations[currentLanguage]['form.endTime']}</label>
+                            <input type="time" class="glass-input">
+                        </div>
+                        <div class="col-md-3 mb-2">
+                            <label class="form-label" data-i18n="form.capacity">${translations[currentLanguage]['form.capacity']}</label>
+                            <input type="number" class="glass-input" placeholder="10">
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-2">
+                            <label class="form-label" data-i18n="form.building">${translations[currentLanguage]['form.building']}</label>
+                            <input type="text" class="glass-input" data-i18n-placeholder="form.buildingPlaceholder" placeholder="${translations[currentLanguage]['form.buildingPlaceholder']}">
+                        </div>
+                        <div class="col-md-6 mb-2">
+                            <label class="form-label" data-i18n="form.roomNumber">${translations[currentLanguage]['form.roomNumber']}</label>
+                            <input type="text" class="glass-input" placeholder="305">
+                        </div>
+                    </div>
+                </div>
+            `;
+            document.getElementById('sessionsContainer').insertAdjacentHTML('beforeend', sessionHtml);
+            updateLanguage(); // Update language for new elements
+        }
+
+        // Attendance Management
+        function showAttendance() {
+            const modal = new bootstrap.Modal(document.getElementById('attendanceModal'));
+            modal.show();
+        }
+
+        function updateAttendance() {
+            showAttendance();
+        }
+
+        function saveAttendance() {
+            showNotification(currentLanguage === 'zh' ? '出勤记录保存成功！' : 'Attendance saved successfully!');
+            bootstrap.Modal.getInstance(document.getElementById('attendanceModal')).hide();
+        }
+
+        function exportAttendance() {
+            showNotification(currentLanguage === 'zh' ? '正在导出出勤记录到Excel...' : 'Exporting attendance to Excel...');
+        }
+
+        // Data Export
+        function exportData() {
+            showNotification(currentLanguage === 'zh' ? '正在准备数据导出...' : 'Preparing data export...');
+        }
+
+        // User Management
+        function showProfile() {
+            showNotification(currentLanguage === 'zh' ? '正在打开个人资料...' : 'Opening profile...');
+        }
+
+        function showSettings() {
+            showNotification(currentLanguage === 'zh' ? '正在打开设置...' : 'Opening settings...');
+        }
+
+        function logout() {
+            showNotification(currentLanguage === 'zh' ? '正在退出登录...' : 'Logging out...');
+            setTimeout(() => {
+                window.location.reload();
+            }, 1500);
+        }
+
+        // Notification System
+        function showNotification(message) {
+            const notification = document.getElementById('notification');
+            const notificationText = document.getElementById('notificationText');
+            notificationText.textContent = message;
+            notification.style.display = 'block';
+            
+            setTimeout(() => {
+                notification.style.display = 'none';
+            }, 3000);
+        }
+    </script>
+</body>
+</html>
