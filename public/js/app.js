@@ -2,6 +2,7 @@
 let currentUser = null;
 let currentExperiment = null;
 let currentMode = null; // 'create' or 'edit'
+let currentSession = null; // Track current session for editing
 
 // Initialize app
 document.addEventListener('DOMContentLoaded', () => {
@@ -467,7 +468,10 @@ function renderSessionDetails(session, experimentId) {
                     <strong>${formatDate(session.startTime)} - ${formatTime(session.endTime)}</strong>
                     <p class="session-info">📍 ${session.location}</p>
                 </div>
-                <button class="btn btn-small btn-danger" onclick="deleteSession('${experimentId}', '${session._id}')">Delete</button>
+                <div style="display: flex; gap: 0.5rem;">
+                    <button class="btn btn-small btn-primary" onclick="editSession('${experimentId}', '${session._id}')">Edit</button>
+                    <button class="btn btn-small btn-danger" onclick="deleteSession('${experimentId}', '${session._id}')">Delete</button>
+                </div>
             </div>
             <p><strong>Participants:</strong> ${session.participants.filter(p => p.status !== 'cancelled').length}/${session.maxParticipants}</p>
             ${session.notes ? `<p><strong>Notes:</strong> ${session.notes}</p>` : ''}
@@ -515,10 +519,52 @@ function showAddSession() {
     closeSessionsModal();
     if (!currentExperiment) return;
 
+    currentMode = 'create';
+    currentSession = null;
+    document.getElementById('session-modal-title').textContent = 'Add Session';
     document.getElementById('session-form').reset();
     document.getElementById('session-location').value = currentExperiment.location;
     document.getElementById('session-maxParticipants').value = currentExperiment.maxParticipants;
     document.getElementById('session-modal').classList.add('show');
+}
+
+async function editSession(experimentId, sessionId) {
+    try {
+        const response = await fetch(`/api/experiments/${experimentId}`, {
+            headers: {
+                'Authorization': `Bearer ${localStorage.getItem('token')}`
+            }
+        });
+
+        const data = await response.json();
+
+        if (response.ok && data.success) {
+            currentExperiment = data.data;
+            currentSession = data.data.sessions.find(s => s._id === sessionId);
+
+            if (!currentSession) {
+                alert('Session not found');
+                return;
+            }
+
+            currentMode = 'edit';
+            document.getElementById('session-modal-title').textContent = 'Edit Session';
+
+            // Format datetime for input fields (YYYY-MM-DDTHH:mm)
+            const startTime = new Date(currentSession.startTime);
+            const endTime = new Date(currentSession.endTime);
+
+            document.getElementById('session-startTime').value = startTime.toISOString().slice(0, 16);
+            document.getElementById('session-endTime').value = endTime.toISOString().slice(0, 16);
+            document.getElementById('session-location').value = currentSession.location;
+            document.getElementById('session-maxParticipants').value = currentSession.maxParticipants;
+            document.getElementById('session-notes').value = currentSession.notes || '';
+
+            document.getElementById('session-modal').classList.add('show');
+        }
+    } catch (error) {
+        alert('Error loading session');
+    }
 }
 
 async function handleSessionSubmit(event) {
@@ -535,8 +581,13 @@ async function handleSessionSubmit(event) {
     const errorEl = document.getElementById('session-error');
 
     try {
-        const response = await fetch(`/api/experiments/${currentExperiment._id}/sessions`, {
-            method: 'POST',
+        const url = currentMode === 'edit'
+            ? `/api/experiments/${currentExperiment._id}/sessions/${currentSession._id}`
+            : `/api/experiments/${currentExperiment._id}/sessions`;
+        const method = currentMode === 'edit' ? 'PATCH' : 'POST';
+
+        const response = await fetch(url, {
+            method,
             headers: {
                 'Content-Type': 'application/json',
                 'Authorization': `Bearer ${localStorage.getItem('token')}`
@@ -550,9 +601,10 @@ async function handleSessionSubmit(event) {
             closeSessionModal();
             closeSessionsModal();
             loadResearcherExperiments();
-            showNotification('Session added successfully!', 'success');
+            const message = currentMode === 'edit' ? 'Session updated successfully!' : 'Session added successfully!';
+            showNotification(message, 'success');
         } else {
-            errorEl.textContent = data.error || 'Failed to add session';
+            errorEl.textContent = data.error || `Failed to ${currentMode === 'edit' ? 'update' : 'add'} session`;
             errorEl.classList.add('show');
         }
     } catch (error) {
@@ -610,11 +662,13 @@ function closeSessionModal() {
 }
 
 // Subject Dashboard Functions
-function showSubjectTab(tab) {
+function showSubjectTab(tab, event) {
     document.querySelectorAll('.tab-button').forEach(btn => btn.classList.remove('active'));
     document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
 
-    event.target.classList.add('active');
+    if (event && event.target) {
+        event.target.classList.add('active');
+    }
 
     if (tab === 'available') {
         document.getElementById('subject-available-container').classList.add('active');
