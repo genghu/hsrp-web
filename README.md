@@ -95,7 +95,15 @@ A comprehensive web application for managing research experiments and connecting
 
    The application will be available at `http://localhost:3000`
 
-6. **Build for production**
+6. **Build and run for production**
+
+   **Option 1: Build then start (automatic)**
+   ```bash
+   npm start
+   ```
+   This will automatically build the TypeScript files before starting.
+
+   **Option 2: Build separately**
    ```bash
    npm run build
    npm start
