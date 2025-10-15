@@ -548,7 +548,8 @@ async function handleSessionSubmit(event) {
         if (response.ok && data.success) {
             closeSessionModal();
             closeSessionsModal();
-            viewSessions(currentExperiment._id);
+            loadResearcherExperiments();
+            showNotification('Session added successfully!', 'success');
         } else {
             errorEl.textContent = data.error || 'Failed to add session';
             errorEl.classList.add('show');
