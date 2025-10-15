@@ -512,6 +512,7 @@ function closeSessionsModal() {
 }
 
 function showAddSession() {
+    closeSessionsModal();
     if (!currentExperiment) return;
 
     document.getElementById('session-form').reset();
