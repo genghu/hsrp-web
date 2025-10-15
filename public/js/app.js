@@ -47,6 +47,8 @@ function updateNavigation(isLoggedIn) {
     document.getElementById('nav-register').style.display = isLoggedIn ? 'none' : 'block';
     document.getElementById('nav-dashboard').style.display = isLoggedIn ? 'block' : 'none';
     document.getElementById('nav-logout').style.display = isLoggedIn ? 'block' : 'none';
+    updateFloatingButton();
+    updateLanguageSwitcher();
 }
 
 function showDashboard() {
@@ -196,49 +198,49 @@ async function loadResearcherExperiments() {
 }
 
 function renderExperimentCard(exp) {
-    const statusBadge = `<span class="badge badge-${exp.status}">${exp.status}</span>`;
+    const statusBadge = `<span class="status-badge status-${exp.status}">${exp.status.replace('_', ' ')}</span>`;
 
     return `
-        <div class="card">
-            <div class="card-header">
+        <div class="experiment-card">
+            <div class="d-flex justify-content-between align-items-start mb-3">
                 <div>
-                    <h3 class="card-title">${exp.title}</h3>
+                    <h4><i class="fas fa-flask me-2"></i>${exp.title}</h4>
                     ${statusBadge}
                 </div>
-                <div class="card-actions">
-                    <button class="btn btn-small btn-primary" onclick="editExperiment('${exp._id}')">Edit</button>
-                    <button class="btn btn-small btn-success" onclick="viewSessions('${exp._id}')">Sessions</button>
-                    <button class="btn btn-small btn-danger" onclick="deleteExperiment('${exp._id}')">Delete</button>
+                <div class="d-flex gap-2">
+                    <button class="glass-button" style="padding: 8px 16px; font-size: 0.875rem;" onclick="editExperiment('${exp._id}')"><i class="fas fa-edit me-1"></i>Edit</button>
+                    <button class="glass-button" style="padding: 8px 16px; font-size: 0.875rem;" onclick="viewSessions('${exp._id}')"><i class="fas fa-calendar me-1"></i>Sessions</button>
+                    <button class="glass-button" style="padding: 8px 16px; font-size: 0.875rem;" onclick="deleteExperiment('${exp._id}')"><i class="fas fa-trash me-1"></i>Delete</button>
                 </div>
             </div>
-            <p>${exp.description}</p>
-            <div class="info-grid">
-                <div class="info-item">
-                    <span class="info-label">Location</span>
-                    <span class="info-value">${exp.location}</span>
+            <p style="margin-bottom: 1rem;">${exp.description}</p>
+            <div class="row g-3 mb-3">
+                <div class="col-md-3">
+                    <div><i class="fas fa-map-marker-alt me-2"></i><strong>Location:</strong></div>
+                    <div>${exp.location}</div>
                 </div>
-                <div class="info-item">
-                    <span class="info-label">Duration</span>
-                    <span class="info-value">${exp.duration} minutes</span>
+                <div class="col-md-3">
+                    <div><i class="fas fa-clock me-2"></i><strong>Duration:</strong></div>
+                    <div>${exp.duration} minutes</div>
                 </div>
-                <div class="info-item">
-                    <span class="info-label">Compensation</span>
-                    <span class="info-value">${exp.compensation}</span>
+                <div class="col-md-3">
+                    <div><i class="fas fa-dollar-sign me-2"></i><strong>Compensation:</strong></div>
+                    <div>${exp.compensation}</div>
                 </div>
-                <div class="info-item">
-                    <span class="info-label">Max Participants</span>
-                    <span class="info-value">${exp.maxParticipants}</span>
+                <div class="col-md-3">
+                    <div><i class="fas fa-users me-2"></i><strong>Max Participants:</strong></div>
+                    <div>${exp.maxParticipants}</div>
                 </div>
             </div>
             ${exp.requirements && exp.requirements.length > 0 ? `
-                <div>
-                    <strong>Requirements:</strong>
-                    <ul class="requirements-list">
+                <div class="mb-3">
+                    <strong><i class="fas fa-list-check me-2"></i>Requirements:</strong>
+                    <ul class="requirements-list" style="margin-top: 0.5rem;">
                         ${exp.requirements.map(req => `<li>${req}</li>`).join('')}
                     </ul>
                 </div>
             ` : ''}
-            ${exp.sessions && exp.sessions.length > 0 ? renderSessionsPreview(exp.sessions) : '<p style="margin-top: 1rem; color: var(--text-muted);">No sessions scheduled yet.</p>'}
+            ${exp.sessions && exp.sessions.length > 0 ? renderSessionsPreview(exp.sessions) : '<p style="margin-top: 1rem; color: rgba(255, 255, 255, 0.7);"><i class="fas fa-info-circle me-2"></i>No sessions scheduled yet.</p>'}
         </div>
     `;
 }
@@ -803,4 +805,126 @@ function formatTime(dateString) {
         hour: '2-digit',
         minute: '2-digit'
     });
+}
+
+// Notification System
+function showNotification(message, type = 'success') {
+    const notification = document.getElementById('notification');
+    const notificationText = document.getElementById('notificationText');
+    const icon = notification.querySelector('i');
+
+    // Update icon based on type
+    icon.className = type === 'success' ? 'fas fa-check-circle me-2' :
+                     type === 'error' ? 'fas fa-exclamation-circle me-2' :
+                     'fas fa-info-circle me-2';
+
+    notificationText.textContent = message;
+    notification.classList.add('show');
+
+    setTimeout(() => {
+        notification.classList.remove('show');
+    }, 3000);
+}
+
+// Language Switcher
+let currentLanguage = 'en';
+
+const translations = {
+    en: {
+        'home': 'Home',
+        'login': 'Login',
+        'register': 'Register',
+        'dashboard': 'Dashboard',
+        'logout': 'Logout'
+    },
+    zh: {
+        'home': '首页',
+        'login': '登录',
+        'register': '注册',
+        'dashboard': '仪表板',
+        'logout': '退出登录'
+    }
+};
+
+// Initialize language switcher
+document.addEventListener('DOMContentLoaded', function() {
+    const languageDropdown = document.getElementById('languageDropdown');
+    const languageMenu = document.getElementById('languageMenu');
+
+    if (languageDropdown && languageMenu) {
+        // Toggle language menu
+        languageDropdown.addEventListener('click', function(e) {
+            e.stopPropagation();
+            languageMenu.classList.toggle('show');
+        });
+
+        // Handle language option clicks
+        const languageOptions = document.querySelectorAll('.language-option');
+        languageOptions.forEach(option => {
+            option.addEventListener('click', function(e) {
+                e.stopPropagation();
+                const selectedLang = this.getAttribute('data-lang');
+                switchLanguage(selectedLang);
+            });
+        });
+
+        // Close menu when clicking outside
+        document.addEventListener('click', function() {
+            languageMenu.classList.remove('show');
+        });
+
+        // Prevent menu from closing when clicking inside
+        languageMenu.addEventListener('click', function(e) {
+            e.stopPropagation();
+        });
+    }
+});
+
+function switchLanguage(lang) {
+    if (lang === currentLanguage) return;
+
+    currentLanguage = lang;
+
+    // Update current language display
+    const currentLangSpan = document.getElementById('currentLang');
+    if (currentLangSpan) {
+        currentLangSpan.textContent = lang === 'zh' ? '中文' : 'EN';
+    }
+
+    // Update active state in menu
+    document.querySelectorAll('.language-option').forEach(option => {
+        option.classList.remove('active');
+        if (option.getAttribute('data-lang') === lang) {
+            option.classList.add('active');
+        }
+    });
+
+    // Close menu
+    const languageMenu = document.getElementById('languageMenu');
+    if (languageMenu) {
+        languageMenu.classList.remove('show');
+    }
+
+    // Show notification
+    showNotification(lang === 'zh' ? '语言已切换为中文' : 'Language changed to English');
+}
+
+// Floating button visibility control
+function updateFloatingButton() {
+    const floatingButton = document.getElementById('floating-button');
+    if (floatingButton && currentUser && currentUser.role === 'researcher') {
+        floatingButton.style.display = 'block';
+    } else if (floatingButton) {
+        floatingButton.style.display = 'none';
+    }
+}
+
+// Language switcher visibility control
+function updateLanguageSwitcher() {
+    const languageSwitcher = document.getElementById('language-switcher');
+    if (languageSwitcher && currentUser) {
+        languageSwitcher.style.display = 'inline-block';
+    } else if (languageSwitcher) {
+        languageSwitcher.style.display = 'none';
+    }
 }

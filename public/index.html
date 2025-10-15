@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>HSRP - Human Subject Recruitment Platform</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="/css/styles.css">
 </head>
 <body>
@@ -11,14 +13,31 @@
         <nav class="navbar">
             <div class="nav-container">
                 <div class="nav-brand">
-                    <h1>HSRP</h1>
+                    <h1><i class="fas fa-brain me-2"></i>HSRP</h1>
                 </div>
                 <div id="nav-menu" class="nav-menu">
-                    <a href="#" onclick="showPage('home')">Home</a>
-                    <a href="#" id="nav-login" onclick="showPage('login')">Login</a>
-                    <a href="#" id="nav-register" onclick="showPage('register')">Register</a>
-                    <a href="#" id="nav-dashboard" style="display:none;" onclick="showDashboard()">Dashboard</a>
-                    <a href="#" id="nav-logout" style="display:none;" onclick="logout()">Logout</a>
+                    <a href="#" onclick="showPage('home')"><i class="fas fa-home me-1"></i>Home</a>
+                    <a href="#" id="nav-login" onclick="showPage('login')"><i class="fas fa-sign-in-alt me-1"></i>Login</a>
+                    <a href="#" id="nav-register" onclick="showPage('register')"><i class="fas fa-user-plus me-1"></i>Register</a>
+                    <a href="#" id="nav-dashboard" style="display:none;" onclick="showDashboard()"><i class="fas fa-tachometer-alt me-1"></i>Dashboard</a>
+                    <div class="language-switcher" id="language-switcher" style="display:none;">
+                        <div class="language-dropdown" id="languageDropdown">
+                            <i class="fas fa-globe"></i>
+                            <span id="currentLang">EN</span>
+                            <i class="fas fa-chevron-down"></i>
+                        </div>
+                        <div class="language-menu" id="languageMenu">
+                            <div class="language-option active" data-lang="en">
+                                <i class="fas fa-flag-usa"></i>
+                                <span>English</span>
+                            </div>
+                            <div class="language-option" data-lang="zh">
+                                <i class="fas fa-flag"></i>
+                                <span>中文</span>
+                            </div>
+                        </div>
+                    </div>
+                    <a href="#" id="nav-logout" style="display:none;" onclick="logout()"><i class="fas fa-sign-out-alt me-1"></i>Logout</a>
                 </div>
             </div>
         </nav>
@@ -31,22 +50,22 @@
                     <p class="subtitle">Human Subject Recruitment Platform</p>
                     <p>Connect researchers with participants for scientific studies</p>
                     <div class="hero-buttons">
-                        <button class="btn btn-primary" onclick="showPage('register')">Get Started</button>
-                        <button class="btn btn-secondary" onclick="showPage('login')">Sign In</button>
+                        <button class="glass-button" onclick="showPage('register')"><i class="fas fa-rocket me-2"></i>Get Started</button>
+                        <button class="glass-button" onclick="showPage('login')"><i class="fas fa-sign-in-alt me-2"></i>Sign In</button>
                     </div>
                 </div>
 
                 <div class="features">
                     <div class="feature">
-                        <h3>For Researchers</h3>
+                        <h3><i class="fas fa-microscope me-2"></i>For Researchers</h3>
                         <p>Create experiments, manage sessions, and recruit participants efficiently</p>
                     </div>
                     <div class="feature">
-                        <h3>For Participants</h3>
+                        <h3><i class="fas fa-users me-2"></i>For Participants</h3>
                         <p>Browse available studies, sign up for sessions, and contribute to science</p>
                     </div>
                     <div class="feature">
-                        <h3>Secure & Reliable</h3>
+                        <h3><i class="fas fa-shield-alt me-2"></i>Secure & Reliable</h3>
                         <p>Your data is protected with enterprise-grade security</p>
                     </div>
                 </div>
@@ -66,7 +85,7 @@
                             <input type="password" id="login-password" required>
                         </div>
                         <div id="login-error" class="error-message"></div>
-                        <button type="submit" class="btn btn-primary btn-block">Login</button>
+                        <button type="submit" class="glass-button" style="width:100%;"><i class="fas fa-sign-in-alt me-2"></i>Login</button>
                     </form>
                     <p class="auth-link">Don't have an account? <a href="#" onclick="showPage('register')">Register</a></p>
                 </div>
@@ -111,7 +130,7 @@
                             </div>
                         </div>
                         <div id="register-error" class="error-message"></div>
-                        <button type="submit" class="btn btn-primary btn-block">Register</button>
+                        <button type="submit" class="glass-button" style="width:100%;"><i class="fas fa-user-plus me-2"></i>Register</button>
                     </form>
                     <p class="auth-link">Already have an account? <a href="#" onclick="showPage('login')">Login</a></p>
                 </div>
@@ -119,22 +138,26 @@
 
             <!-- Researcher Dashboard -->
             <div id="page-researcher-dashboard" class="page">
-                <h2>Researcher Dashboard</h2>
-                <div class="dashboard-header">
-                    <button class="btn btn-primary" onclick="showCreateExperiment()">Create New Experiment</button>
+                <div class="glass-container">
+                    <div class="dashboard-header">
+                        <h2><i class="fas fa-tachometer-alt me-2"></i>Researcher Dashboard</h2>
+                        <button class="glass-button" onclick="showCreateExperiment()"><i class="fas fa-plus me-2"></i>Create New Experiment</button>
+                    </div>
+                    <div id="researcher-experiments-container"></div>
                 </div>
-                <div id="researcher-experiments-container"></div>
             </div>
 
             <!-- Subject Dashboard -->
             <div id="page-subject-dashboard" class="page">
-                <h2>Available Experiments</h2>
-                <div class="tabs">
-                    <button class="tab-button active" onclick="showSubjectTab('available')">Available Studies</button>
-                    <button class="tab-button" onclick="showSubjectTab('registered')">My Registrations</button>
+                <div class="glass-container">
+                    <h2><i class="fas fa-flask me-2"></i>Available Experiments</h2>
+                    <div class="tabs">
+                        <button class="tab-button active" onclick="showSubjectTab('available')"><i class="fas fa-list me-1"></i>Available Studies</button>
+                        <button class="tab-button" onclick="showSubjectTab('registered')"><i class="fas fa-check-circle me-1"></i>My Registrations</button>
+                    </div>
+                    <div id="subject-available-container" class="tab-content active"></div>
+                    <div id="subject-registered-container" class="tab-content"></div>
                 </div>
-                <div id="subject-available-container" class="tab-content active"></div>
-                <div id="subject-registered-container" class="tab-content"></div>
             </div>
 
             <!-- Create/Edit Experiment Modal -->
@@ -186,8 +209,8 @@
                         </div>
                         <div id="experiment-error" class="error-message"></div>
                         <div class="modal-buttons">
-                            <button type="button" class="btn btn-secondary" onclick="closeExperimentModal()">Cancel</button>
-                            <button type="submit" class="btn btn-primary">Save</button>
+                            <button type="button" class="glass-button" onclick="closeExperimentModal()"><i class="fas fa-times me-2"></i>Cancel</button>
+                            <button type="submit" class="glass-button"><i class="fas fa-save me-2"></i>Save</button>
                         </div>
                     </form>
                 </div>
@@ -221,15 +244,29 @@
                         </div>
                         <div id="session-error" class="error-message"></div>
                         <div class="modal-buttons">
-                            <button type="button" class="btn btn-secondary" onclick="closeSessionModal()">Cancel</button>
-                            <button type="submit" class="btn btn-primary">Save</button>
+                            <button type="button" class="glass-button" onclick="closeSessionModal()"><i class="fas fa-times me-2"></i>Cancel</button>
+                            <button type="submit" class="glass-button"><i class="fas fa-save me-2"></i>Save</button>
                         </div>
                     </form>
                 </div>
             </div>
         </main>
+
+        <!-- Notification -->
+        <div id="notification" class="notification">
+            <div class="d-flex align-items-center">
+                <i class="fas fa-check-circle me-2"></i>
+                <span id="notificationText">Operation completed successfully!</span>
+            </div>
+        </div>
+
+        <!-- Floating Action Button -->
+        <button id="floating-button" class="floating-button" style="display:none;" onclick="showCreateExperiment()">
+            <i class="fas fa-plus"></i>
+        </button>
     </div>
 
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="/js/api.js"></script>
     <script src="/js/app.js"></script>
 </body>
