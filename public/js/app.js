@@ -36,10 +36,20 @@ async function initializeApp() {
 
 // Navigation functions
 function showPage(pageName) {
+    console.log('showPage called with:', pageName);
+
+    const pageElement = document.getElementById(`page-${pageName}`);
+    if (!pageElement) {
+        console.error(`Page not found: page-${pageName}`);
+        return;
+    }
+
     document.querySelectorAll('.page').forEach(page => {
         page.classList.remove('active');
     });
-    document.getElementById(`page-${pageName}`).classList.add('active');
+
+    pageElement.classList.add('active');
+    console.log(`Switched to page: ${pageName}`);
 }
 
 function updateNavigation(isLoggedIn) {

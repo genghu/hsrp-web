@@ -150,14 +150,10 @@ body {
     background: rgba(255, 255, 255, 0.12);
     backdrop-filter: blur(12px);
     border-bottom: 1px solid rgba(255, 255, 255, 0.25);
-    padding: 15px 10px;
+    padding: 15px 30px;
     position: relative;
     z-index: 1000;
-    display: block;           /* 1. 声明为 Flex 容器 */
-    /* justify-content: space-between; /* 2. 子元素两端对齐，第一个在最左，最后一个在最右 */
-    /* align-items: center; */    /* (可选) 让子元素在垂直方向上居中对齐 */ 
 }
-
 
 .navbar-brand {
     font-size: 1.6rem;
@@ -166,12 +162,6 @@ body {
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
-    float: left;
-}
-.nav-menu {
-
-    float: right;
-
 }
 
 .nav-link {
