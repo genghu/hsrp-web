@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HSRP - Human Subject Recruitment Platform</title>
+    <link rel="stylesheet" href="/css/styles.css">
+</head>
+<body>
+    <div id="app">
+        <nav class="navbar">
+            <div class="nav-container">
+                <div class="nav-brand">
+                    <h1>HSRP</h1>
+                </div>
+                <div id="nav-menu" class="nav-menu">
+                    <a href="#" onclick="showPage('home')">Home</a>
+                    <a href="#" id="nav-login" onclick="showPage('login')">Login</a>
+                    <a href="#" id="nav-register" onclick="showPage('register')">Register</a>
+                    <a href="#" id="nav-dashboard" style="display:none;" onclick="showDashboard()">Dashboard</a>
+                    <a href="#" id="nav-logout" style="display:none;" onclick="logout()">Logout</a>
+                </div>
+            </div>
+        </nav>
+
+        <main class="container">
+            <!-- Home Page -->
+            <div id="page-home" class="page active">
+                <div class="hero">
+                    <h1>Welcome to HSRP</h1>
+                    <p class="subtitle">Human Subject Recruitment Platform</p>
+                    <p>Connect researchers with participants for scientific studies</p>
+                    <div class="hero-buttons">
+                        <button class="btn btn-primary" onclick="showPage('register')">Get Started</button>
+                        <button class="btn btn-secondary" onclick="showPage('login')">Sign In</button>
+                    </div>
+                </div>
+
+                <div class="features">
+                    <div class="feature">
+                        <h3>For Researchers</h3>
+                        <p>Create experiments, manage sessions, and recruit participants efficiently</p>
+                    </div>
+                    <div class="feature">
+                        <h3>For Participants</h3>
+                        <p>Browse available studies, sign up for sessions, and contribute to science</p>
+                    </div>
+                    <div class="feature">
+                        <h3>Secure & Reliable</h3>
+                        <p>Your data is protected with enterprise-grade security</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Login Page -->
+            <div id="page-login" class="page">
+                <div class="auth-container">
+                    <h2>Login</h2>
+                    <form id="login-form" onsubmit="handleLogin(event)">
+                        <div class="form-group">
+                            <label for="login-email">Email</label>
+                            <input type="email" id="login-email" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="login-password">Password</label>
+                            <input type="password" id="login-password" required>
+                        </div>
+                        <div id="login-error" class="error-message"></div>
+                        <button type="submit" class="btn btn-primary btn-block">Login</button>
+                    </form>
+                    <p class="auth-link">Don't have an account? <a href="#" onclick="showPage('register')">Register</a></p>
+                </div>
+            </div>
+
+            <!-- Register Page -->
+            <div id="page-register" class="page">
+                <div class="auth-container">
+                    <h2>Register</h2>
+                    <form id="register-form" onsubmit="handleRegister(event)">
+                        <div class="form-group">
+                            <label for="register-firstName">First Name</label>
+                            <input type="text" id="register-firstName" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="register-lastName">Last Name</label>
+                            <input type="text" id="register-lastName" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="register-email">Email</label>
+                            <input type="email" id="register-email" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="register-password">Password</label>
+                            <input type="password" id="register-password" required minlength="6">
+                        </div>
+                        <div class="form-group">
+                            <label for="register-role">I am a:</label>
+                            <select id="register-role" required>
+                                <option value="subject">Participant (Subject)</option>
+                                <option value="researcher">Researcher</option>
+                            </select>
+                        </div>
+                        <div id="researcher-fields" style="display:none;">
+                            <div class="form-group">
+                                <label for="register-institution">Institution</label>
+                                <input type="text" id="register-institution">
+                            </div>
+                            <div class="form-group">
+                                <label for="register-department">Department</label>
+                                <input type="text" id="register-department">
+                            </div>
+                        </div>
+                        <div id="register-error" class="error-message"></div>
+                        <button type="submit" class="btn btn-primary btn-block">Register</button>
+                    </form>
+                    <p class="auth-link">Already have an account? <a href="#" onclick="showPage('login')">Login</a></p>
+                </div>
+            </div>
+
+            <!-- Researcher Dashboard -->
+            <div id="page-researcher-dashboard" class="page">
+                <h2>Researcher Dashboard</h2>
+                <div class="dashboard-header">
+                    <button class="btn btn-primary" onclick="showCreateExperiment()">Create New Experiment</button>
+                </div>
+                <div id="researcher-experiments-container"></div>
+            </div>
+
+            <!-- Subject Dashboard -->
+            <div id="page-subject-dashboard" class="page">
+                <h2>Available Experiments</h2>
+                <div class="tabs">
+                    <button class="tab-button active" onclick="showSubjectTab('available')">Available Studies</button>
+                    <button class="tab-button" onclick="showSubjectTab('registered')">My Registrations</button>
+                </div>
+                <div id="subject-available-container" class="tab-content active"></div>
+                <div id="subject-registered-container" class="tab-content"></div>
+            </div>
+
+            <!-- Create/Edit Experiment Modal -->
+            <div id="experiment-modal" class="modal">
+                <div class="modal-content">
+                    <span class="close" onclick="closeExperimentModal()">&times;</span>
+                    <h2 id="experiment-modal-title">Create Experiment</h2>
+                    <form id="experiment-form" onsubmit="handleExperimentSubmit(event)">
+                        <div class="form-group">
+                            <label for="exp-title">Title</label>
+                            <input type="text" id="exp-title" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="exp-description">Description</label>
+                            <textarea id="exp-description" rows="4" required></textarea>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="exp-location">Location</label>
+                                <input type="text" id="exp-location" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="exp-duration">Duration (minutes)</label>
+                                <input type="number" id="exp-duration" min="1" required>
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="exp-compensation">Compensation</label>
+                                <input type="text" id="exp-compensation" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="exp-maxParticipants">Max Participants per Session</label>
+                                <input type="number" id="exp-maxParticipants" min="1" required>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="exp-requirements">Requirements (one per line)</label>
+                            <textarea id="exp-requirements" rows="3"></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label for="exp-status">Status</label>
+                            <select id="exp-status">
+                                <option value="draft">Draft</option>
+                                <option value="open">Open for Recruitment</option>
+                                <option value="in_progress">In Progress</option>
+                                <option value="completed">Completed</option>
+                            </select>
+                        </div>
+                        <div id="experiment-error" class="error-message"></div>
+                        <div class="modal-buttons">
+                            <button type="button" class="btn btn-secondary" onclick="closeExperimentModal()">Cancel</button>
+                            <button type="submit" class="btn btn-primary">Save</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Session Modal -->
+            <div id="session-modal" class="modal">
+                <div class="modal-content">
+                    <span class="close" onclick="closeSessionModal()">&times;</span>
+                    <h2 id="session-modal-title">Add Session</h2>
+                    <form id="session-form" onsubmit="handleSessionSubmit(event)">
+                        <div class="form-group">
+                            <label for="session-startTime">Start Time</label>
+                            <input type="datetime-local" id="session-startTime" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="session-endTime">End Time</label>
+                            <input type="datetime-local" id="session-endTime" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="session-location">Location</label>
+                            <input type="text" id="session-location" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="session-maxParticipants">Max Participants</label>
+                            <input type="number" id="session-maxParticipants" min="1" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="session-notes">Notes (optional)</label>
+                            <textarea id="session-notes" rows="3"></textarea>
+                        </div>
+                        <div id="session-error" class="error-message"></div>
+                        <div class="modal-buttons">
+                            <button type="button" class="btn btn-secondary" onclick="closeSessionModal()">Cancel</button>
+                            <button type="submit" class="btn btn-primary">Save</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="/js/api.js"></script>
+    <script src="/js/app.js"></script>
+</body>
+</html>
