@@ -790,6 +790,295 @@ body {
     color: rgba(255, 255, 255, 0.9);
 }
 
+/* Button styles */
+.btn {
+    background: linear-gradient(135deg, rgba(58, 134, 255, 0.3), rgba(162, 59, 114, 0.3));
+    backdrop-filter: blur(8px);
+    border: 1px solid rgba(255, 255, 255, 0.35);
+    color: white;
+    padding: 12px 24px;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-weight: 500;
+    font-size: 1rem;
+    position: relative;
+    overflow: hidden;
+}
+
+.btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(58, 134, 255, 0.4);
+    border-color: rgba(255, 255, 255, 0.5);
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, rgba(58, 134, 255, 0.4), rgba(46, 134, 171, 0.4));
+    border-color: rgba(58, 134, 255, 0.5);
+}
+
+.btn-primary:hover {
+    box-shadow: 0 8px 20px rgba(58, 134, 255, 0.5);
+}
+
+.btn-success {
+    background: linear-gradient(135deg, rgba(6, 255, 180, 0.4), rgba(6, 255, 165, 0.4));
+    border-color: rgba(6, 255, 180, 0.5);
+}
+
+.btn-success:hover {
+    box-shadow: 0 8px 20px rgba(6, 255, 180, 0.5);
+}
+
+.btn-danger {
+    background: linear-gradient(135deg, rgba(239, 68, 68, 0.4), rgba(220, 38, 38, 0.4));
+    border-color: rgba(239, 68, 68, 0.5);
+}
+
+.btn-danger:hover {
+    box-shadow: 0 8px 20px rgba(239, 68, 68, 0.5);
+}
+
+.btn-small {
+    padding: 6px 12px;
+    font-size: 0.875rem;
+    border-radius: 8px;
+}
+
+/* Card styles */
+.card {
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(8px);
+    border-radius: 15px;
+    border: 1px solid rgba(255, 255, 255, 0.25);
+    padding: 20px;
+    margin: 12px 0;
+    transition: all 0.3s ease;
+}
+
+.card:hover {
+    background: rgba(255, 255, 255, 0.15);
+    box-shadow: 0 8px 25px rgba(58, 134, 255, 0.3);
+}
+
+.card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 15px;
+    padding-bottom: 15px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.card-title {
+    color: white;
+    margin: 0 0 0.5rem 0;
+}
+
+.session-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+}
+
+.session-time {
+    font-weight: 600;
+    color: #06FFB4;
+    display: block;
+    margin-bottom: 0.5rem;
+}
+
+.session-info {
+    color: rgba(255, 255, 255, 0.85);
+    font-size: 0.9rem;
+    margin: 0.25rem 0;
+}
+
+.sessions-container {
+    margin-top: 1rem;
+}
+
+.sessions-container strong {
+    color: white;
+    display: block;
+    margin-bottom: 0.75rem;
+}
+
+.requirements-list {
+    margin: 0.5rem 0;
+    padding-left: 1.5rem;
+    color: rgba(255, 255, 255, 0.9);
+}
+
+.requirements-list li {
+    margin: 0.25rem 0;
+}
+
+.participants-list {
+    margin-top: 1rem;
+}
+
+.participant-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px;
+    margin: 8px 0;
+    background: rgba(255, 255, 255, 0.08);
+    border-radius: 8px;
+    border: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+.participant-item strong {
+    color: white;
+}
+
+.participant-item select {
+    background: rgba(255, 255, 255, 0.15);
+    border: 1px solid rgba(255, 255, 255, 0.35);
+    color: white;
+    padding: 6px 12px;
+    border-radius: 6px;
+    cursor: pointer;
+}
+
+.participant-item select option {
+    background: #2E86AB;
+    color: white;
+}
+
+.badge {
+    padding: 4px 12px;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    display: inline-block;
+    margin-left: 8px;
+}
+
+.badge-open {
+    background: rgba(6, 255, 180, 0.3);
+    color: #06FFB4;
+    border: 1px solid rgba(6, 255, 180, 0.5);
+}
+
+.badge-registered {
+    background: rgba(58, 134, 255, 0.3);
+    color: #3A86FF;
+    border: 1px solid rgba(58, 134, 255, 0.5);
+}
+
+.badge-confirmed {
+    background: rgba(6, 255, 165, 0.3);
+    color: #06FFA5;
+    border: 1px solid rgba(6, 255, 165, 0.5);
+}
+
+.badge-attended {
+    background: rgba(6, 255, 180, 0.3);
+    color: #06FFB4;
+    border: 1px solid rgba(6, 255, 180, 0.5);
+}
+
+.badge-no_show {
+    background: rgba(255, 193, 7, 0.3);
+    color: #FFC107;
+    border: 1px solid rgba(255, 193, 7, 0.5);
+}
+
+.badge-cancelled {
+    background: rgba(239, 68, 68, 0.3);
+    color: #EF4444;
+    border: 1px solid rgba(239, 68, 68, 0.5);
+}
+
+.badge-success {
+    background: rgba(6, 255, 180, 0.3);
+    color: #06FFB4;
+    border: 1px solid rgba(6, 255, 180, 0.5);
+}
+
+.empty-state {
+    text-align: center;
+    padding: 3rem 2rem;
+    color: rgba(255, 255, 255, 0.8);
+}
+
+.empty-state-icon {
+    font-size: 4rem;
+    margin-bottom: 1rem;
+}
+
+.tabs {
+    display: flex;
+    gap: 0.5rem;
+    margin-bottom: 1.5rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.tab-button {
+    background: rgba(255, 255, 255, 0.1);
+    border: none;
+    border-bottom: 3px solid transparent;
+    color: rgba(255, 255, 255, 0.7);
+    padding: 12px 24px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-weight: 500;
+}
+
+.tab-button:hover {
+    background: rgba(255, 255, 255, 0.15);
+    color: white;
+}
+
+.tab-button.active {
+    color: white;
+    background: rgba(255, 255, 255, 0.15);
+    border-bottom-color: #06FFB4;
+}
+
+.tab-content {
+    display: none;
+}
+
+.tab-content.active {
+    display: block;
+}
+
+.info-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+    margin: 1rem 0;
+}
+
+.info-item {
+    background: rgba(255, 255, 255, 0.08);
+    padding: 12px;
+    border-radius: 8px;
+    border: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+.info-label {
+    display: block;
+    font-size: 0.85rem;
+    color: rgba(255, 255, 255, 0.7);
+    margin-bottom: 0.25rem;
+}
+
+.info-value {
+    display: block;
+    font-weight: 600;
+    color: white;
+}
+
+.form-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+}
+
 /* Container */
 .container {
     max-width: 1200px;
