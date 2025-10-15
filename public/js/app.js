@@ -66,19 +66,32 @@ function showDashboard() {
     }
 }
 
-// Role selector handler
-document.getElementById('register-role').addEventListener('change', (e) => {
-    const researcherFields = document.getElementById('researcher-fields');
-    researcherFields.style.display = e.target.value === 'researcher' ? 'block' : 'none';
+// Role selector handler - wrapped in DOMContentLoaded to ensure element exists
+document.addEventListener('DOMContentLoaded', () => {
+    const registerRole = document.getElementById('register-role');
+    if (registerRole) {
+        registerRole.addEventListener('change', (e) => {
+            const researcherFields = document.getElementById('researcher-fields');
+            if (researcherFields) {
+                researcherFields.style.display = e.target.value === 'researcher' ? 'block' : 'none';
+            }
+        });
+    }
 });
 
 // Authentication handlers
 async function handleLogin(event) {
     event.preventDefault();
 
+    console.log('Login form submitted');
+
     const email = document.getElementById('login-email').value;
     const password = document.getElementById('login-password').value;
     const errorEl = document.getElementById('login-error');
+
+    // Clear previous errors
+    errorEl.textContent = '';
+    errorEl.classList.remove('show');
 
     try {
         const response = await fetch('/api/auth/login', {
@@ -92,22 +105,30 @@ async function handleLogin(event) {
         const data = await response.json();
 
         if (response.ok && data.success) {
+            console.log('Login successful');
             localStorage.setItem('token', data.data.token);
             currentUser = data.data.user;
+            showNotification(`Welcome back, ${data.data.user.firstName}!`, 'success');
             updateNavigation(true);
             showDashboard();
         } else {
+            console.error('Login failed:', data.error);
             errorEl.textContent = data.error || 'Login failed';
             errorEl.classList.add('show');
+            showNotification(data.error || 'Login failed', 'error');
         }
     } catch (error) {
+        console.error('Login error:', error);
         errorEl.textContent = 'An error occurred. Please try again.';
         errorEl.classList.add('show');
+        showNotification('An error occurred. Please try again.', 'error');
     }
 }
 
 async function handleRegister(event) {
     event.preventDefault();
+
+    console.log('Register form submitted');
 
     const firstName = document.getElementById('register-firstName').value;
     const lastName = document.getElementById('register-lastName').value;
@@ -117,6 +138,10 @@ async function handleRegister(event) {
     const institution = document.getElementById('register-institution').value;
     const department = document.getElementById('register-department').value;
     const errorEl = document.getElementById('register-error');
+
+    // Clear previous errors
+    errorEl.textContent = '';
+    errorEl.classList.remove('show');
 
     const userData = {
         firstName,
@@ -131,6 +156,8 @@ async function handleRegister(event) {
         userData.department = department;
     }
 
+    console.log('Sending registration data:', { ...userData, password: '***' });
+
     try {
         const response = await fetch('/api/auth/register', {
             method: 'POST',
@@ -141,19 +168,26 @@ async function handleRegister(event) {
         });
 
         const data = await response.json();
+        console.log('Registration response:', data);
 
         if (response.ok && data.success) {
+            console.log('Registration successful');
             localStorage.setItem('token', data.data.token);
             currentUser = data.data.user;
+            showNotification('Registration successful! Welcome to HSRP!', 'success');
             updateNavigation(true);
             showDashboard();
         } else {
+            console.error('Registration failed:', data.error);
             errorEl.textContent = data.error || 'Registration failed';
             errorEl.classList.add('show');
+            showNotification(data.error || 'Registration failed', 'error');
         }
     } catch (error) {
+        console.error('Registration error:', error);
         errorEl.textContent = 'An error occurred. Please try again.';
         errorEl.classList.add('show');
+        showNotification('An error occurred. Please try again.', 'error');
     }
 }
 
