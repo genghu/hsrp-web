@@ -808,6 +808,11 @@ body {
     display: flex;
     justify-content: space-between;
     align-items: center;
+    flex-wrap: nowrap;
+}
+
+.nav-brand {
+    flex-shrink: 0;
 }
 
 .nav-brand h1 {
@@ -817,6 +822,7 @@ body {
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
+    margin: 0;
 }
 
 .nav-menu {
@@ -824,6 +830,7 @@ body {
     gap: 2rem;
     align-items: center;
     flex-wrap: nowrap;
+    margin-left: auto;
 }
 
 .nav-menu a {
