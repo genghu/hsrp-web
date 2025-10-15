@@ -101,7 +101,11 @@ experimentSchema.virtual('currentParticipants').get(function(this: ExperimentDoc
     ).length, 0);
 });
 
-// Index for searching experiments
-experimentSchema.index({ title: 'text', description: 'text' });
+// Indexes for better query performance
+experimentSchema.index({ title: 'text', description: 'text' }); // Full-text search
+experimentSchema.index({ researcher: 1 }); // Filter experiments by researcher
+experimentSchema.index({ status: 1 }); // Filter experiments by status
+experimentSchema.index({ createdAt: -1 }); // Sort by creation date
+experimentSchema.index({ 'sessions.startTime': 1 }); // Find sessions by date
 
 export const Experiment = mongoose.model<ExperimentDocument>('Experiment', experimentSchema);

@@ -14,6 +14,9 @@ import authRoutes from './routes/auth';
 import experimentRoutes from './routes/experiments';
 import userRoutes from './routes/users';
 
+// Import utilities
+import { initDatabase } from './utils/initDatabase';
+
 // Initialize express
 const app: Application = express();
 
@@ -54,7 +57,10 @@ app.use(express.static(path.join(__dirname, '../public')));
 
 // Connect to MongoDB
 mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/hsrp')
-  .then(() => console.log('Connected to MongoDB'))
+  .then(async () => {
+    console.log('Connected to MongoDB');
+    await initDatabase();
+  })
   .catch((err) => console.error('MongoDB connection error:', err));
 
 // Health check endpoint
