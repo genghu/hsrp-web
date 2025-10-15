@@ -529,6 +529,7 @@ body {
 .language-switcher {
     position: relative;
     display: inline-block;
+    margin-left: 1rem;
 }
 
 .language-dropdown {
@@ -820,8 +821,9 @@ body {
 
 .nav-menu {
     display: flex;
-    gap: 1.5rem;
+    gap: 2rem;
     align-items: center;
+    flex-wrap: nowrap;
 }
 
 .nav-menu a {
@@ -830,12 +832,14 @@ body {
     font-weight: 500;
     transition: all 0.3s;
     position: relative;
+    white-space: nowrap;
+    padding: 8px 0;
 }
 
 .nav-menu a::after {
     content: '';
     position: absolute;
-    bottom: -5px;
+    bottom: 3px;
     left: 50%;
     width: 0;
     height: 2px;
@@ -952,9 +956,23 @@ body {
         align-items: stretch;
     }
 
+    .nav-container {
+        flex-direction: column;
+        gap: 1rem;
+    }
+
     .nav-menu {
         flex-wrap: wrap;
         justify-content: center;
+        gap: 1rem;
+    }
+
+    .nav-menu a {
+        font-size: 0.9rem;
+    }
+
+    .language-switcher {
+        margin-left: 0;
     }
 
     .floating-button {
