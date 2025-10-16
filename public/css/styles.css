@@ -1103,6 +1103,7 @@ body {
     justify-content: space-between;
     align-items: center;
     flex-wrap: nowrap;
+    width: 100%;
 }
 
 .nav-brand {
@@ -1124,7 +1125,6 @@ body {
     gap: 2rem;
     align-items: center;
     flex-wrap: nowrap;
-    margin-left: auto;
 }
 
 .nav-menu a {
