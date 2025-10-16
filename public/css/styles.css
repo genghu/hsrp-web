@@ -534,7 +534,7 @@ body {
 .language-switcher {
     position: relative;
     display: inline-block;
-    margin-left: 1rem;
+    margin-left: auto;
 }
 
 .language-dropdown {
