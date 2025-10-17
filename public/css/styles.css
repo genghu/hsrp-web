@@ -9,7 +9,7 @@ body {
     min-height: 100vh;
     background: linear-gradient(-45deg, #2E86AB, #A23B72, #3A86FF, #06FFB4, #8338EC, #06FFA5);
     background-size: 600% 600%;
-    animation: gradientFlow 20s ease infinite;
+    animation: gradientFlow 40s ease infinite;
     color: #fff;
     overflow-x: hidden;
     text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3), 0 1px 2px rgba(0, 0, 0, 0.4);
