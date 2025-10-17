@@ -33,6 +33,7 @@ async function initializeApp() {
 
     // Show home page by default
     showPage('home');
+    updateLanguageSwitcher();
 }
 
 // Navigation functions
@@ -1006,8 +1007,32 @@ function switchLanguage(lang) {
         languageMenu.classList.remove('show');
     }
 
+    // Apply translations to the navigation menu
+    applyTranslations(lang);
+
     // Show notification
     showNotification(lang === 'zh' ? '语言已切换为中文' : 'Language changed to English');
+}
+
+function applyTranslations(lang) {
+    // Translate navigation menu
+    document.querySelectorAll('#nav-menu a').forEach(link => {
+        const icon = link.querySelector('i');
+        const textContent = link.textContent.trim();
+
+        // Extract the key from the link
+        if (link.onclick && link.onclick.toString().includes('showPage(\'home\')')) {
+            link.innerHTML = `<i class="${icon.className}"></i>${translations[lang]['home']}`;
+        } else if (link.id === 'nav-login') {
+            link.innerHTML = `<i class="${icon.className}"></i>${translations[lang]['login']}`;
+        } else if (link.id === 'nav-register') {
+            link.innerHTML = `<i class="${icon.className}"></i>${translations[lang]['register']}`;
+        } else if (link.id === 'nav-dashboard') {
+            link.innerHTML = `<i class="${icon.className}"></i>${translations[lang]['dashboard']}`;
+        } else if (link.id === 'nav-logout') {
+            link.innerHTML = `<i class="${icon.className}"></i>${translations[lang]['logout']}`;
+        }
+    });
 }
 
 // Floating button visibility control
@@ -1023,9 +1048,7 @@ function updateFloatingButton() {
 // Language switcher visibility control
 function updateLanguageSwitcher() {
     const languageSwitcher = document.getElementById('language-switcher');
-    if (languageSwitcher && currentUser) {
+    if (languageSwitcher) {
         languageSwitcher.style.display = 'inline-block';
-    } else if (languageSwitcher) {
-        languageSwitcher.style.display = 'none';
     }
 }

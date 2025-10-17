@@ -20,7 +20,8 @@
                     <a href="#" id="nav-login" onclick="showPage('login'); return false;"><i class="fas fa-sign-in-alt me-1"></i>Login</a>
                     <a href="#" id="nav-register" onclick="showPage('register'); return false;"><i class="fas fa-user-plus me-1"></i>Register</a>
                     <a href="#" id="nav-dashboard" style="display:none;" onclick="showDashboard(); return false;"><i class="fas fa-tachometer-alt me-1"></i>Dashboard</a>
-                    <div class="language-switcher" id="language-switcher" style="display:none;">
+                    <a href="#" id="nav-logout" style="display:none;" onclick="logout()"><i class="fas fa-sign-out-alt me-1"></i>Logout</a>
+                    <div class="language-switcher" id="language-switcher">
                         <div class="language-dropdown" id="languageDropdown">
                             <i class="fas fa-globe"></i>
                             <span id="currentLang">EN</span>
@@ -37,7 +38,6 @@
                             </div>
                         </div>
                     </div>
-                    <a href="#" id="nav-logout" style="display:none;" onclick="logout()"><i class="fas fa-sign-out-alt me-1"></i>Logout</a>
                 </div>
             </div>
         </nav>
