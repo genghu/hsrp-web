@@ -242,7 +242,11 @@ async function loadResearcherExperiments() {
 }
 
 function renderExperimentCard(exp) {
-    const statusBadge = `<span class="status-badge status-${exp.status}">${exp.status.replace('_', ' ')}</span>`;
+    const t = translations[currentLanguage];
+    const statusKey = exp.status === 'draft' ? 'draft' :
+                      exp.status === 'open' ? 'open_for_recruitment' :
+                      exp.status === 'in_progress' ? 'in_progress' : 'completed';
+    const statusBadge = `<span class="status-badge status-${exp.status}">${t[statusKey]}</span>`;
 
     return `
         <div class="experiment-card">
@@ -252,57 +256,58 @@ function renderExperimentCard(exp) {
                     ${statusBadge}
                 </div>
                 <div class="d-flex gap-2">
-                    <button class="glass-button" style="padding: 8px 16px; font-size: 0.875rem;" onclick="editExperiment('${exp._id}')"><i class="fas fa-edit me-1"></i>Edit</button>
-                    <button class="glass-button" style="padding: 8px 16px; font-size: 0.875rem;" onclick="viewSessions('${exp._id}')"><i class="fas fa-calendar me-1"></i>Sessions</button>
-                    <button class="glass-button" style="padding: 8px 16px; font-size: 0.875rem;" onclick="deleteExperiment('${exp._id}')"><i class="fas fa-trash me-1"></i>Delete</button>
+                    <button class="glass-button" style="padding: 8px 16px; font-size: 0.875rem;" onclick="editExperiment('${exp._id}')"><i class="fas fa-edit me-1"></i>${t['edit']}</button>
+                    <button class="glass-button" style="padding: 8px 16px; font-size: 0.875rem;" onclick="viewSessions('${exp._id}')"><i class="fas fa-calendar me-1"></i>${t['sessions']}</button>
+                    <button class="glass-button" style="padding: 8px 16px; font-size: 0.875rem;" onclick="deleteExperiment('${exp._id}')"><i class="fas fa-trash me-1"></i>${t['delete']}</button>
                 </div>
             </div>
             <p style="margin-bottom: 1rem;">${exp.description}</p>
             <div class="row g-3 mb-3">
                 <div class="col-md-3">
-                    <div><i class="fas fa-map-marker-alt me-2"></i><strong>Location:</strong></div>
+                    <div><i class="fas fa-map-marker-alt me-2"></i><strong>${t['location']}:</strong></div>
                     <div>${exp.location}</div>
                 </div>
                 <div class="col-md-3">
-                    <div><i class="fas fa-clock me-2"></i><strong>Duration:</strong></div>
-                    <div>${exp.duration} minutes</div>
+                    <div><i class="fas fa-clock me-2"></i><strong>${t['duration']}:</strong></div>
+                    <div>${exp.duration} ${t['minutes']}</div>
                 </div>
                 <div class="col-md-3">
-                    <div><i class="fas fa-dollar-sign me-2"></i><strong>Compensation:</strong></div>
+                    <div><i class="fas fa-dollar-sign me-2"></i><strong>${t['compensation']}:</strong></div>
                     <div>${exp.compensation}</div>
                 </div>
                 <div class="col-md-3">
-                    <div><i class="fas fa-users me-2"></i><strong>Max Participants:</strong></div>
+                    <div><i class="fas fa-users me-2"></i><strong>${t['max_participants']}:</strong></div>
                     <div>${exp.maxParticipants}</div>
                 </div>
             </div>
             ${exp.requirements && exp.requirements.length > 0 ? `
                 <div class="mb-3">
-                    <strong><i class="fas fa-list-check me-2"></i>Requirements:</strong>
+                    <strong><i class="fas fa-list-check me-2"></i>${t['requirements']}:</strong>
                     <ul class="requirements-list" style="margin-top: 0.5rem;">
                         ${exp.requirements.map(req => `<li>${req}</li>`).join('')}
                     </ul>
                 </div>
             ` : ''}
-            ${exp.sessions && exp.sessions.length > 0 ? renderSessionsPreview(exp.sessions) : '<p style="margin-top: 1rem; color: rgba(255, 255, 255, 0.7);"><i class="fas fa-info-circle me-2"></i>No sessions scheduled yet.</p>'}
+            ${exp.sessions && exp.sessions.length > 0 ? renderSessionsPreview(exp.sessions) : `<p style="margin-top: 1rem; color: rgba(255, 255, 255, 0.7);"><i class="fas fa-info-circle me-2"></i>${t['no_sessions_scheduled']}</p>`}
         </div>
     `;
 }
 
 function renderSessionsPreview(sessions) {
+    const t = translations[currentLanguage];
     return `
         <div class="sessions-container">
-            <strong>Scheduled Sessions (${sessions.length}):</strong>
+            <strong>${t['scheduled_sessions']} (${sessions.length}):</strong>
             ${sessions.slice(0, 3).map(session => `
                 <div class="session-card">
                     <div class="session-header">
                         <span class="session-time">${formatDate(session.startTime)}</span>
-                        <span class="session-info">${session.participants.filter(p => p.status !== 'cancelled').length}/${session.maxParticipants} participants</span>
+                        <span class="session-info">${session.participants.filter(p => p.status !== 'cancelled').length}/${session.maxParticipants} ${t['participants']}</span>
                     </div>
                     <div class="session-info">📍 ${session.location}</div>
                 </div>
             `).join('')}
-            ${sessions.length > 3 ? `<p style="color: var(--text-muted); font-size: 0.875rem; margin-top: 0.5rem;">+${sessions.length - 3} more sessions</p>` : ''}
+            ${sessions.length > 3 ? `<p style="color: var(--text-muted); font-size: 0.875rem; margin-top: 0.5rem;">+${sessions.length - 3} ${t['sessions']}</p>` : ''}
         </div>
     `;
 }
@@ -311,7 +316,8 @@ function renderSessionsPreview(sessions) {
 function showCreateExperiment() {
     currentMode = 'create';
     currentExperiment = null;
-    document.getElementById('experiment-modal-title').textContent = 'Create Experiment';
+    const t = translations[currentLanguage];
+    document.getElementById('experiment-modal-title').textContent = t['create_experiment'];
     document.getElementById('experiment-form').reset();
     document.getElementById('exp-status').value = 'draft';
     document.getElementById('experiment-modal').classList.add('show');
@@ -331,7 +337,8 @@ async function editExperiment(expId) {
 
         if (response.ok && data.success) {
             currentExperiment = data.data;
-            document.getElementById('experiment-modal-title').textContent = 'Edit Experiment';
+            const t = translations[currentLanguage];
+            document.getElementById('experiment-modal-title').textContent = t['edit_experiment'];
             document.getElementById('exp-title').value = data.data.title;
             document.getElementById('exp-description').value = data.data.description;
             document.getElementById('exp-location').value = data.data.location;
@@ -440,14 +447,15 @@ async function viewSessions(expId) {
 
 function showSessionsModal(experiment) {
     currentExperiment = experiment;
+    const t = translations[currentLanguage];
 
     const content = `
         <div class="modal-content">
             <span class="close" onclick="closeSessionsModal()">&times;</span>
-            <h2>Sessions for ${experiment.title}</h2>
-            <button class="btn btn-primary" onclick="showAddSession()" style="margin-bottom: 1rem;">Add Session</button>
+            <h2>${t['sessions']} - ${experiment.title}</h2>
+            <button class="btn btn-primary" onclick="showAddSession()" style="margin-bottom: 1rem;">${t['add_session']}</button>
             <div id="sessions-list">
-                ${experiment.sessions.length === 0 ? '<p>No sessions scheduled yet.</p>' : experiment.sessions.map(session => renderSessionDetails(session, experiment._id)).join('')}
+                ${experiment.sessions.length === 0 ? `<p>${t['no_sessions_scheduled']}</p>` : experiment.sessions.map(session => renderSessionDetails(session, experiment._id)).join('')}
             </div>
         </div>
     `;
@@ -460,6 +468,7 @@ function showSessionsModal(experiment) {
 }
 
 function renderSessionDetails(session, experimentId) {
+    const t = translations[currentLanguage];
     return `
         <div class="card">
             <div class="card-header">
@@ -468,15 +477,15 @@ function renderSessionDetails(session, experimentId) {
                     <p class="session-info">📍 ${session.location}</p>
                 </div>
                 <div style="display: flex; gap: 0.5rem;">
-                    <button class="btn btn-small btn-primary" onclick="editSession('${experimentId}', '${session._id}')">Edit</button>
-                    <button class="btn btn-small btn-danger" onclick="deleteSession('${experimentId}', '${session._id}')">Delete</button>
+                    <button class="btn btn-small btn-primary" onclick="editSession('${experimentId}', '${session._id}')">${t['edit']}</button>
+                    <button class="btn btn-small btn-danger" onclick="deleteSession('${experimentId}', '${session._id}')">${t['delete']}</button>
                 </div>
             </div>
-            <p><strong>Participants:</strong> ${session.participants.filter(p => p.status !== 'cancelled').length}/${session.maxParticipants}</p>
-            ${session.notes ? `<p><strong>Notes:</strong> ${session.notes}</p>` : ''}
+            <p><strong>${t['participants']}:</strong> ${session.participants.filter(p => p.status !== 'cancelled').length}/${session.maxParticipants}</p>
+            ${session.notes ? `<p><strong>${t['notes']}:</strong> ${session.notes}</p>` : ''}
             ${session.participants.length > 0 ? `
                 <div class="participants-list">
-                    <strong>Registered Participants:</strong>
+                    <strong>${t['registered_participants']}:</strong>
                     ${session.participants.map(p => renderParticipant(p, experimentId, session._id)).join('')}
                 </div>
             ` : ''}
@@ -485,8 +494,13 @@ function renderSessionDetails(session, experimentId) {
 }
 
 function renderParticipant(participant, experimentId, sessionId) {
+    const t = translations[currentLanguage];
     const user = participant.user;
-    const statusBadge = `<span class="badge badge-${participant.status}">${participant.status}</span>`;
+    const statusKey = participant.status === 'registered' ? 'registered' :
+                      participant.status === 'confirmed' ? 'confirmed' :
+                      participant.status === 'attended' ? 'attended' :
+                      participant.status === 'no_show' ? 'no_show' : 'cancelled';
+    const statusBadge = `<span class="badge badge-${participant.status}">${t[statusKey]}</span>`;
 
     return `
         <div class="participant-item">
@@ -496,11 +510,11 @@ function renderParticipant(participant, experimentId, sessionId) {
             </div>
             <div>
                 <select onchange="updateParticipantStatus('${experimentId}', '${sessionId}', '${user._id}', this.value)">
-                    <option value="registered" ${participant.status === 'registered' ? 'selected' : ''}>Registered</option>
-                    <option value="confirmed" ${participant.status === 'confirmed' ? 'selected' : ''}>Confirmed</option>
-                    <option value="attended" ${participant.status === 'attended' ? 'selected' : ''}>Attended</option>
-                    <option value="no_show" ${participant.status === 'no_show' ? 'selected' : ''}>No Show</option>
-                    <option value="cancelled" ${participant.status === 'cancelled' ? 'selected' : ''}>Cancelled</option>
+                    <option value="registered" ${participant.status === 'registered' ? 'selected' : ''}>${t['registered']}</option>
+                    <option value="confirmed" ${participant.status === 'confirmed' ? 'selected' : ''}>${t['confirmed']}</option>
+                    <option value="attended" ${participant.status === 'attended' ? 'selected' : ''}>${t['attended']}</option>
+                    <option value="no_show" ${participant.status === 'no_show' ? 'selected' : ''}>${t['no_show']}</option>
+                    <option value="cancelled" ${participant.status === 'cancelled' ? 'selected' : ''}>${t['cancelled']}</option>
                 </select>
             </div>
         </div>
@@ -520,7 +534,8 @@ function showAddSession() {
 
     currentMode = 'create';
     currentSession = null;
-    document.getElementById('session-modal-title').textContent = 'Add Session';
+    const t = translations[currentLanguage];
+    document.getElementById('session-modal-title').textContent = t['add_session'];
     document.getElementById('session-form').reset();
     document.getElementById('session-location').value = currentExperiment.location;
     document.getElementById('session-maxParticipants').value = currentExperiment.maxParticipants;
@@ -548,7 +563,8 @@ async function editSession(experimentId, sessionId) {
             }
 
             currentMode = 'edit';
-            document.getElementById('session-modal-title').textContent = 'Edit Session';
+            const t = translations[currentLanguage];
+            document.getElementById('session-modal-title').textContent = t['edit_session'];
 
             // Format datetime for input fields (YYYY-MM-DDTHH:mm)
             const startTime = new Date(currentSession.startTime);
@@ -712,31 +728,32 @@ async function loadAvailableExperiments() {
 }
 
 function renderSubjectExperimentCard(exp) {
+    const t = translations[currentLanguage];
     return `
         <div class="card">
             <h3 class="card-title">${exp.title}</h3>
             <p>${exp.description}</p>
             <div class="info-grid">
                 <div class="info-item">
-                    <span class="info-label">Researcher</span>
+                    <span class="info-label">${t['researcher']}</span>
                     <span class="info-value">${exp.researcher.firstName} ${exp.researcher.lastName}</span>
                 </div>
                 <div class="info-item">
-                    <span class="info-label">Location</span>
+                    <span class="info-label">${t['location']}</span>
                     <span class="info-value">${exp.location}</span>
                 </div>
                 <div class="info-item">
-                    <span class="info-label">Duration</span>
-                    <span class="info-value">${exp.duration} minutes</span>
+                    <span class="info-label">${t['duration']}</span>
+                    <span class="info-value">${exp.duration} ${t['minutes']}</span>
                 </div>
                 <div class="info-item">
-                    <span class="info-label">Compensation</span>
+                    <span class="info-label">${t['compensation']}</span>
                     <span class="info-value">${exp.compensation}</span>
                 </div>
             </div>
             ${exp.requirements && exp.requirements.length > 0 ? `
                 <div>
-                    <strong>Requirements:</strong>
+                    <strong>${t['requirements']}:</strong>
                     <ul class="requirements-list">
                         ${exp.requirements.map(req => `<li>${req}</li>`).join('')}
                     </ul>
@@ -744,15 +761,16 @@ function renderSubjectExperimentCard(exp) {
             ` : ''}
             ${exp.sessions && exp.sessions.length > 0 ? `
                 <div class="sessions-container">
-                    <strong>Available Sessions:</strong>
+                    <strong>${t['available_sessions']}:</strong>
                     ${exp.sessions.map(session => renderSubjectSession(session, exp._id)).join('')}
                 </div>
-            ` : '<p style="margin-top: 1rem; color: var(--text-muted);">No sessions available yet.</p>'}
+            ` : `<p style="margin-top: 1rem; color: var(--text-muted);">${t['no_sessions_scheduled']}</p>`}
         </div>
     `;
 }
 
 function renderSubjectSession(session, experimentId) {
+    const t = translations[currentLanguage];
     const spotsLeft = session.maxParticipants - session.participants.filter(p => p.status !== 'cancelled').length;
     const isRegistered = session.participants.some(p => p.user === currentUser._id || p.user._id === currentUser._id);
 
@@ -762,13 +780,13 @@ function renderSubjectSession(session, experimentId) {
                 <div>
                     <span class="session-time">${formatDate(session.startTime)}</span>
                     <div class="session-info">📍 ${session.location}</div>
-                    <div class="session-info">${spotsLeft} spots left</div>
+                    <div class="session-info">${spotsLeft} ${t['spots_left']}</div>
                 </div>
                 ${isRegistered
-                    ? '<span class="badge badge-open">Registered</span>'
+                    ? `<span class="badge badge-open">${t['registered']}</span>`
                     : spotsLeft > 0
-                        ? `<button class="btn btn-small btn-success" onclick="registerForSession('${experimentId}', '${session._id}')">Register</button>`
-                        : '<span class="badge badge-cancelled">Full</span>'
+                        ? `<button class="btn btn-small btn-success" onclick="registerForSession('${experimentId}', '${session._id}')">${t['register']}</button>`
+                        : `<span class="badge badge-cancelled">${t['full']}</span>`
                 }
             </div>
         </div>
@@ -830,6 +848,7 @@ async function loadRegisteredSessions() {
 }
 
 function renderRegisteredExperiment(exp) {
+    const t = translations[currentLanguage];
     return `
         <div class="card">
             <h3 class="card-title">${exp.title}</h3>
@@ -839,16 +858,20 @@ function renderRegisteredExperiment(exp) {
                     const myParticipant = session.participants.find(p =>
                         (p.user._id || p.user) === currentUser._id
                     );
+                    const statusKey = myParticipant.status === 'registered' ? 'registered' :
+                                      myParticipant.status === 'confirmed' ? 'confirmed' :
+                                      myParticipant.status === 'attended' ? 'attended' :
+                                      myParticipant.status === 'no_show' ? 'no_show' : 'cancelled';
                     return `
                         <div class="session-card">
                             <div class="session-header">
                                 <div>
                                     <span class="session-time">${formatDate(session.startTime)}</span>
                                     <div class="session-info">📍 ${session.location}</div>
-                                    <span class="badge badge-${myParticipant.status}">${myParticipant.status}</span>
+                                    <span class="badge badge-${myParticipant.status}">${t[statusKey]}</span>
                                 </div>
                                 ${myParticipant.status === 'registered' || myParticipant.status === 'confirmed'
-                                    ? `<button class="btn btn-small btn-danger" onclick="cancelRegistration('${exp._id}', '${session._id}')">Cancel</button>`
+                                    ? `<button class="btn btn-small btn-danger" onclick="cancelRegistration('${exp._id}', '${session._id}')">${t['cancel']}</button>`
                                     : ''
                                 }
                             </div>
@@ -988,6 +1011,40 @@ const translations = {
         'requirements': 'Requirements',
         'status': 'Status',
         'minutes': 'minutes',
+        'researcher': 'Researcher',
+        'no_sessions_scheduled': 'No sessions scheduled yet.',
+        'scheduled_sessions': 'Scheduled Sessions',
+        'participants': 'Participants',
+        'spots_left': 'spots left',
+
+        // Modal titles and labels
+        'create_experiment': 'Create Experiment',
+        'edit_experiment': 'Edit Experiment',
+        'title': 'Title',
+        'description': 'Description',
+        'duration_minutes': 'Duration (minutes)',
+        'max_participants_per_session': 'Max Participants per Session',
+        'requirements_one_per_line': 'Requirements (one per line)',
+        'draft': 'Draft',
+        'open_for_recruitment': 'Open for Recruitment',
+        'in_progress': 'In Progress',
+        'completed': 'Completed',
+
+        // Session Modal
+        'add_session': 'Add Session',
+        'edit_session': 'Edit Session',
+        'start_time': 'Start Time',
+        'end_time': 'End Time',
+        'notes_optional': 'Notes (optional)',
+        'notes': 'Notes',
+        'registered_participants': 'Registered Participants',
+        'available_sessions': 'Available Sessions',
+
+        // Participant statuses
+        'confirmed': 'Confirmed',
+        'attended': 'Attended',
+        'no_show': 'No Show',
+        'cancelled': 'Cancelled',
 
         // Actions
         'edit': 'Edit',
@@ -1062,6 +1119,40 @@ const translations = {
         'requirements': '要求',
         'status': '状态',
         'minutes': '分钟',
+        'researcher': '研究人员',
+        'no_sessions_scheduled': '尚未安排会话。',
+        'scheduled_sessions': '已安排的会话',
+        'participants': '参与者',
+        'spots_left': '个名额',
+
+        // Modal titles and labels
+        'create_experiment': '创建实验',
+        'edit_experiment': '编辑实验',
+        'title': '标题',
+        'description': '描述',
+        'duration_minutes': '时长（分钟）',
+        'max_participants_per_session': '每个会话的最大参与者数',
+        'requirements_one_per_line': '要求（每行一个）',
+        'draft': '草稿',
+        'open_for_recruitment': '开放招募',
+        'in_progress': '进行中',
+        'completed': '已完成',
+
+        // Session Modal
+        'add_session': '添加会话',
+        'edit_session': '编辑会话',
+        'start_time': '开始时间',
+        'end_time': '结束时间',
+        'notes_optional': '备注（可选）',
+        'notes': '备注',
+        'registered_participants': '已注册参与者',
+        'available_sessions': '可用会话',
+
+        // Participant statuses
+        'confirmed': '已确认',
+        'attended': '已出席',
+        'no_show': '未出席',
+        'cancelled': '已取消',
 
         // Actions
         'edit': '编辑',
@@ -1192,6 +1283,29 @@ function applyTranslations(lang) {
             el.placeholder = t[key];
         }
     });
+
+    // Reload dynamically generated content if on specific pages
+    if (currentUser) {
+        if (currentUser.role === 'researcher') {
+            // Reload researcher experiments to apply translations
+            const researcherPage = document.getElementById('page-researcher-dashboard');
+            if (researcherPage && researcherPage.classList.contains('active')) {
+                loadResearcherExperiments();
+            }
+        } else {
+            // Reload subject experiments to apply translations
+            const subjectPage = document.getElementById('page-subject-dashboard');
+            if (subjectPage && subjectPage.classList.contains('active')) {
+                const availableTab = document.getElementById('subject-available-container');
+                const registeredTab = document.getElementById('subject-registered-container');
+                if (availableTab && availableTab.classList.contains('active')) {
+                    loadAvailableExperiments();
+                } else if (registeredTab && registeredTab.classList.contains('active')) {
+                    loadRegisteredSessions();
+                }
+            }
+        }
+    }
 }
 
 // Floating button visibility control

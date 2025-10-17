@@ -164,53 +164,53 @@
             <div id="experiment-modal" class="modal">
                 <div class="modal-content">
                     <span class="close" onclick="closeExperimentModal()">&times;</span>
-                    <h2 id="experiment-modal-title">Create Experiment</h2>
+                    <h2 id="experiment-modal-title" data-i18n="create_experiment">Create Experiment</h2>
                     <form id="experiment-form" onsubmit="handleExperimentSubmit(event)">
                         <div class="form-group">
-                            <label for="exp-title">Title</label>
+                            <label for="exp-title" data-i18n="title">Title</label>
                             <input type="text" id="exp-title" required>
                         </div>
                         <div class="form-group">
-                            <label for="exp-description">Description</label>
+                            <label for="exp-description" data-i18n="description">Description</label>
                             <textarea id="exp-description" rows="4" required></textarea>
                         </div>
                         <div class="form-row">
                             <div class="form-group">
-                                <label for="exp-location">Location</label>
+                                <label for="exp-location" data-i18n="location">Location</label>
                                 <input type="text" id="exp-location" required>
                             </div>
                             <div class="form-group">
-                                <label for="exp-duration">Duration (minutes)</label>
+                                <label for="exp-duration" data-i18n="duration_minutes">Duration (minutes)</label>
                                 <input type="number" id="exp-duration" min="1" required>
                             </div>
                         </div>
                         <div class="form-row">
                             <div class="form-group">
-                                <label for="exp-compensation">Compensation</label>
+                                <label for="exp-compensation" data-i18n="compensation">Compensation</label>
                                 <input type="text" id="exp-compensation" required>
                             </div>
                             <div class="form-group">
-                                <label for="exp-maxParticipants">Max Participants per Session</label>
+                                <label for="exp-maxParticipants" data-i18n="max_participants_per_session">Max Participants per Session</label>
                                 <input type="number" id="exp-maxParticipants" min="1" required>
                             </div>
                         </div>
                         <div class="form-group">
-                            <label for="exp-requirements">Requirements (one per line)</label>
+                            <label for="exp-requirements" data-i18n="requirements_one_per_line">Requirements (one per line)</label>
                             <textarea id="exp-requirements" rows="3"></textarea>
                         </div>
                         <div class="form-group">
-                            <label for="exp-status">Status</label>
+                            <label for="exp-status" data-i18n="status">Status</label>
                             <select id="exp-status">
-                                <option value="draft">Draft</option>
-                                <option value="open">Open for Recruitment</option>
-                                <option value="in_progress">In Progress</option>
-                                <option value="completed">Completed</option>
+                                <option value="draft" data-i18n="draft">Draft</option>
+                                <option value="open" data-i18n="open_for_recruitment">Open for Recruitment</option>
+                                <option value="in_progress" data-i18n="in_progress">In Progress</option>
+                                <option value="completed" data-i18n="completed">Completed</option>
                             </select>
                         </div>
                         <div id="experiment-error" class="error-message"></div>
                         <div class="modal-buttons">
-                            <button type="button" class="glass-button" onclick="closeExperimentModal()"><i class="fas fa-times me-2"></i>Cancel</button>
-                            <button type="submit" class="glass-button"><i class="fas fa-save me-2"></i>Save</button>
+                            <button type="button" class="glass-button" onclick="closeExperimentModal()" data-i18n="cancel"><i class="fas fa-times me-2"></i>Cancel</button>
+                            <button type="submit" class="glass-button" data-i18n="save"><i class="fas fa-save me-2"></i>Save</button>
                         </div>
                     </form>
                 </div>
@@ -220,32 +220,32 @@
             <div id="session-modal" class="modal">
                 <div class="modal-content">
                     <span class="close" onclick="closeSessionModal()">&times;</span>
-                    <h2 id="session-modal-title">Add Session</h2>
+                    <h2 id="session-modal-title" data-i18n="add_session">Add Session</h2>
                     <form id="session-form" onsubmit="handleSessionSubmit(event)">
                         <div class="form-group">
-                            <label for="session-startTime">Start Time</label>
+                            <label for="session-startTime" data-i18n="start_time">Start Time</label>
                             <input type="datetime-local" id="session-startTime" required>
                         </div>
                         <div class="form-group">
-                            <label for="session-endTime">End Time</label>
+                            <label for="session-endTime" data-i18n="end_time">End Time</label>
                             <input type="datetime-local" id="session-endTime" required>
                         </div>
                         <div class="form-group">
-                            <label for="session-location">Location</label>
+                            <label for="session-location" data-i18n="location">Location</label>
                             <input type="text" id="session-location" required>
                         </div>
                         <div class="form-group">
-                            <label for="session-maxParticipants">Max Participants</label>
+                            <label for="session-maxParticipants" data-i18n="max_participants">Max Participants</label>
                             <input type="number" id="session-maxParticipants" min="1" required>
                         </div>
                         <div class="form-group">
-                            <label for="session-notes">Notes (optional)</label>
+                            <label for="session-notes" data-i18n="notes_optional">Notes (optional)</label>
                             <textarea id="session-notes" rows="3"></textarea>
                         </div>
                         <div id="session-error" class="error-message"></div>
                         <div class="modal-buttons">
-                            <button type="button" class="glass-button" onclick="closeSessionModal()"><i class="fas fa-times me-2"></i>Cancel</button>
-                            <button type="submit" class="glass-button"><i class="fas fa-save me-2"></i>Save</button>
+                            <button type="button" class="glass-button" onclick="closeSessionModal()" data-i18n="cancel"><i class="fas fa-times me-2"></i>Cancel</button>
+                            <button type="submit" class="glass-button" data-i18n="save"><i class="fas fa-save me-2"></i>Save</button>
                         </div>
                     </form>
                 </div>
