@@ -7,7 +7,7 @@
 body {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif, 'Microsoft YaHei', '微软雅黑', sans-serif;
     min-height: 100vh;
-    background: linear-gradient(-45deg, #1a2a6c, #b21f1f, #fdbb2d, #667eea, #764ba2, #f093fb);
+    background: linear-gradient(-45deg, #1e3a8a, #3b82f6, #6366f1, #8b5cf6, #a855f7, #c084fc);
     background-size: 600% 600%;
     animation: gradientFlow 40s ease infinite;
     color: #fff;
@@ -160,10 +160,11 @@ body {
 .navbar-brand {
     font-size: 1.6rem;
     font-weight: bold;
-    background: linear-gradient(135deg, #fdbb2d, #f093fb);
+    background: linear-gradient(135deg, #60a5fa, #c084fc, #f0abfc);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
+    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
 }
 
 .nav-link {
@@ -180,7 +181,7 @@ body {
     left: 50%;
     width: 0;
     height: 2px;
-    background: linear-gradient(90deg, #667eea, #fdbb2d);
+    background: linear-gradient(90deg, #60a5fa, #c084fc);
     transform: translateX(-50%);
     transition: width 0.3s ease;
 }
@@ -711,7 +712,7 @@ body {
 }
 
 .auth-link a {
-    color: #fdbb2d;
+    color: #c084fc;
     text-decoration: none;
     font-weight: 500;
 }
@@ -744,11 +745,11 @@ body {
 .hero h1 {
     font-size: 3rem;
     margin-bottom: 0.5rem;
-    background: linear-gradient(135deg, #fdbb2d, #f093fb, #667eea);
+    background: linear-gradient(135deg, #60a5fa, #c084fc, #f0abfc);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
-    filter: drop-shadow(0 2px 8px rgba(0, 0, 0, 0.5));
+    filter: drop-shadow(0 2px 8px rgba(0, 0, 0, 0.4));
 }
 
 .hero .subtitle {
@@ -796,7 +797,7 @@ body {
 
 .feature h3 {
     margin-bottom: 0.75rem;
-    color: #fdbb2d;
+    color: #c084fc;
     text-shadow: 0 2px 6px rgba(0, 0, 0, 0.5);
 }
 
@@ -899,7 +900,7 @@ body {
 
 .session-time {
     font-weight: 600;
-    color: #fdbb2d;
+    color: #c084fc;
     display: block;
     margin-bottom: 0.5rem;
     text-shadow: 0 1px 4px rgba(0, 0, 0, 0.5);
@@ -1061,7 +1062,7 @@ body {
 .tab-button.active {
     color: white;
     background: rgba(255, 255, 255, 0.15);
-    border-bottom-color: #fdbb2d;
+    border-bottom-color: #c084fc;
 }
 
 .tab-content {
@@ -1140,11 +1141,12 @@ body {
 .nav-brand h1 {
     font-size: 1.6rem;
     font-weight: bold;
-    background: linear-gradient(135deg, #fdbb2d, #f093fb);
+    background: linear-gradient(135deg, #60a5fa, #c084fc, #f0abfc);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
     margin: 0;
+    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
 }
 
 .nav-menu {
@@ -1172,7 +1174,7 @@ body {
     left: 50%;
     width: 0;
     height: 2px;
-    background: linear-gradient(90deg, #667eea, #fdbb2d);
+    background: linear-gradient(90deg, #60a5fa, #c084fc);
     transform: translateX(-50%);
     transition: width 0.3s ease;
 }
@@ -1264,7 +1266,7 @@ body {
 .stat-card h3 {
     font-size: 2.5rem;
     margin-bottom: 0.5rem;
-    background: linear-gradient(135deg, #fdbb2d, #f093fb, #667eea);
+    background: linear-gradient(135deg, #60a5fa, #c084fc, #f0abfc);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
