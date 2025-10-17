@@ -1126,7 +1126,7 @@ body {
     gap: 2rem;
     align-items: center;
     flex-wrap: nowrap;
-    flex: 1;
+    margin-left: auto;
 }
 
 .nav-menu a {
