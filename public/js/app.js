@@ -931,18 +931,152 @@ let currentLanguage = 'en';
 
 const translations = {
     en: {
+        // Navigation
         'home': 'Home',
         'login': 'Login',
         'register': 'Register',
         'dashboard': 'Dashboard',
-        'logout': 'Logout'
+        'logout': 'Logout',
+
+        // Home Page
+        'welcome_title': 'Welcome to HSRP',
+        'welcome_subtitle': 'Human Subject Recruitment Platform',
+        'welcome_description': 'Connect researchers with participants for scientific studies',
+        'get_started': 'Get Started',
+        'sign_in': 'Sign In',
+        'for_researchers': 'For Researchers',
+        'researchers_desc': 'Create experiments, manage sessions, and recruit participants efficiently',
+        'for_participants': 'For Participants',
+        'participants_desc': 'Browse available studies, sign up for sessions, and contribute to science',
+        'secure_reliable': 'Secure & Reliable',
+        'security_desc': 'Your data is protected with enterprise-grade security',
+
+        // Login Page
+        'login_title': 'Login',
+        'email': 'Email',
+        'password': 'Password',
+        'no_account': "Don't have an account?",
+
+        // Register Page
+        'register_title': 'Register',
+        'first_name': 'First Name',
+        'last_name': 'Last Name',
+        'i_am_a': 'I am a:',
+        'participant': 'Participant (Subject)',
+        'researcher': 'Researcher',
+        'institution': 'Institution',
+        'department': 'Department',
+        'already_have_account': 'Already have an account?',
+
+        // Researcher Dashboard
+        'researcher_dashboard': 'Researcher Dashboard',
+        'create_new_experiment': 'Create New Experiment',
+        'no_experiments': 'No experiments yet. Create your first experiment to get started!',
+
+        // Subject Dashboard
+        'available_experiments': 'Available Experiments',
+        'available_studies': 'Available Studies',
+        'my_registrations': 'My Registrations',
+        'no_available': 'No experiments available at the moment. Check back later!',
+        'no_registered': "You haven't registered for any sessions yet.",
+
+        // Experiment Details
+        'location': 'Location',
+        'duration': 'Duration',
+        'compensation': 'Compensation',
+        'max_participants': 'Max Participants',
+        'requirements': 'Requirements',
+        'status': 'Status',
+        'minutes': 'minutes',
+
+        // Actions
+        'edit': 'Edit',
+        'delete': 'Delete',
+        'sessions': 'Sessions',
+        'cancel': 'Cancel',
+        'save': 'Save',
+        'register': 'Register',
+        'registered': 'Registered',
+        'full': 'Full',
+
+        // Messages
+        'language_changed': 'Language changed to English',
+        'loading': 'Loading...',
+        'error_loading': 'Error loading experiments'
     },
     zh: {
+        // Navigation
         'home': '首页',
         'login': '登录',
         'register': '注册',
         'dashboard': '仪表板',
-        'logout': '退出登录'
+        'logout': '退出登录',
+
+        // Home Page
+        'welcome_title': '欢迎来到HSRP',
+        'welcome_subtitle': '人类受试者招募平台',
+        'welcome_description': '连接研究人员与科学研究参与者',
+        'get_started': '开始使用',
+        'sign_in': '登录',
+        'for_researchers': '为研究人员',
+        'researchers_desc': '创建实验、管理会话并高效招募参与者',
+        'for_participants': '为参与者',
+        'participants_desc': '浏览可用研究、报名参加会话并为科学做出贡献',
+        'secure_reliable': '安全可靠',
+        'security_desc': '您的数据受到企业级安全保护',
+
+        // Login Page
+        'login_title': '登录',
+        'email': '电子邮箱',
+        'password': '密码',
+        'no_account': '还没有账户？',
+
+        // Register Page
+        'register_title': '注册',
+        'first_name': '名',
+        'last_name': '姓',
+        'i_am_a': '我是：',
+        'participant': '参与者（受试者）',
+        'researcher': '研究人员',
+        'institution': '机构',
+        'department': '部门',
+        'already_have_account': '已经有账户？',
+
+        // Researcher Dashboard
+        'researcher_dashboard': '研究人员仪表板',
+        'create_new_experiment': '创建新实验',
+        'no_experiments': '还没有实验。创建您的第一个实验以开始！',
+
+        // Subject Dashboard
+        'available_experiments': '可用实验',
+        'available_studies': '可用研究',
+        'my_registrations': '我的注册',
+        'no_available': '目前没有可用的实验。请稍后再查看！',
+        'no_registered': '您还没有注册任何会话。',
+
+        // Experiment Details
+        'location': '地点',
+        'duration': '时长',
+        'compensation': '补偿',
+        'max_participants': '最大参与者数',
+        'requirements': '要求',
+        'status': '状态',
+        'minutes': '分钟',
+
+        // Actions
+        'edit': '编辑',
+        'delete': '删除',
+        'sessions': '会话',
+        'cancel': '取消',
+        'save': '保存',
+        'register': '注册',
+        'registered': '已注册',
+        'full': '已满',
+
+        // Messages
+        'language_changed': '语言已切换为中文',
+        'loading': '加载中...',
+        'error_loading': '加载实验出错'
     }
 };
 
@@ -1005,30 +1139,57 @@ function switchLanguage(lang) {
         languageMenu.classList.remove('show');
     }
 
-    // Apply translations to the navigation menu
+    // Apply translations to the entire site
     applyTranslations(lang);
 
     // Show notification
-    showNotification(lang === 'zh' ? '语言已切换为中文' : 'Language changed to English');
+    showNotification(translations[lang]['language_changed']);
 }
 
 function applyTranslations(lang) {
+    const t = translations[lang];
+
     // Translate navigation menu
     document.querySelectorAll('#nav-menu a').forEach(link => {
         const icon = link.querySelector('i');
-        const textContent = link.textContent.trim();
+        if (!icon) return;
 
-        // Extract the key from the link
         if (link.onclick && link.onclick.toString().includes('showPage(\'home\')')) {
-            link.innerHTML = `<i class="${icon.className}"></i>${translations[lang]['home']}`;
+            link.innerHTML = `<i class="${icon.className} me-1"></i>${t['home']}`;
         } else if (link.id === 'nav-login') {
-            link.innerHTML = `<i class="${icon.className}"></i>${translations[lang]['login']}`;
+            link.innerHTML = `<i class="${icon.className} me-1"></i>${t['login']}`;
         } else if (link.id === 'nav-register') {
-            link.innerHTML = `<i class="${icon.className}"></i>${translations[lang]['register']}`;
+            link.innerHTML = `<i class="${icon.className} me-1"></i>${t['register']}`;
         } else if (link.id === 'nav-dashboard') {
-            link.innerHTML = `<i class="${icon.className}"></i>${translations[lang]['dashboard']}`;
+            link.innerHTML = `<i class="${icon.className} me-1"></i>${t['dashboard']}`;
         } else if (link.id === 'nav-logout') {
-            link.innerHTML = `<i class="${icon.className}"></i>${translations[lang]['logout']}`;
+            link.innerHTML = `<i class="${icon.className} me-1"></i>${t['logout']}`;
+        }
+    });
+
+    // Translate all elements with data-i18n attribute
+    document.querySelectorAll('[data-i18n]').forEach(el => {
+        const key = el.getAttribute('data-i18n');
+        if (t[key]) {
+            // Check if element has child elements that should be preserved
+            const icon = el.querySelector('i');
+            if (icon && el.tagName === 'BUTTON') {
+                el.innerHTML = `<i class="${icon.className} me-2"></i>${t[key]}`;
+            } else if (icon && el.tagName === 'H3') {
+                el.innerHTML = `<i class="${icon.className} me-2"></i>${t[key]}`;
+            } else if (icon && el.tagName === 'H2') {
+                el.innerHTML = `<i class="${icon.className} me-2"></i>${t[key]}`;
+            } else {
+                el.textContent = t[key];
+            }
+        }
+    });
+
+    // Translate placeholders
+    document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
+        const key = el.getAttribute('data-i18n-placeholder');
+        if (t[key]) {
+            el.placeholder = t[key];
         }
     });
 }

@@ -46,27 +46,27 @@
             <!-- Home Page -->
             <div id="page-home" class="page active">
                 <div class="hero">
-                    <h1>Welcome to HSRP</h1>
-                    <p class="subtitle">Human Subject Recruitment Platform</p>
-                    <p>Connect researchers with participants for scientific studies</p>
+                    <h1 data-i18n="welcome_title">Welcome to HSRP</h1>
+                    <p class="subtitle" data-i18n="welcome_subtitle">Human Subject Recruitment Platform</p>
+                    <p data-i18n="welcome_description">Connect researchers with participants for scientific studies</p>
                     <div class="hero-buttons">
-                        <button class="glass-button" onclick="showPage('register')"><i class="fas fa-rocket me-2"></i>Get Started</button>
-                        <button class="glass-button" onclick="showPage('login')"><i class="fas fa-sign-in-alt me-2"></i>Sign In</button>
+                        <button class="glass-button" onclick="showPage('register')" data-i18n="get_started"><i class="fas fa-rocket me-2"></i>Get Started</button>
+                        <button class="glass-button" onclick="showPage('login')" data-i18n="sign_in"><i class="fas fa-sign-in-alt me-2"></i>Sign In</button>
                     </div>
                 </div>
 
                 <div class="features">
                     <div class="feature">
-                        <h3><i class="fas fa-microscope me-2"></i>For Researchers</h3>
-                        <p>Create experiments, manage sessions, and recruit participants efficiently</p>
+                        <h3 data-i18n="for_researchers"><i class="fas fa-microscope me-2"></i>For Researchers</h3>
+                        <p data-i18n="researchers_desc">Create experiments, manage sessions, and recruit participants efficiently</p>
                     </div>
                     <div class="feature">
-                        <h3><i class="fas fa-users me-2"></i>For Participants</h3>
-                        <p>Browse available studies, sign up for sessions, and contribute to science</p>
+                        <h3 data-i18n="for_participants"><i class="fas fa-users me-2"></i>For Participants</h3>
+                        <p data-i18n="participants_desc">Browse available studies, sign up for sessions, and contribute to science</p>
                     </div>
                     <div class="feature">
-                        <h3><i class="fas fa-shield-alt me-2"></i>Secure & Reliable</h3>
-                        <p>Your data is protected with enterprise-grade security</p>
+                        <h3 data-i18n="secure_reliable"><i class="fas fa-shield-alt me-2"></i>Secure & Reliable</h3>
+                        <p data-i18n="security_desc">Your data is protected with enterprise-grade security</p>
                     </div>
                 </div>
             </div>
@@ -74,65 +74,65 @@
             <!-- Login Page -->
             <div id="page-login" class="page">
                 <div class="auth-container">
-                    <h2>Login</h2>
+                    <h2 data-i18n="login_title">Login</h2>
                     <form id="login-form" onsubmit="handleLogin(event)">
                         <div class="form-group">
-                            <label for="login-email">Email</label>
+                            <label for="login-email" data-i18n="email">Email</label>
                             <input type="email" id="login-email" required>
                         </div>
                         <div class="form-group">
-                            <label for="login-password">Password</label>
+                            <label for="login-password" data-i18n="password">Password</label>
                             <input type="password" id="login-password" required>
                         </div>
                         <div id="login-error" class="error-message"></div>
-                        <button type="submit" class="glass-button" style="width:100%;"><i class="fas fa-sign-in-alt me-2"></i>Login</button>
+                        <button type="submit" class="glass-button" style="width:100%;" data-i18n="login"><i class="fas fa-sign-in-alt me-2"></i>Login</button>
                     </form>
-                    <p class="auth-link">Don't have an account? <a href="#" onclick="showPage('register')">Register</a></p>
+                    <p class="auth-link"><span data-i18n="no_account">Don't have an account?</span> <a href="#" onclick="showPage('register')" data-i18n="register">Register</a></p>
                 </div>
             </div>
 
             <!-- Register Page -->
             <div id="page-register" class="page">
                 <div class="auth-container">
-                    <h2>Register</h2>
+                    <h2 data-i18n="register_title">Register</h2>
                     <form id="register-form" onsubmit="handleRegister(event)">
                         <div class="form-group">
-                            <label for="register-firstName">First Name</label>
+                            <label for="register-firstName" data-i18n="first_name">First Name</label>
                             <input type="text" id="register-firstName" required>
                         </div>
                         <div class="form-group">
-                            <label for="register-lastName">Last Name</label>
+                            <label for="register-lastName" data-i18n="last_name">Last Name</label>
                             <input type="text" id="register-lastName" required>
                         </div>
                         <div class="form-group">
-                            <label for="register-email">Email</label>
+                            <label for="register-email" data-i18n="email">Email</label>
                             <input type="email" id="register-email" required>
                         </div>
                         <div class="form-group">
-                            <label for="register-password">Password</label>
+                            <label for="register-password" data-i18n="password">Password</label>
                             <input type="password" id="register-password" required minlength="6">
                         </div>
                         <div class="form-group">
-                            <label for="register-role">I am a:</label>
+                            <label for="register-role" data-i18n="i_am_a">I am a:</label>
                             <select id="register-role" required>
-                                <option value="subject">Participant (Subject)</option>
-                                <option value="researcher">Researcher</option>
+                                <option value="subject" data-i18n="participant">Participant (Subject)</option>
+                                <option value="researcher" data-i18n="researcher">Researcher</option>
                             </select>
                         </div>
                         <div id="researcher-fields" style="display:none;">
                             <div class="form-group">
-                                <label for="register-institution">Institution</label>
+                                <label for="register-institution" data-i18n="institution">Institution</label>
                                 <input type="text" id="register-institution">
                             </div>
                             <div class="form-group">
-                                <label for="register-department">Department</label>
+                                <label for="register-department" data-i18n="department">Department</label>
                                 <input type="text" id="register-department">
                             </div>
                         </div>
                         <div id="register-error" class="error-message"></div>
-                        <button type="submit" class="glass-button" style="width:100%;"><i class="fas fa-user-plus me-2"></i>Register</button>
+                        <button type="submit" class="glass-button" style="width:100%;" data-i18n="register"><i class="fas fa-user-plus me-2"></i>Register</button>
                     </form>
-                    <p class="auth-link">Already have an account? <a href="#" onclick="showPage('login')">Login</a></p>
+                    <p class="auth-link"><span data-i18n="already_have_account">Already have an account?</span> <a href="#" onclick="showPage('login')" data-i18n="login">Login</a></p>
                 </div>
             </div>
 
@@ -140,8 +140,8 @@
             <div id="page-researcher-dashboard" class="page">
                 <div class="glass-container">
                     <div class="dashboard-header">
-                        <h2><i class="fas fa-tachometer-alt me-2"></i>Researcher Dashboard</h2>
-                        <button class="glass-button" onclick="showCreateExperiment()"><i class="fas fa-plus me-2"></i>Create New Experiment</button>
+                        <h2 data-i18n="researcher_dashboard"><i class="fas fa-tachometer-alt me-2"></i>Researcher Dashboard</h2>
+                        <button class="glass-button" onclick="showCreateExperiment()" data-i18n="create_new_experiment"><i class="fas fa-plus me-2"></i>Create New Experiment</button>
                     </div>
                     <div id="researcher-experiments-container"></div>
                 </div>
@@ -150,10 +150,10 @@
             <!-- Subject Dashboard -->
             <div id="page-subject-dashboard" class="page">
                 <div class="glass-container">
-                    <h2><i class="fas fa-flask me-2"></i>Available Experiments</h2>
+                    <h2 data-i18n="available_experiments"><i class="fas fa-flask me-2"></i>Available Experiments</h2>
                     <div class="tabs">
-                        <button class="tab-button active" onclick="showSubjectTab('available', event)"><i class="fas fa-list me-1"></i>Available Studies</button>
-                        <button class="tab-button" onclick="showSubjectTab('registered', event)"><i class="fas fa-check-circle me-1"></i>My Registrations</button>
+                        <button class="tab-button active" onclick="showSubjectTab('available', event)"><i class="fas fa-list me-1"></i><span data-i18n="available_studies">Available Studies</span></button>
+                        <button class="tab-button" onclick="showSubjectTab('registered', event)"><i class="fas fa-check-circle me-1"></i><span data-i18n="my_registrations">My Registrations</span></button>
                     </div>
                     <div id="subject-available-container" class="tab-content active"></div>
                     <div id="subject-registered-container" class="tab-content"></div>
