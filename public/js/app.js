@@ -529,6 +529,7 @@ function showAddSession() {
 }
 
 async function editSession(experimentId, sessionId) {
+    closeSessionsModal();
     try {
         const response = await fetch(`/api/experiments/${experimentId}`, {
             headers: {
