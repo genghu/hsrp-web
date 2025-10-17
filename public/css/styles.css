@@ -7,7 +7,7 @@
 body {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif, 'Microsoft YaHei', '微软雅黑', sans-serif;
     min-height: 100vh;
-    background: linear-gradient(-45deg, #2E86AB, #A23B72, #3A86FF, #06FFB4, #8338EC, #06FFA5);
+    background: linear-gradient(-45deg, #1a2a6c, #b21f1f, #fdbb2d, #667eea, #764ba2, #f093fb);
     background-size: 600% 600%;
     animation: gradientFlow 40s ease infinite;
     color: #fff;
@@ -160,7 +160,7 @@ body {
 .navbar-brand {
     font-size: 1.6rem;
     font-weight: bold;
-    background: linear-gradient(135deg, #3A86FF, #06FFB4);
+    background: linear-gradient(135deg, #fdbb2d, #f093fb);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
@@ -180,7 +180,7 @@ body {
     left: 50%;
     width: 0;
     height: 2px;
-    background: linear-gradient(90deg, #3A86FF, #06FFB4);
+    background: linear-gradient(90deg, #667eea, #fdbb2d);
     transform: translateX(-50%);
     transition: width 0.3s ease;
 }
@@ -232,30 +232,30 @@ body {
 }
 
 .status-open {
-    background: linear-gradient(135deg, rgba(6, 255, 180, 0.3), rgba(6, 255, 165, 0.3));
-    border-color: rgba(6, 255, 180, 0.5);
-    color: #06FFB4;
+    background: linear-gradient(135deg, rgba(102, 126, 234, 0.3), rgba(118, 75, 162, 0.3));
+    border-color: rgba(102, 126, 234, 0.5);
+    color: #8b9dff;
     text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
 }
 
 .status-pending {
-    background: linear-gradient(135deg, rgba(255, 193, 7, 0.3), rgba(255, 235, 59, 0.3));
-    border-color: rgba(255, 193, 7, 0.5);
-    color: #FFC107;
+    background: linear-gradient(135deg, rgba(253, 187, 45, 0.3), rgba(253, 187, 45, 0.3));
+    border-color: rgba(253, 187, 45, 0.5);
+    color: #fdbb2d;
     text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
 }
 
 .status-posted {
-    background: linear-gradient(135deg, rgba(58, 134, 255, 0.3), rgba(46, 134, 171, 0.3));
-    border-color: rgba(58, 134, 255, 0.5);
-    color: #3A86FF;
+    background: linear-gradient(135deg, rgba(240, 147, 251, 0.3), rgba(245, 179, 255, 0.3));
+    border-color: rgba(240, 147, 251, 0.5);
+    color: #f5b3ff;
     text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
 }
 
 .status-closed {
-    background: linear-gradient(135deg, rgba(239, 68, 68, 0.3), rgba(220, 38, 38, 0.3));
-    border-color: rgba(239, 68, 68, 0.5);
-    color: #EF4444;
+    background: linear-gradient(135deg, rgba(178, 31, 31, 0.3), rgba(200, 50, 50, 0.3));
+    border-color: rgba(178, 31, 31, 0.5);
+    color: #ff6b6b;
     text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
 }
 
@@ -270,18 +270,18 @@ body {
 }
 
 .role-admin {
-    background: linear-gradient(135deg, rgba(239, 68, 68, 0.3), rgba(220, 38, 38, 0.3));
-    color: #EF4444;
+    background: linear-gradient(135deg, rgba(178, 31, 31, 0.3), rgba(200, 50, 50, 0.3));
+    color: #ff6b6b;
 }
 
 .role-researcher {
-    background: linear-gradient(135deg, rgba(58, 134, 255, 0.3), rgba(46, 134, 171, 0.3));
-    color: #3A86FF;
+    background: linear-gradient(135deg, rgba(102, 126, 234, 0.3), rgba(118, 75, 162, 0.3));
+    color: #8b9dff;
 }
 
 .role-participant {
-    background: linear-gradient(135deg, rgba(6, 255, 180, 0.3), rgba(6, 255, 165, 0.3));
-    color: #06FFB4;
+    background: linear-gradient(135deg, rgba(240, 147, 251, 0.3), rgba(245, 179, 255, 0.3));
+    color: #f5b3ff;
 }
 
 .experiment-card {
@@ -711,7 +711,7 @@ body {
 }
 
 .auth-link a {
-    color: #06FFB4;
+    color: #fdbb2d;
     text-decoration: none;
     font-weight: 500;
 }
@@ -744,7 +744,7 @@ body {
 .hero h1 {
     font-size: 3rem;
     margin-bottom: 0.5rem;
-    background: linear-gradient(135deg, #06FFB4, #3A86FF);
+    background: linear-gradient(135deg, #fdbb2d, #f093fb, #667eea);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
@@ -796,7 +796,7 @@ body {
 
 .feature h3 {
     margin-bottom: 0.75rem;
-    color: #06FFB4;
+    color: #fdbb2d;
     text-shadow: 0 2px 6px rgba(0, 0, 0, 0.5);
 }
 
@@ -899,7 +899,7 @@ body {
 
 .session-time {
     font-weight: 600;
-    color: #06FFB4;
+    color: #fdbb2d;
     display: block;
     margin-bottom: 0.5rem;
     text-shadow: 0 1px 4px rgba(0, 0, 0, 0.5);
@@ -976,51 +976,51 @@ body {
 }
 
 .badge-open {
-    background: rgba(6, 255, 180, 0.3);
-    color: #06FFB4;
-    border: 1px solid rgba(6, 255, 180, 0.5);
+    background: rgba(102, 126, 234, 0.3);
+    color: #8b9dff;
+    border: 1px solid rgba(102, 126, 234, 0.5);
     text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
 }
 
 .badge-registered {
-    background: rgba(58, 134, 255, 0.3);
-    color: #3A86FF;
-    border: 1px solid rgba(58, 134, 255, 0.5);
+    background: rgba(118, 75, 162, 0.3);
+    color: #a78bfa;
+    border: 1px solid rgba(118, 75, 162, 0.5);
     text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
 }
 
 .badge-confirmed {
-    background: rgba(6, 255, 165, 0.3);
-    color: #06FFA5;
-    border: 1px solid rgba(6, 255, 165, 0.5);
+    background: rgba(240, 147, 251, 0.3);
+    color: #f5b3ff;
+    border: 1px solid rgba(240, 147, 251, 0.5);
     text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
 }
 
 .badge-attended {
-    background: rgba(6, 255, 180, 0.3);
-    color: #06FFB4;
-    border: 1px solid rgba(6, 255, 180, 0.5);
+    background: rgba(253, 187, 45, 0.3);
+    color: #fdbb2d;
+    border: 1px solid rgba(253, 187, 45, 0.5);
     text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
 }
 
 .badge-no_show {
-    background: rgba(255, 193, 7, 0.3);
-    color: #FFC107;
-    border: 1px solid rgba(255, 193, 7, 0.5);
+    background: rgba(255, 150, 100, 0.3);
+    color: #ffa366;
+    border: 1px solid rgba(255, 150, 100, 0.5);
     text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
 }
 
 .badge-cancelled {
-    background: rgba(239, 68, 68, 0.3);
-    color: #EF4444;
-    border: 1px solid rgba(239, 68, 68, 0.5);
+    background: rgba(178, 31, 31, 0.3);
+    color: #ff6b6b;
+    border: 1px solid rgba(178, 31, 31, 0.5);
     text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
 }
 
 .badge-success {
-    background: rgba(6, 255, 180, 0.3);
-    color: #06FFB4;
-    border: 1px solid rgba(6, 255, 180, 0.5);
+    background: rgba(102, 126, 234, 0.3);
+    color: #8b9dff;
+    border: 1px solid rgba(102, 126, 234, 0.5);
     text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
 }
 
@@ -1061,7 +1061,7 @@ body {
 .tab-button.active {
     color: white;
     background: rgba(255, 255, 255, 0.15);
-    border-bottom-color: #06FFB4;
+    border-bottom-color: #fdbb2d;
 }
 
 .tab-content {
@@ -1140,7 +1140,7 @@ body {
 .nav-brand h1 {
     font-size: 1.6rem;
     font-weight: bold;
-    background: linear-gradient(135deg, #3A86FF, #06FFB4);
+    background: linear-gradient(135deg, #fdbb2d, #f093fb);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
@@ -1172,7 +1172,7 @@ body {
     left: 50%;
     width: 0;
     height: 2px;
-    background: linear-gradient(90deg, #3A86FF, #06FFB4);
+    background: linear-gradient(90deg, #667eea, #fdbb2d);
     transform: translateX(-50%);
     transition: width 0.3s ease;
 }
@@ -1264,7 +1264,7 @@ body {
 .stat-card h3 {
     font-size: 2.5rem;
     margin-bottom: 0.5rem;
-    background: linear-gradient(135deg, #06FFB4, #3A86FF);
+    background: linear-gradient(135deg, #fdbb2d, #f093fb, #667eea);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
