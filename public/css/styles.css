@@ -534,7 +534,7 @@ body {
 .language-switcher {
     position: relative;
     display: inline-block;
-    margin-left: auto;
+    flex-shrink: 0;
 }
 
 .language-dropdown {
@@ -1104,6 +1104,7 @@ body {
     align-items: center;
     flex-wrap: nowrap;
     width: 100%;
+    gap: 2rem;
 }
 
 .nav-brand {
@@ -1125,6 +1126,7 @@ body {
     gap: 2rem;
     align-items: center;
     flex-wrap: nowrap;
+    flex: 1;
 }
 
 .nav-menu a {
@@ -1258,7 +1260,7 @@ body {
     }
 
     .nav-container {
-        flex-direction: column;
+        flex-wrap: wrap;
         gap: 1rem;
     }
 
@@ -1266,6 +1268,8 @@ body {
         flex-wrap: wrap;
         justify-content: center;
         gap: 1rem;
+        order: 2;
+        width: 100%;
     }
 
     .nav-menu a {
@@ -1273,7 +1277,8 @@ body {
     }
 
     .language-switcher {
-        margin-left: 0;
+        order: 1;
+        margin-left: auto;
     }
 
     .floating-button {

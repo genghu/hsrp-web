@@ -33,7 +33,6 @@ async function initializeApp() {
 
     // Show home page by default
     showPage('home');
-    updateLanguageSwitcher();
 }
 
 // Navigation functions
@@ -60,7 +59,6 @@ function updateNavigation(isLoggedIn) {
     document.getElementById('nav-dashboard').style.display = isLoggedIn ? 'block' : 'none';
     document.getElementById('nav-logout').style.display = isLoggedIn ? 'block' : 'none';
     updateFloatingButton();
-    updateLanguageSwitcher();
 }
 
 function showDashboard() {
@@ -1045,10 +1043,3 @@ function updateFloatingButton() {
     }
 }
 
-// Language switcher visibility control
-function updateLanguageSwitcher() {
-    const languageSwitcher = document.getElementById('language-switcher');
-    if (languageSwitcher) {
-        languageSwitcher.style.display = 'inline-block';
-    }
-}
