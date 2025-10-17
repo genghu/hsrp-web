@@ -9,10 +9,10 @@ body {
     min-height: 100vh;
     background: linear-gradient(-45deg, #2E86AB, #A23B72, #3A86FF, #06FFB4, #8338EC, #06FFA5);
     background-size: 600% 600%;
-    animation: gradientFlow 40s ease infinite;
+    animation: gradientFlow 60s ease infinite;
     color: #fff;
     overflow-x: hidden;
-    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3), 0 1px 2px rgba(0, 0, 0, 0.4);
+    text-shadow: 0 1px 1px rgba(0, 0, 0, 0.3), 0 1px 2px rgba(0, 0, 0, 0.4);
 }
 
 @keyframes gradientFlow {
@@ -50,7 +50,7 @@ body {
         rgba(255, 255, 255, 0.1),
         transparent);
     transform: rotate(45deg);
-    transition: all 0.6s;
+    transition: all 1s;
     opacity: 0;
 }
 
@@ -744,11 +744,11 @@ body {
 .hero h1 {
     font-size: 3rem;
     margin-bottom: 0.5rem;
-    background: linear-gradient(135deg, #06FFB4, #3A86FF);
+    background: linear-gradient(135deg, #38ff06, #caff3a);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
-    filter: drop-shadow(0 2px 8px rgba(0, 0, 0, 0.5));
+    filter: drop-shadow(0 2px 2px rgba(0, 0, 0, 0.8));
 }
 
 .hero .subtitle {
