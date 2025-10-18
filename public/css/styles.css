@@ -10,7 +10,7 @@ body {
     background: linear-gradient(-45deg, #1e3a8a, #3b82f6, #6366f1, #8b5cf6, #a855f7, #c084fc);
     background-size: 600% 600%;
     animation: gradientFlow 40s ease infinite;
-    color: #fff;
+    color: #f8fafc;
     overflow-x: hidden;
     text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3), 0 1px 2px rgba(0, 0, 0, 0.4);
 }
@@ -120,7 +120,7 @@ body {
 }
 
 .glass-input::placeholder {
-    color: rgba(255, 255, 255, 0.75);
+    color: #e0e7ff;
 }
 
 .glass-input:focus {
@@ -160,7 +160,7 @@ body {
 .navbar-brand {
     font-size: 1.6rem;
     font-weight: bold;
-    background: linear-gradient(135deg, #60a5fa, #c084fc, #f0abfc);
+    background: linear-gradient(135deg, #bfdbfe, #e9d5ff, #fae8ff);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
@@ -168,7 +168,7 @@ body {
 }
 
 .nav-link {
-    color: rgba(255, 255, 255, 0.95) !important;
+    color: #f8fafc !important;
     margin: 0 12px;
     transition: all 0.3s ease;
     position: relative;
@@ -181,7 +181,7 @@ body {
     left: 50%;
     width: 0;
     height: 2px;
-    background: linear-gradient(90deg, #60a5fa, #c084fc);
+    background: linear-gradient(90deg, #bfdbfe, #e9d5ff);
     transform: translateX(-50%);
     transition: width 0.3s ease;
 }
@@ -207,7 +207,7 @@ body {
 }
 
 .dropdown-item {
-    color: rgba(255, 255, 255, 0.95) !important;
+    color: #f8fafc !important;
     transition: all 0.3s ease !important;
     padding: 10px 20px !important;
 }
@@ -235,28 +235,28 @@ body {
 .status-open {
     background: linear-gradient(135deg, rgba(102, 126, 234, 0.3), rgba(118, 75, 162, 0.3));
     border-color: rgba(102, 126, 234, 0.5);
-    color: #8b9dff;
+    color: #c7d2fe;
     text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
 }
 
 .status-pending {
     background: linear-gradient(135deg, rgba(253, 187, 45, 0.3), rgba(253, 187, 45, 0.3));
     border-color: rgba(253, 187, 45, 0.5);
-    color: #fdbb2d;
+    color: #fef08a;
     text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
 }
 
 .status-posted {
     background: linear-gradient(135deg, rgba(240, 147, 251, 0.3), rgba(245, 179, 255, 0.3));
     border-color: rgba(240, 147, 251, 0.5);
-    color: #f5b3ff;
+    color: #fae8ff;
     text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
 }
 
 .status-closed {
     background: linear-gradient(135deg, rgba(178, 31, 31, 0.3), rgba(200, 50, 50, 0.3));
     border-color: rgba(178, 31, 31, 0.5);
-    color: #ff6b6b;
+    color: #fecaca;
     text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
 }
 
@@ -272,17 +272,17 @@ body {
 
 .role-admin {
     background: linear-gradient(135deg, rgba(178, 31, 31, 0.3), rgba(200, 50, 50, 0.3));
-    color: #ff6b6b;
+    color: #fecaca;
 }
 
 .role-researcher {
     background: linear-gradient(135deg, rgba(102, 126, 234, 0.3), rgba(118, 75, 162, 0.3));
-    color: #8b9dff;
+    color: #c7d2fe;
 }
 
 .role-participant {
     background: linear-gradient(135deg, rgba(240, 147, 251, 0.3), rgba(245, 179, 255, 0.3));
-    color: #f5b3ff;
+    color: #fae8ff;
 }
 
 .experiment-card {
@@ -688,7 +688,7 @@ body {
 
 .form-group input::placeholder,
 .form-group textarea::placeholder {
-    color: rgba(255, 255, 255, 0.75);
+    color: #e0e7ff;
 }
 
 .form-group input:focus,
@@ -708,11 +708,11 @@ body {
 .auth-link {
     text-align: center;
     margin-top: 1rem;
-    color: rgba(255, 255, 255, 0.9);
+    color: #ffffff;
 }
 
 .auth-link a {
-    color: #c084fc;
+    color: #ddd6fe;
     text-decoration: none;
     font-weight: 500;
 }
@@ -722,7 +722,7 @@ body {
 }
 
 .error-message {
-    color: #EF4444;
+    color: #fecaca;
     font-size: 0.875rem;
     margin-top: 0.5rem;
     background: rgba(239, 68, 68, 0.2);
@@ -745,7 +745,7 @@ body {
 .hero h1 {
     font-size: 3rem;
     margin-bottom: 0.5rem;
-    background: linear-gradient(135deg, #60a5fa, #c084fc, #f0abfc);
+    background: linear-gradient(135deg, #bfdbfe, #e9d5ff, #fae8ff);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
@@ -754,14 +754,14 @@ body {
 
 .hero .subtitle {
     font-size: 1.5rem;
-    color: rgba(255, 255, 255, 0.95);
+    color: #ffffff;
     margin-bottom: 1rem;
     text-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
 }
 
 .hero p {
     font-size: 1.125rem;
-    color: rgba(255, 255, 255, 0.85);
+    color: #f8fafc;
     margin-bottom: 2rem;
     text-shadow: 0 1px 4px rgba(0, 0, 0, 0.4);
 }
@@ -797,12 +797,12 @@ body {
 
 .feature h3 {
     margin-bottom: 0.75rem;
-    color: #c084fc;
+    color: #ddd6fe;
     text-shadow: 0 2px 6px rgba(0, 0, 0, 0.5);
 }
 
 .feature p {
-    color: rgba(255, 255, 255, 0.9);
+    color: #ffffff;
     text-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
 }
 
@@ -900,14 +900,14 @@ body {
 
 .session-time {
     font-weight: 600;
-    color: #c084fc;
+    color: #ddd6fe;
     display: block;
     margin-bottom: 0.5rem;
     text-shadow: 0 1px 4px rgba(0, 0, 0, 0.5);
 }
 
 .session-info {
-    color: rgba(255, 255, 255, 0.85);
+    color: #f8fafc;
     font-size: 0.9rem;
     margin: 0.25rem 0;
     text-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
@@ -927,7 +927,7 @@ body {
 .requirements-list {
     margin: 0.5rem 0;
     padding-left: 1.5rem;
-    color: rgba(255, 255, 255, 0.9);
+    color: #ffffff;
 }
 
 .requirements-list li {
@@ -978,49 +978,49 @@ body {
 
 .badge-open {
     background: rgba(102, 126, 234, 0.3);
-    color: #8b9dff;
+    color: #c7d2fe;
     border: 1px solid rgba(102, 126, 234, 0.5);
     text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
 }
 
 .badge-registered {
     background: rgba(118, 75, 162, 0.3);
-    color: #a78bfa;
+    color: #ddd6fe;
     border: 1px solid rgba(118, 75, 162, 0.5);
     text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
 }
 
 .badge-confirmed {
     background: rgba(240, 147, 251, 0.3);
-    color: #f5b3ff;
+    color: #fae8ff;
     border: 1px solid rgba(240, 147, 251, 0.5);
     text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
 }
 
 .badge-attended {
     background: rgba(253, 187, 45, 0.3);
-    color: #fdbb2d;
+    color: #fef08a;
     border: 1px solid rgba(253, 187, 45, 0.5);
     text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
 }
 
 .badge-no_show {
     background: rgba(255, 150, 100, 0.3);
-    color: #ffa366;
+    color: #fed7aa;
     border: 1px solid rgba(255, 150, 100, 0.5);
     text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
 }
 
 .badge-cancelled {
     background: rgba(178, 31, 31, 0.3);
-    color: #ff6b6b;
+    color: #fecaca;
     border: 1px solid rgba(178, 31, 31, 0.5);
     text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
 }
 
 .badge-success {
     background: rgba(102, 126, 234, 0.3);
-    color: #8b9dff;
+    color: #c7d2fe;
     border: 1px solid rgba(102, 126, 234, 0.5);
     text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
 }
@@ -1028,7 +1028,7 @@ body {
 .empty-state {
     text-align: center;
     padding: 3rem 2rem;
-    color: rgba(255, 255, 255, 0.8);
+    color: #f8fafc;
 }
 
 .empty-state-icon {
@@ -1047,7 +1047,7 @@ body {
     background: rgba(255, 255, 255, 0.1);
     border: none;
     border-bottom: 3px solid transparent;
-    color: rgba(255, 255, 255, 0.7);
+    color: #e0e7ff;
     padding: 12px 24px;
     cursor: pointer;
     transition: all 0.3s ease;
@@ -1062,7 +1062,7 @@ body {
 .tab-button.active {
     color: white;
     background: rgba(255, 255, 255, 0.15);
-    border-bottom-color: #c084fc;
+    border-bottom-color: #ddd6fe;
 }
 
 .tab-content {
@@ -1090,7 +1090,7 @@ body {
 .info-label {
     display: block;
     font-size: 0.85rem;
-    color: rgba(255, 255, 255, 0.7);
+    color: #e0e7ff;
     margin-bottom: 0.25rem;
 }
 
@@ -1141,7 +1141,7 @@ body {
 .nav-brand h1 {
     font-size: 1.6rem;
     font-weight: bold;
-    background: linear-gradient(135deg, #60a5fa, #c084fc, #f0abfc);
+    background: linear-gradient(135deg, #bfdbfe, #e9d5ff, #fae8ff);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
@@ -1158,7 +1158,7 @@ body {
 }
 
 .nav-menu a {
-    color: rgba(255, 255, 255, 0.95);
+    color: #f8fafc;
     text-decoration: none;
     font-weight: 500;
     transition: all 0.3s;
@@ -1174,7 +1174,7 @@ body {
     left: 50%;
     width: 0;
     height: 2px;
-    background: linear-gradient(90deg, #60a5fa, #c084fc);
+    background: linear-gradient(90deg, #bfdbfe, #e9d5ff);
     transform: translateX(-50%);
     transition: width 0.3s ease;
 }
@@ -1209,7 +1209,7 @@ body {
     position: absolute;
     right: 1rem;
     top: 1rem;
-    color: rgba(255, 255, 255, 0.7);
+    color: #e0e7ff;
     font-size: 2rem;
     font-weight: bold;
     cursor: pointer;
@@ -1266,14 +1266,14 @@ body {
 .stat-card h3 {
     font-size: 2.5rem;
     margin-bottom: 0.5rem;
-    background: linear-gradient(135deg, #60a5fa, #c084fc, #f0abfc);
+    background: linear-gradient(135deg, #bfdbfe, #e9d5ff, #fae8ff);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
 }
 
 .stat-card p {
-    color: rgba(255, 255, 255, 0.9);
+    color: #ffffff;
     font-size: 0.95rem;
 }
 
