@@ -195,7 +195,40 @@
                             </div>
                         </div>
                         <div class="form-group">
-                            <label for="exp-requirements" data-i18n="requirements_one_per_line">Requirements (one per line)</label>
+                            <label data-i18n="suggested_requirements">Suggested Requirements</label>
+                            <div id="suggested-requirements" style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 0.5rem; margin-top: 0.5rem;">
+                                <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer;">
+                                    <input type="checkbox" name="suggested-req" value="Age 18 or older" data-i18n-value="req_age_18_plus">
+                                    <span data-i18n="req_age_18_plus">Age 18 or older</span>
+                                </label>
+                                <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer;">
+                                    <input type="checkbox" name="suggested-req" value="Normal or corrected-to-normal vision" data-i18n-value="req_normal_vision">
+                                    <span data-i18n="req_normal_vision">Normal or corrected-to-normal vision</span>
+                                </label>
+                                <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer;">
+                                    <input type="checkbox" name="suggested-req" value="Native language speaker" data-i18n-value="req_native_speaker">
+                                    <span data-i18n="req_native_speaker">Native language speaker</span>
+                                </label>
+                                <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer;">
+                                    <input type="checkbox" name="suggested-req" value="No neurological disorders" data-i18n-value="req_no_neurological">
+                                    <span data-i18n="req_no_neurological">No neurological disorders</span>
+                                </label>
+                                <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer;">
+                                    <input type="checkbox" name="suggested-req" value="No psychiatric conditions" data-i18n-value="req_no_psychiatric">
+                                    <span data-i18n="req_no_psychiatric">No psychiatric conditions</span>
+                                </label>
+                                <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer;">
+                                    <input type="checkbox" name="suggested-req" value="Right-handed" data-i18n-value="req_right_handed">
+                                    <span data-i18n="req_right_handed">Right-handed</span>
+                                </label>
+                                <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer;">
+                                    <input type="checkbox" name="suggested-req" value="Not taking psychoactive medication" data-i18n-value="req_no_medication">
+                                    <span data-i18n="req_no_medication">Not taking psychoactive medication</span>
+                                </label>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="exp-requirements" data-i18n="custom_requirements">Custom Requirements (one per line)</label>
                             <textarea id="exp-requirements" rows="3"></textarea>
                         </div>
                         <div class="form-group">
@@ -210,7 +243,7 @@
                         <div id="experiment-error" class="error-message"></div>
                         <div class="modal-buttons">
                             <button type="button" class="glass-button" onclick="closeExperimentModal()" data-i18n="cancel"><i class="fas fa-times me-2"></i>Cancel</button>
-                            <button type="submit" class="glass-button" data-i18n="save"><i class="fas fa-save me-2"></i>Save</button>
+                            <button type="submit" id="experiment-submit-btn" class="glass-button" data-i18n="save"><i class="fas fa-save me-2"></i>Save</button>
                         </div>
                     </form>
                 </div>

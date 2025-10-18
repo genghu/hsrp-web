@@ -323,6 +323,13 @@ function showCreateExperiment() {
     document.getElementById('experiment-modal-title').textContent = t['create_experiment'];
     document.getElementById('experiment-form').reset();
     document.getElementById('exp-status').value = 'draft';
+
+    // Clear all suggested requirement checkboxes
+    document.querySelectorAll('input[name="suggested-req"]').forEach(checkbox => {
+        checkbox.checked = false;
+    });
+
+    updateSubmitButtonText();
     document.getElementById('experiment-modal').classList.add('show');
 }
 
@@ -348,8 +355,34 @@ async function editExperiment(expId) {
             document.getElementById('exp-duration').value = data.data.duration;
             document.getElementById('exp-compensation').value = data.data.compensation;
             document.getElementById('exp-maxParticipants').value = data.data.maxParticipants;
-            document.getElementById('exp-requirements').value = data.data.requirements.join('\n');
             document.getElementById('exp-status').value = data.data.status;
+
+            // Separate suggested and custom requirements
+            const suggestedCheckboxes = document.querySelectorAll('input[name="suggested-req"]');
+            const customRequirements = [];
+
+            // Clear all checkboxes first
+            suggestedCheckboxes.forEach(checkbox => checkbox.checked = false);
+
+            // Check which requirements match suggested ones
+            data.data.requirements.forEach(req => {
+                let matched = false;
+                suggestedCheckboxes.forEach(checkbox => {
+                    const t = translations[currentLanguage];
+                    const translatedValue = t[checkbox.getAttribute('data-i18n-value')];
+                    // Check both English and translated values
+                    if (req === checkbox.value || req === translatedValue) {
+                        checkbox.checked = true;
+                        matched = true;
+                    }
+                });
+                if (!matched) {
+                    customRequirements.push(req);
+                }
+            });
+
+            document.getElementById('exp-requirements').value = customRequirements.join('\n');
+            updateSubmitButtonText();
             document.getElementById('experiment-modal').classList.add('show');
         }
     } catch (error) {
@@ -360,6 +393,23 @@ async function editExperiment(expId) {
 async function handleExperimentSubmit(event) {
     event.preventDefault();
 
+    // Collect suggested requirements
+    const suggestedRequirements = [];
+    const t = translations[currentLanguage];
+    document.querySelectorAll('input[name="suggested-req"]:checked').forEach(checkbox => {
+        // Use the translated value when submitting
+        const translationKey = checkbox.getAttribute('data-i18n-value');
+        suggestedRequirements.push(t[translationKey]);
+    });
+
+    // Collect custom requirements
+    const customRequirements = document.getElementById('exp-requirements').value
+        .split('\n')
+        .filter(r => r.trim());
+
+    // Combine both
+    const allRequirements = [...suggestedRequirements, ...customRequirements];
+
     const experimentData = {
         title: document.getElementById('exp-title').value,
         description: document.getElementById('exp-description').value,
@@ -367,7 +417,7 @@ async function handleExperimentSubmit(event) {
         duration: parseInt(document.getElementById('exp-duration').value),
         compensation: document.getElementById('exp-compensation').value,
         maxParticipants: parseInt(document.getElementById('exp-maxParticipants').value),
-        requirements: document.getElementById('exp-requirements').value.split('\n').filter(r => r.trim()),
+        requirements: allRequirements,
         status: document.getElementById('exp-status').value
     };
 
@@ -428,6 +478,29 @@ function closeExperimentModal() {
     document.getElementById('experiment-modal').classList.remove('show');
     document.getElementById('experiment-error').classList.remove('show');
 }
+
+// Update submit button text based on status
+function updateSubmitButtonText() {
+    const status = document.getElementById('exp-status').value;
+    const submitBtn = document.getElementById('experiment-submit-btn');
+    const t = translations[currentLanguage];
+
+    if (status === 'open') {
+        submitBtn.innerHTML = `<i class="fas fa-rocket me-2"></i>${t['publish']}`;
+        submitBtn.setAttribute('data-i18n', 'publish');
+    } else {
+        submitBtn.innerHTML = `<i class="fas fa-save me-2"></i>${t['save']}`;
+        submitBtn.setAttribute('data-i18n', 'save');
+    }
+}
+
+// Add event listener for status change
+document.addEventListener('DOMContentLoaded', () => {
+    const statusSelect = document.getElementById('exp-status');
+    if (statusSelect) {
+        statusSelect.addEventListener('change', updateSubmitButtonText);
+    }
+});
 
 // Session Management
 async function viewSessions(expId) {
@@ -1055,9 +1128,21 @@ const translations = {
         'sessions': 'Sessions',
         'cancel': 'Cancel',
         'save': 'Save',
+        'publish': 'Publish',
         'register': 'Register',
         'registered': 'Registered',
         'full': 'Full',
+
+        // Suggested Requirements
+        'suggested_requirements': 'Suggested Requirements',
+        'custom_requirements': 'Custom Requirements (one per line)',
+        'req_age_18_plus': 'Age 18 or older',
+        'req_normal_vision': 'Normal or corrected-to-normal vision',
+        'req_native_speaker': 'Native language speaker',
+        'req_no_neurological': 'No neurological disorders',
+        'req_no_psychiatric': 'No psychiatric conditions',
+        'req_right_handed': 'Right-handed',
+        'req_no_medication': 'Not taking psychoactive medication',
 
         // Messages
         'language_changed': 'Language changed to English',
@@ -1163,9 +1248,21 @@ const translations = {
         'sessions': '会话',
         'cancel': '取消',
         'save': '保存',
+        'publish': '发布',
         'register': '注册',
         'registered': '已注册',
         'full': '已满',
+
+        // Suggested Requirements
+        'suggested_requirements': '建议的要求',
+        'custom_requirements': '自定义要求（每行一个）',
+        'req_age_18_plus': '年龄18岁或以上',
+        'req_normal_vision': '正常或矫正后正常的视力',
+        'req_native_speaker': '母语者',
+        'req_no_neurological': '无神经系统疾病',
+        'req_no_psychiatric': '无精神疾病',
+        'req_right_handed': '右撇子',
+        'req_no_medication': '未服用精神活性药物',
 
         // Messages
         'language_changed': '语言已切换为中文',
@@ -1286,6 +1383,20 @@ function applyTranslations(lang) {
             el.placeholder = t[key];
         }
     });
+
+    // Translate checkbox values for suggested requirements
+    document.querySelectorAll('input[name="suggested-req"]').forEach(checkbox => {
+        const key = checkbox.getAttribute('data-i18n-value');
+        if (t[key]) {
+            checkbox.value = t[key];
+        }
+    });
+
+    // Update submit button text based on current status
+    const experimentModal = document.getElementById('experiment-modal');
+    if (experimentModal && experimentModal.classList.contains('show')) {
+        updateSubmitButtonText();
+    }
 
     // Reload dynamically generated content if on specific pages
     if (currentUser) {
