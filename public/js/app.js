@@ -10,6 +10,9 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 async function initializeApp() {
+    // Apply initial language translations
+    applyTranslations(currentLanguage);
+
     // Check if user is logged in
     const token = localStorage.getItem('token');
     if (token) {
@@ -950,7 +953,7 @@ function showNotification(message, type = 'success') {
 }
 
 // Language Switcher
-let currentLanguage = 'en';
+let currentLanguage = 'zh';
 
 const translations = {
     en: {
