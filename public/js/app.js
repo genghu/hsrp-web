@@ -324,10 +324,8 @@ function showCreateExperiment() {
     document.getElementById('experiment-form').reset();
     document.getElementById('exp-status').value = 'draft';
 
-    // Clear all suggested requirement checkboxes
-    document.querySelectorAll('input[name="suggested-req"]').forEach(checkbox => {
-        checkbox.checked = false;
-    });
+    // Clear selected requirements
+    clearSelectedRequirements();
 
     updateSubmitButtonText();
     document.getElementById('experiment-modal').classList.add('show');
@@ -357,31 +355,33 @@ async function editExperiment(expId) {
             document.getElementById('exp-maxParticipants').value = data.data.maxParticipants;
             document.getElementById('exp-status').value = data.data.status;
 
-            // Separate suggested and custom requirements
-            const suggestedCheckboxes = document.querySelectorAll('input[name="suggested-req"]');
-            const customRequirements = [];
+            // Clear and populate selected requirements
+            clearSelectedRequirements();
 
-            // Clear all checkboxes first
-            suggestedCheckboxes.forEach(checkbox => checkbox.checked = false);
-
-            // Check which requirements match suggested ones
             data.data.requirements.forEach(req => {
+                // Check if it matches a suggested requirement
                 let matched = false;
-                suggestedCheckboxes.forEach(checkbox => {
-                    const t = translations[currentLanguage];
-                    const translatedValue = t[checkbox.getAttribute('data-i18n-value')];
-                    // Check both English and translated values
-                    if (req === checkbox.value || req === translatedValue) {
-                        checkbox.checked = true;
+                const requirementOptions = document.querySelectorAll('.requirement-option');
+
+                requirementOptions.forEach(option => {
+                    const reqKey = option.getAttribute('data-req-key');
+                    const translatedText = t[reqKey];
+                    const englishText = translations['en'][reqKey];
+
+                    // Check both languages
+                    if (req === translatedText || req === englishText) {
+                        addRequirement(reqKey, req);
                         matched = true;
                     }
                 });
+
+                // If not matched, it's a custom requirement
                 if (!matched) {
-                    customRequirements.push(req);
+                    const customKey = 'custom_' + Date.now() + '_' + Math.random();
+                    addRequirement(customKey, req);
                 }
             });
 
-            document.getElementById('exp-requirements').value = customRequirements.join('\n');
             updateSubmitButtonText();
             document.getElementById('experiment-modal').classList.add('show');
         }
@@ -393,22 +393,13 @@ async function editExperiment(expId) {
 async function handleExperimentSubmit(event) {
     event.preventDefault();
 
-    // Collect suggested requirements
-    const suggestedRequirements = [];
-    const t = translations[currentLanguage];
-    document.querySelectorAll('input[name="suggested-req"]:checked').forEach(checkbox => {
-        // Use the translated value when submitting
-        const translationKey = checkbox.getAttribute('data-i18n-value');
-        suggestedRequirements.push(t[translationKey]);
+    // Collect selected requirements from chips
+    const requirements = [];
+    const chips = document.querySelectorAll('#selected-requirements .requirement-chip');
+    chips.forEach(chip => {
+        const text = chip.querySelector('span:first-child').textContent;
+        requirements.push(text);
     });
-
-    // Collect custom requirements
-    const customRequirements = document.getElementById('exp-requirements').value
-        .split('\n')
-        .filter(r => r.trim());
-
-    // Combine both
-    const allRequirements = [...suggestedRequirements, ...customRequirements];
 
     const experimentData = {
         title: document.getElementById('exp-title').value,
@@ -417,7 +408,7 @@ async function handleExperimentSubmit(event) {
         duration: parseInt(document.getElementById('exp-duration').value),
         compensation: document.getElementById('exp-compensation').value,
         maxParticipants: parseInt(document.getElementById('exp-maxParticipants').value),
-        requirements: allRequirements,
+        requirements: requirements,
         status: document.getElementById('exp-status').value
     };
 
@@ -500,7 +491,73 @@ document.addEventListener('DOMContentLoaded', () => {
     if (statusSelect) {
         statusSelect.addEventListener('change', updateSubmitButtonText);
     }
+
+    // Add click handlers for requirement options
+    const requirementOptions = document.querySelectorAll('.requirement-option');
+    requirementOptions.forEach(option => {
+        option.addEventListener('click', function() {
+            const reqKey = this.getAttribute('data-req-key');
+            const reqText = this.textContent;
+            addRequirement(reqKey, reqText);
+        });
+    });
+
+    // Add enter key handler for custom requirement input
+    const customReqInput = document.getElementById('exp-custom-requirement');
+    if (customReqInput) {
+        customReqInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                addCustomRequirement();
+            }
+        });
+    }
 });
+
+// Requirements management
+function addRequirement(key, text) {
+    const container = document.getElementById('selected-requirements');
+
+    // Check if requirement already exists
+    if (container.querySelector(`[data-req-key="${key}"]`)) {
+        return; // Already added
+    }
+
+    const chip = document.createElement('div');
+    chip.className = 'requirement-chip';
+    chip.setAttribute('data-req-key', key);
+    chip.innerHTML = `
+        <span>${text}</span>
+        <span class="remove-btn" onclick="removeRequirement('${key}')">&times;</span>
+    `;
+
+    container.appendChild(chip);
+}
+
+function removeRequirement(key) {
+    const container = document.getElementById('selected-requirements');
+    const chip = container.querySelector(`[data-req-key="${key}"]`);
+    if (chip) {
+        chip.remove();
+    }
+}
+
+function addCustomRequirement() {
+    const input = document.getElementById('exp-custom-requirement');
+    const text = input.value.trim();
+
+    if (!text) return;
+
+    // Generate a unique key for custom requirement
+    const key = 'custom_' + Date.now();
+    addRequirement(key, text);
+    input.value = ''; // Clear input
+}
+
+function clearSelectedRequirements() {
+    const container = document.getElementById('selected-requirements');
+    container.innerHTML = '';
+}
 
 // Session Management
 async function viewSessions(expId) {
@@ -1135,7 +1192,8 @@ const translations = {
 
         // Suggested Requirements
         'suggested_requirements': 'Suggested Requirements',
-        'custom_requirements': 'Custom Requirements (one per line)',
+        'custom_requirements': 'Custom Requirements',
+        'selected_requirements': 'Selected Requirements',
         'req_age_18_plus': 'Age 18 or older',
         'req_normal_vision': 'Normal or corrected-to-normal vision',
         'req_native_speaker': 'Native language speaker',
@@ -1255,7 +1313,8 @@ const translations = {
 
         // Suggested Requirements
         'suggested_requirements': '建议的要求',
-        'custom_requirements': '自定义要求（每行一个）',
+        'custom_requirements': '自定义要求',
+        'selected_requirements': '已选要求',
         'req_age_18_plus': '年龄18岁或以上',
         'req_normal_vision': '正常或矫正后正常的视力',
         'req_native_speaker': '母语者',
@@ -1384,11 +1443,15 @@ function applyTranslations(lang) {
         }
     });
 
-    // Translate checkbox values for suggested requirements
-    document.querySelectorAll('input[name="suggested-req"]').forEach(checkbox => {
-        const key = checkbox.getAttribute('data-i18n-value');
-        if (t[key]) {
-            checkbox.value = t[key];
+    // Update requirement chips to show translated text
+    const chips = document.querySelectorAll('#selected-requirements .requirement-chip');
+    chips.forEach(chip => {
+        const key = chip.getAttribute('data-req-key');
+        if (key && !key.startsWith('custom_') && t[key]) {
+            const textSpan = chip.querySelector('span:first-child');
+            if (textSpan) {
+                textSpan.textContent = t[key];
+            }
         }
     });
 
