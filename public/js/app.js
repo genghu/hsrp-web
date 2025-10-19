@@ -349,7 +349,8 @@ function renderExperimentCard(exp) {
     const statusBadge = `<span class="status-badge status-${exp.status}">${t[statusKey]}</span>`;
 
     // Determine which buttons to show based on status
-    const canEdit = ['draft', 'rejected', 'completed'].includes(exp.status);
+    const canEdit = ['draft', 'rejected'].includes(exp.status);
+    const canReactivate = exp.status === 'completed';
     const canDelete = ['draft', 'rejected', 'approved', 'completed'].includes(exp.status);
     const canClose = ['open', 'in_progress'].includes(exp.status);
     const canWithdraw = exp.status === 'pending_review';
@@ -366,6 +367,7 @@ function renderExperimentCard(exp) {
                 </div>
                 <div class="d-flex gap-2">
                     ${canEdit ? `<button class="glass-button" style="padding: 8px 16px; font-size: 0.875rem;" onclick="editExperiment('${exp._id}')"><i class="fas fa-edit me-1"></i>${t['edit']}</button>` : ''}
+                    ${canReactivate ? `<button class="glass-button" style="padding: 8px 16px; font-size: 0.875rem; background: linear-gradient(135deg, #667eea, #764ba2);" onclick="reactivateExperiment('${exp._id}')"><i class="fas fa-play-circle me-1"></i>${t['reactivate']}</button>` : ''}
                     ${canViewSessions ? `<button class="glass-button" style="padding: 8px 16px; font-size: 0.875rem;" onclick="viewSessions('${exp._id}')"><i class="fas fa-calendar me-1"></i>${t['sessions']}</button>` : ''}
                     ${canPublish ? `<button class="glass-button" style="padding: 8px 16px; font-size: 0.875rem; background: linear-gradient(135deg, ${hasSession ? '#48bb78, #2f855a' : '#9ca3af, #6b7280'});" onclick="${hasSession ? `publishExperiment('${exp._id}')` : 'return false;'}" ${!hasSession ? 'disabled' : ''}><i class="fas fa-rocket me-1"></i>${t['publish']}</button>` : ''}
                     ${canWithdraw ? `<button class="glass-button" style="padding: 8px 16px; font-size: 0.875rem; background: linear-gradient(135deg, #fbbf24, #f59e0b);" onclick="withdrawExperiment('${exp._id}')"><i class="fas fa-undo me-1"></i>${t['withdraw']}</button>` : ''}
@@ -772,6 +774,35 @@ async function publishExperiment(expId) {
     }
 }
 
+async function reactivateExperiment(expId) {
+    const t = translations[currentLanguage];
+    if (!confirm(t['confirm_reactivate_experiment'] || 'Are you sure you want to reactivate this experiment? It will be returned to draft status for editing.')) {
+        return;
+    }
+
+    try {
+        const response = await fetch(`/api/experiments/${expId}`, {
+            method: 'PATCH',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${localStorage.getItem('token')}`
+            },
+            body: JSON.stringify({ status: 'draft' })
+        });
+
+        const data = await response.json();
+
+        if (response.ok && data.success) {
+            showNotification(t['experiment_reactivated'] || 'Experiment reactivated successfully. You can now edit and resubmit it.', 'success');
+            loadResearcherExperiments();
+        } else {
+            alert(data.error || 'Error reactivating experiment');
+        }
+    } catch (error) {
+        alert('Error reactivating experiment');
+    }
+}
+
 function closeExperimentModal() {
     document.getElementById('experiment-modal').classList.remove('show');
     document.getElementById('experiment-error').classList.remove('show');
@@ -792,6 +823,9 @@ function updateSubmitButtonText() {
     if (status === 'open') {
         submitBtn.innerHTML = `<i class="fas fa-rocket me-2"></i>${t['publish']}`;
         submitBtn.setAttribute('data-i18n', 'publish');
+    } else if (status === 'pending_review') {
+        submitBtn.innerHTML = `<i class="fas fa-paper-plane me-2"></i>${t['submit']}`;
+        submitBtn.setAttribute('data-i18n', 'submit');
     } else {
         submitBtn.innerHTML = `<i class="fas fa-save me-2"></i>${t['save']}`;
         submitBtn.setAttribute('data-i18n', 'save');
@@ -2051,11 +2085,13 @@ const translations = {
         'sessions': 'Sessions',
         'cancel': 'Cancel',
         'save': 'Save',
+        'submit': 'Submit',
         'publish': 'Publish',
         'register': 'Register',
         'registered': 'Registered',
         'full': 'Full',
         'withdraw': 'Withdraw',
+        'reactivate': 'Re-activate',
         'close_experiment': 'Close Experiment',
         'confirm_close_experiment': 'Are you sure you want to close this experiment? This will mark it as completed.',
         'experiment_closed': 'Experiment closed successfully',
@@ -2064,6 +2100,8 @@ const translations = {
         'confirm_publish_experiment': 'Are you sure you want to publish this experiment? It will be open for participant recruitment.',
         'experiment_published': 'Experiment published successfully! It is now open for recruitment.',
         'need_session_to_publish': 'Please add at least one session before publishing',
+        'confirm_reactivate_experiment': 'Are you sure you want to reactivate this experiment? It will be returned to draft status for editing.',
+        'experiment_reactivated': 'Experiment reactivated successfully. You can now edit and resubmit it.',
 
         // Suggested Requirements
         'suggested_requirements': 'Suggested Requirements',
@@ -2224,11 +2262,13 @@ const translations = {
         'sessions': '会话',
         'cancel': '取消',
         'save': '保存',
+        'submit': '提交',
         'publish': '发布',
         'register': '注册',
         'registered': '已注册',
         'full': '已满',
         'withdraw': '撤回',
+        'reactivate': '重新激活',
         'close_experiment': '关闭实验',
         'confirm_close_experiment': '您确定要关闭此实验吗？这将标记为已完成。',
         'experiment_closed': '实验已成功关闭',
@@ -2237,6 +2277,8 @@ const translations = {
         'confirm_publish_experiment': '您确定要发布此实验吗？它将开放给参与者注册。',
         'experiment_published': '实验已成功发布！现在开放招募参与者。',
         'need_session_to_publish': '发布前请至少添加一个会话',
+        'confirm_reactivate_experiment': '您确定要重新激活此实验吗？它将返回到草稿状态以便编辑。',
+        'experiment_reactivated': '实验已成功重新激活。您现在可以编辑并重新提交。',
 
         // Suggested Requirements
         'suggested_requirements': '建议的要求',
