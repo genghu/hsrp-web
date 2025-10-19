@@ -43,6 +43,8 @@ export const createExperimentValidation = [
   body('maxParticipants').isInt({ min: 1 }).withMessage('Max participants must be a positive integer'),
   body('requirements').optional().isArray(),
   body('status').optional().isIn(Object.values(ExperimentStatus)).withMessage('Invalid status'),
+  body('irbDocument').optional(),
+  body('adminReview').optional(),
   validate
 ];
 
@@ -56,6 +58,8 @@ export const updateExperimentValidation = [
   body('maxParticipants').optional().isInt({ min: 1 }).withMessage('Max participants must be a positive integer'),
   body('requirements').optional().isArray(),
   body('status').optional().isIn(Object.values(ExperimentStatus)).withMessage('Invalid status'),
+  body('irbDocument').optional(),
+  body('adminReview').optional(),
   validate
 ];
 
