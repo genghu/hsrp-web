@@ -234,6 +234,21 @@
                 </div>
             </div>
 
+            <!-- Admin Dashboard -->
+            <div id="page-admin-dashboard" class="page">
+                <div class="glass-container">
+                    <div class="dashboard-header">
+                        <h2 data-i18n="admin_dashboard"><i class="fas fa-user-shield me-2"></i>Admin Dashboard</h2>
+                    </div>
+                    <div class="tabs">
+                        <button class="tab-button active" onclick="showAdminTab('pending', event)"><i class="fas fa-clock me-1"></i><span data-i18n="pending_review">Pending Review</span></button>
+                        <button class="tab-button" onclick="showAdminTab('all', event)"><i class="fas fa-list me-1"></i><span data-i18n="all_experiments">All Experiments</span></button>
+                    </div>
+                    <div id="admin-pending-container" class="tab-content active"></div>
+                    <div id="admin-all-container" class="tab-content"></div>
+                </div>
+            </div>
+
             <!-- Create/Edit Experiment Modal -->
             <div id="experiment-modal" class="modal">
                 <div class="modal-content">
@@ -292,9 +307,37 @@
                             <div id="selected-requirements" style="display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 0.5rem; min-height: 40px; padding: 10px; background: rgba(255, 255, 255, 0.05); border-radius: 8px; border: 1px solid rgba(255, 255, 255, 0.15);"></div>
                         </div>
                         <div class="form-group">
+                            <label for="exp-irb-document" data-i18n="irb_approval">IRB Approval Document <span style="color: #f87171;">*</span></label>
+                            <div style="margin-bottom: 0.5rem;">
+                                <input type="file" id="exp-irb-document" accept=".pdf,.doc,.docx,.jpg,.jpeg,.png" style="display: none;" onchange="handleIRBFileSelect(event)">
+                                <button type="button" class="glass-button" onclick="document.getElementById('exp-irb-document').click()" style="width: 100%;">
+                                    <i class="fas fa-upload me-2"></i><span data-i18n="upload_irb">Upload IRB Document</span>
+                                </button>
+                            </div>
+                            <div id="irb-file-info" style="display: none; padding: 0.75rem; background: rgba(102, 126, 234, 0.1); border: 1px solid rgba(102, 126, 234, 0.3); border-radius: 8px; font-size: 0.9rem;">
+                                <div style="display: flex; justify-content: space-between; align-items: center;">
+                                    <div style="display: flex; align-items: center; gap: 0.5rem;">
+                                        <i class="fas fa-file-alt" style="color: #667eea;"></i>
+                                        <span id="irb-file-name"></span>
+                                    </div>
+                                    <button type="button" onclick="removeIRBFile()" style="background: none; border: none; color: #f87171; cursor: pointer; font-size: 1.2rem;" title="Remove file">
+                                        <i class="fas fa-times"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            <div id="irb-current-file" style="display: none; margin-top: 0.5rem; padding: 0.75rem; background: rgba(72, 187, 120, 0.1); border: 1px solid rgba(72, 187, 120, 0.3); border-radius: 8px; font-size: 0.9rem;">
+                                <div style="display: flex; align-items: center; gap: 0.5rem;">
+                                    <i class="fas fa-check-circle" style="color: #48bb78;"></i>
+                                    <span data-i18n="current_irb">Current IRB:</span>
+                                    <a id="irb-current-link" href="#" target="_blank" style="color: #667eea; text-decoration: underline;"></a>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-group">
                             <label for="exp-status" data-i18n="status">Status</label>
                             <select id="exp-status">
                                 <option value="draft" data-i18n="draft">Draft</option>
+                                <option value="pending_review" data-i18n="submit_for_review">Submit for Review</option>
                                 <option value="open" data-i18n="open_for_recruitment">Open for Recruitment</option>
                                 <option value="in_progress" data-i18n="in_progress">In Progress</option>
                                 <option value="completed" data-i18n="completed">Completed</option>
@@ -304,6 +347,27 @@
                         <div class="modal-buttons">
                             <button type="button" class="glass-button" onclick="closeExperimentModal()" data-i18n="cancel"><i class="fas fa-times me-2"></i>Cancel</button>
                             <button type="submit" id="experiment-submit-btn" class="glass-button" data-i18n="save"><i class="fas fa-save me-2"></i>Save</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Admin Review Modal -->
+            <div id="admin-review-modal" class="modal">
+                <div class="modal-content">
+                    <span class="close" onclick="closeAdminReviewModal()">&times;</span>
+                    <h2 data-i18n="review_experiment">Review Experiment</h2>
+                    <div id="review-experiment-details" style="margin-bottom: 1.5rem;"></div>
+                    <form id="admin-review-form" onsubmit="handleAdminReview(event)">
+                        <div class="form-group">
+                            <label for="admin-notes" data-i18n="admin_notes">Review Notes</label>
+                            <textarea id="admin-notes" rows="4" placeholder="Add notes (optional for approval, required for rejection)"></textarea>
+                        </div>
+                        <div id="admin-review-error" class="error-message"></div>
+                        <div class="modal-buttons">
+                            <button type="button" class="glass-button" onclick="closeAdminReviewModal()" data-i18n="cancel"><i class="fas fa-times me-2"></i>Cancel</button>
+                            <button type="button" class="glass-button" onclick="handleAdminAction('rejected')" style="background: linear-gradient(135deg, #f87171, #dc2626);" data-i18n="reject"><i class="fas fa-times-circle me-2"></i>Reject</button>
+                            <button type="button" class="glass-button" onclick="handleAdminAction('approved')" style="background: linear-gradient(135deg, #48bb78, #2f855a);" data-i18n="approve"><i class="fas fa-check-circle me-2"></i>Approve</button>
                         </div>
                     </form>
                 </div>

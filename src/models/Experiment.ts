@@ -88,7 +88,25 @@ const experimentSchema = new Schema({
     required: true,
     min: 1
   },
-  sessions: [sessionSchema]
+  sessions: [sessionSchema],
+  irbDocument: {
+    filename: String,
+    originalName: String,
+    mimetype: String,
+    size: Number,
+    uploadDate: {
+      type: Date,
+      default: Date.now
+    }
+  },
+  adminReview: {
+    reviewedBy: {
+      type: Schema.Types.ObjectId,
+      ref: 'User'
+    },
+    reviewDate: Date,
+    notes: String
+  }
 }, {
   timestamps: true
 });

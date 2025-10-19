@@ -23,6 +23,9 @@ export interface IUser {
 // Experiment status enum
 export enum ExperimentStatus {
   DRAFT = 'draft',
+  PENDING_REVIEW = 'pending_review',
+  APPROVED = 'approved',
+  REJECTED = 'rejected',
   OPEN = 'open',
   IN_PROGRESS = 'in_progress',
   COMPLETED = 'completed',
@@ -41,6 +44,18 @@ export interface IExperiment {
   requirements: string[];
   maxParticipants: number;
   sessions: ISession[];
+  irbDocument?: {
+    filename: string;
+    originalName: string;
+    mimetype: string;
+    size: number;
+    uploadDate: Date;
+  };
+  adminReview?: {
+    reviewedBy?: string | IUser;
+    reviewDate?: Date;
+    notes?: string;
+  };
   createdAt: Date;
   updatedAt: Date;
 }

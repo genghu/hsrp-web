@@ -78,6 +78,9 @@ function showDashboard() {
     if (currentUser.role === 'researcher') {
         showPage('researcher-dashboard');
         loadResearcherExperiments();
+    } else if (currentUser.role === 'admin') {
+        showPage('admin-dashboard');
+        loadPendingExperiments();
     } else {
         showPage('subject-dashboard');
         loadAvailableExperiments();
@@ -872,6 +875,72 @@ function cleanupQRPolling() {
     }
 }
 
+// IRB Document Handling
+let selectedIRBFile = null;
+
+function handleIRBFileSelect(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    selectedIRBFile = file;
+
+    // Show file info
+    document.getElementById('irb-file-name').textContent = file.name;
+    document.getElementById('irb-file-info').style.display = 'block';
+}
+
+function removeIRBFile() {
+    selectedIRBFile = null;
+    document.getElementById('exp-irb-document').value = '';
+    document.getElementById('irb-file-info').style.display = 'none';
+}
+
+// Admin Dashboard Functions
+function showAdminTab(tab, event) {
+    // Remove active class from all tab buttons
+    document.querySelectorAll('.tab-button').forEach(btn => btn.classList.remove('active'));
+    // Add active class to clicked tab
+    event.target.classList.add('active');
+
+    // Hide all tab content
+    document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+
+    // Show selected tab content
+    if (tab === 'pending') {
+        document.getElementById('admin-pending-container').classList.add('active');
+        loadPendingExperiments();
+    } else {
+        document.getElementById('admin-all-container').classList.add('active');
+        loadAllExperimentsForAdmin();
+    }
+}
+
+async function loadPendingExperiments() {
+    // TODO: Implement in next commit
+    const container = document.getElementById('admin-pending-container');
+    container.innerHTML = '<p>Loading pending experiments...</p>';
+}
+
+async function loadAllExperimentsForAdmin() {
+    // TODO: Implement in next commit
+    const container = document.getElementById('admin-all-container');
+    container.innerHTML = '<p>Loading all experiments...</p>';
+}
+
+function openAdminReviewModal(experimentId) {
+    // TODO: Implement in next commit
+    document.getElementById('admin-review-modal').classList.add('show');
+}
+
+function closeAdminReviewModal() {
+    document.getElementById('admin-review-modal').classList.remove('show');
+}
+
+async function handleAdminAction(action) {
+    // TODO: Implement in next commit
+    console.log('Admin action:', action);
+}
+
 // Session Management
 async function viewSessions(expId) {
     try {
@@ -1488,9 +1557,24 @@ const translations = {
         'max_participants_per_session': 'Max Participants per Session',
         'requirements_one_per_line': 'Requirements (one per line)',
         'draft': 'Draft',
+        'submit_for_review': 'Submit for Review',
+        'pending_review': 'Pending Review',
+        'approved': 'Approved',
+        'rejected': 'Rejected',
         'open_for_recruitment': 'Open for Recruitment',
         'in_progress': 'In Progress',
         'completed': 'Completed',
+        'irb_approval': 'IRB Approval Document',
+        'upload_irb': 'Upload IRB Document',
+        'current_irb': 'Current IRB',
+
+        // Admin Dashboard
+        'admin_dashboard': 'Admin Dashboard',
+        'all_experiments': 'All Experiments',
+        'review_experiment': 'Review Experiment',
+        'admin_notes': 'Review Notes',
+        'approve': 'Approve',
+        'reject': 'Reject',
 
         // Session Modal
         'add_session': 'Add Session',
@@ -1625,9 +1709,24 @@ const translations = {
         'max_participants_per_session': '每个会话的最大参与者数',
         'requirements_one_per_line': '要求（每行一个）',
         'draft': '草稿',
+        'submit_for_review': '提交审核',
+        'pending_review': '待审核',
+        'approved': '已批准',
+        'rejected': '已拒绝',
         'open_for_recruitment': '开放招募',
         'in_progress': '进行中',
         'completed': '已完成',
+        'irb_approval': 'IRB批准文件',
+        'upload_irb': '上传IRB文件',
+        'current_irb': '当前IRB',
+
+        // Admin Dashboard
+        'admin_dashboard': '管理员仪表板',
+        'all_experiments': '所有实验',
+        'review_experiment': '审核实验',
+        'admin_notes': '审核备注',
+        'approve': '批准',
+        'reject': '拒绝',
 
         // Session Modal
         'add_session': '添加会话',
