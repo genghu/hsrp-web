@@ -348,6 +348,16 @@ function renderExperimentCard(exp) {
     const statusKey = statusMap[exp.status] || exp.status;
     const statusBadge = `<span class="status-badge status-${exp.status}">${t[statusKey]}</span>`;
 
+    // Format creation date
+    const createdDate = new Date(exp.createdAt);
+    const formattedDate = createdDate.toLocaleDateString(currentLanguage === 'zh' ? 'zh-CN' : 'en-US', {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+    });
+
     // Determine which buttons to show based on status
     const canEdit = ['draft', 'rejected'].includes(exp.status);
     const canReactivate = exp.status === 'completed';
@@ -359,23 +369,32 @@ function renderExperimentCard(exp) {
     const hasSession = exp.sessions && exp.sessions.length > 0;
 
     return `
-        <div class="experiment-card">
-            <div class="d-flex justify-content-between align-items-start mb-3">
-                <div>
-                    <h4><i class="fas fa-flask me-2"></i>${exp.title}</h4>
-                    ${statusBadge}
-                </div>
-                <div class="d-flex gap-2">
-                    ${canEdit ? `<button class="glass-button" style="padding: 8px 16px; font-size: 0.875rem;" onclick="editExperiment('${exp._id}')"><i class="fas fa-edit me-1"></i>${t['edit']}</button>` : ''}
-                    ${canReactivate ? `<button class="glass-button" style="padding: 8px 16px; font-size: 0.875rem; background: linear-gradient(135deg, #667eea, #764ba2);" onclick="reactivateExperiment('${exp._id}')"><i class="fas fa-play-circle me-1"></i>${t['reactivate']}</button>` : ''}
-                    ${canViewSessions ? `<button class="glass-button" style="padding: 8px 16px; font-size: 0.875rem;" onclick="viewSessions('${exp._id}')"><i class="fas fa-calendar me-1"></i>${t['sessions']}</button>` : ''}
-                    ${canPublish ? `<button class="glass-button" style="padding: 8px 16px; font-size: 0.875rem; background: linear-gradient(135deg, ${hasSession ? '#48bb78, #2f855a' : '#9ca3af, #6b7280'});" onclick="${hasSession ? `publishExperiment('${exp._id}')` : 'return false;'}" ${!hasSession ? 'disabled' : ''}><i class="fas fa-rocket me-1"></i>${t['publish']}</button>` : ''}
-                    ${canWithdraw ? `<button class="glass-button" style="padding: 8px 16px; font-size: 0.875rem; background: linear-gradient(135deg, #fbbf24, #f59e0b);" onclick="withdrawExperiment('${exp._id}')"><i class="fas fa-undo me-1"></i>${t['withdraw']}</button>` : ''}
-                    ${canClose ? `<button class="glass-button" style="padding: 8px 16px; font-size: 0.875rem; background: linear-gradient(135deg, #f87171, #dc2626);" onclick="closeExperiment('${exp._id}')"><i class="fas fa-times-circle me-1"></i>${t['close_experiment']}</button>` : ''}
-                    ${canDelete ? `<button class="glass-button" style="padding: 8px 16px; font-size: 0.875rem;" onclick="deleteExperiment('${exp._id}')"><i class="fas fa-trash me-1"></i>${t['delete']}</button>` : ''}
+        <div class="experiment-card" data-exp-id="${exp._id}">
+            <div class="experiment-header" onclick="toggleExperimentCard('${exp._id}')" style="cursor: pointer;">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div style="flex: 1;">
+                        <div class="d-flex align-items-center gap-2">
+                            <i class="fas fa-chevron-right experiment-toggle-icon" id="toggle-icon-${exp._id}" style="transition: transform 0.3s; font-size: 0.875rem;"></i>
+                            <h4 style="margin: 0;"><i class="fas fa-flask me-2"></i>${exp.title}</h4>
+                            ${statusBadge}
+                        </div>
+                        <div style="margin-left: 1.5rem; margin-top: 0.5rem; font-size: 0.875rem; color: rgba(255,255,255,0.7);">
+                            <i class="fas fa-clock me-1"></i>${t['created'] || 'Created'}: ${formattedDate}
+                        </div>
+                    </div>
                 </div>
             </div>
-            <p style="margin-bottom: 1rem;">${exp.description}</p>
+            <div class="experiment-content" id="content-${exp._id}" style="display: none; margin-top: 1rem;">
+                <div class="experiment-actions mb-3" style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+                    ${canEdit ? `<button class="glass-button" style="padding: 8px 16px; font-size: 0.875rem;" onclick="event.stopPropagation(); editExperiment('${exp._id}')"><i class="fas fa-edit me-1"></i>${t['edit']}</button>` : ''}
+                    ${canReactivate ? `<button class="glass-button" style="padding: 8px 16px; font-size: 0.875rem; background: linear-gradient(135deg, #667eea, #764ba2);" onclick="event.stopPropagation(); reactivateExperiment('${exp._id}')"><i class="fas fa-play-circle me-1"></i>${t['reactivate']}</button>` : ''}
+                    ${canViewSessions ? `<button class="glass-button" style="padding: 8px 16px; font-size: 0.875rem;" onclick="event.stopPropagation(); viewSessions('${exp._id}')"><i class="fas fa-calendar me-1"></i>${t['sessions']}</button>` : ''}
+                    ${canPublish ? `<button class="glass-button" style="padding: 8px 16px; font-size: 0.875rem; background: linear-gradient(135deg, ${hasSession ? '#48bb78, #2f855a' : '#9ca3af, #6b7280'});" onclick="event.stopPropagation(); ${hasSession ? `publishExperiment('${exp._id}')` : 'return false;'}" ${!hasSession ? 'disabled' : ''}><i class="fas fa-rocket me-1"></i>${t['publish']}</button>` : ''}
+                    ${canWithdraw ? `<button class="glass-button" style="padding: 8px 16px; font-size: 0.875rem; background: linear-gradient(135deg, #fbbf24, #f59e0b);" onclick="event.stopPropagation(); withdrawExperiment('${exp._id}')"><i class="fas fa-undo me-1"></i>${t['withdraw']}</button>` : ''}
+                    ${canClose ? `<button class="glass-button" style="padding: 8px 16px; font-size: 0.875rem; background: linear-gradient(135deg, #f87171, #dc2626);" onclick="event.stopPropagation(); closeExperiment('${exp._id}')"><i class="fas fa-times-circle me-1"></i>${t['close_experiment']}</button>` : ''}
+                    ${canDelete ? `<button class="glass-button" style="padding: 8px 16px; font-size: 0.875rem;" onclick="event.stopPropagation(); deleteExperiment('${exp._id}')"><i class="fas fa-trash me-1"></i>${t['delete']}</button>` : ''}
+                </div>
+                <p style="margin-bottom: 1rem;">${exp.description}</p>
             <div class="row g-3 mb-3">
                 <div class="col-md-3">
                     <div><i class="fas fa-map-marker-alt me-2"></i><strong>${t['location']}:</strong></div>
@@ -394,17 +413,32 @@ function renderExperimentCard(exp) {
                     <div>${exp.maxParticipants}</div>
                 </div>
             </div>
-            ${exp.requirements && exp.requirements.length > 0 ? `
-                <div class="mb-3">
-                    <strong><i class="fas fa-list-check me-2"></i>${t['requirements']}:</strong>
-                    <ul class="requirements-list" style="margin-top: 0.5rem;">
-                        ${exp.requirements.map(req => `<li>${req}</li>`).join('')}
-                    </ul>
-                </div>
-            ` : ''}
-            ${exp.sessions && exp.sessions.length > 0 ? renderSessionsPreview(exp.sessions) : `<p style="margin-top: 1rem; color: rgba(255, 255, 255, 0.7);"><i class="fas fa-info-circle me-2"></i>${t['no_sessions_scheduled']}</p>`}
+                ${exp.requirements && exp.requirements.length > 0 ? `
+                    <div class="mb-3">
+                        <strong><i class="fas fa-list-check me-2"></i>${t['requirements']}:</strong>
+                        <ul class="requirements-list" style="margin-top: 0.5rem;">
+                            ${exp.requirements.map(req => `<li>${req}</li>`).join('')}
+                        </ul>
+                    </div>
+                ` : ''}
+                ${exp.sessions && exp.sessions.length > 0 ? renderSessionsPreview(exp.sessions) : `<p style="margin-top: 1rem; color: rgba(255, 255, 255, 0.7);"><i class="fas fa-info-circle me-2"></i>${t['no_sessions_scheduled']}</p>`}
+            </div>
         </div>
     `;
+}
+
+// Toggle experiment card expand/collapse
+function toggleExperimentCard(expId) {
+    const content = document.getElementById(`content-${expId}`);
+    const icon = document.getElementById(`toggle-icon-${expId}`);
+
+    if (content.style.display === 'none') {
+        content.style.display = 'block';
+        icon.style.transform = 'rotate(90deg)';
+    } else {
+        content.style.display = 'none';
+        icon.style.transform = 'rotate(0deg)';
+    }
 }
 
 function renderSessionsPreview(sessions) {
@@ -2017,6 +2051,7 @@ const translations = {
         'requirements': 'Requirements',
         'status': 'Status',
         'minutes': 'minutes',
+        'created': 'Created',
         'researcher': 'Researcher',
         'no_sessions_scheduled': 'No sessions scheduled yet.',
         'scheduled_sessions': 'Scheduled Sessions',
@@ -2194,6 +2229,7 @@ const translations = {
         'requirements': '要求',
         'status': '状态',
         'minutes': '分钟',
+        'created': '创建于',
         'researcher': '研究人员',
         'no_sessions_scheduled': '尚未安排会话。',
         'scheduled_sessions': '已安排的会话',

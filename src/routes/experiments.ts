@@ -43,9 +43,39 @@ router.get('/', auth, experimentQueryValidation, async (req: AuthRequest, res: a
       query.researcher = req.user.id;
     }
 
-    const experiments = await Experiment.find(query)
-      .populate('researcher', '-password')
-      .sort({ createdAt: -1 });
+    let experiments = await Experiment.find(query)
+      .populate('researcher', '-password');
+
+    // Sort experiments by status priority for researchers
+    if (req.user?.role === UserRole.RESEARCHER) {
+      const statusPriority: { [key: string]: number } = {
+        [ExperimentStatus.OPEN]: 1,
+        [ExperimentStatus.IN_PROGRESS]: 2,
+        [ExperimentStatus.APPROVED]: 3,
+        [ExperimentStatus.REJECTED]: 4,
+        [ExperimentStatus.PENDING_REVIEW]: 5,
+        [ExperimentStatus.DRAFT]: 6,
+        [ExperimentStatus.COMPLETED]: 7,
+        [ExperimentStatus.CANCELLED]: 8
+      };
+
+      experiments = experiments.sort((a: any, b: any) => {
+        const priorityA = statusPriority[a.status] || 999;
+        const priorityB = statusPriority[b.status] || 999;
+
+        if (priorityA !== priorityB) {
+          return priorityA - priorityB;
+        }
+
+        // If same priority, sort by most recently updated
+        return new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime();
+      });
+    } else {
+      // For other users, sort by creation date
+      experiments = experiments.sort((a: any, b: any) =>
+        new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+      );
+    }
 
     res.json({
       success: true,
