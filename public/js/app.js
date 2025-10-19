@@ -334,10 +334,24 @@ async function loadResearcherExperiments() {
 
 function renderExperimentCard(exp) {
     const t = translations[currentLanguage];
-    const statusKey = exp.status === 'draft' ? 'draft' :
-                      exp.status === 'open' ? 'open_for_recruitment' :
-                      exp.status === 'in_progress' ? 'in_progress' : 'completed';
+
+    // Map status to translation key and display text
+    const statusMap = {
+        'draft': 'draft',
+        'pending_review': 'pending_review',
+        'approved': 'approved',
+        'rejected': 'rejected',
+        'open': 'open_for_recruitment',
+        'in_progress': 'in_progress',
+        'completed': 'completed'
+    };
+    const statusKey = statusMap[exp.status] || exp.status;
     const statusBadge = `<span class="status-badge status-${exp.status}">${t[statusKey]}</span>`;
+
+    // Determine which buttons to show based on status
+    const canEdit = ['draft', 'rejected', 'approved'].includes(exp.status);
+    const canDelete = ['draft', 'rejected'].includes(exp.status);
+    const canClose = ['open', 'in_progress'].includes(exp.status);
 
     return `
         <div class="experiment-card">
@@ -347,9 +361,10 @@ function renderExperimentCard(exp) {
                     ${statusBadge}
                 </div>
                 <div class="d-flex gap-2">
-                    <button class="glass-button" style="padding: 8px 16px; font-size: 0.875rem;" onclick="editExperiment('${exp._id}')"><i class="fas fa-edit me-1"></i>${t['edit']}</button>
+                    ${canEdit ? `<button class="glass-button" style="padding: 8px 16px; font-size: 0.875rem;" onclick="editExperiment('${exp._id}')"><i class="fas fa-edit me-1"></i>${t['edit']}</button>` : ''}
                     <button class="glass-button" style="padding: 8px 16px; font-size: 0.875rem;" onclick="viewSessions('${exp._id}')"><i class="fas fa-calendar me-1"></i>${t['sessions']}</button>
-                    <button class="glass-button" style="padding: 8px 16px; font-size: 0.875rem;" onclick="deleteExperiment('${exp._id}')"><i class="fas fa-trash me-1"></i>${t['delete']}</button>
+                    ${canClose ? `<button class="glass-button" style="padding: 8px 16px; font-size: 0.875rem; background: linear-gradient(135deg, #f87171, #dc2626);" onclick="closeExperiment('${exp._id}')"><i class="fas fa-times-circle me-1"></i>${t['close_experiment']}</button>` : ''}
+                    ${canDelete ? `<button class="glass-button" style="padding: 8px 16px; font-size: 0.875rem;" onclick="deleteExperiment('${exp._id}')"><i class="fas fa-trash me-1"></i>${t['delete']}</button>` : ''}
                 </div>
             </div>
             <p style="margin-bottom: 1rem;">${exp.description}</p>
@@ -404,16 +419,71 @@ function renderSessionsPreview(sessions) {
 }
 
 // Experiment CRUD Functions
+function populateStatusOptions(currentStatus) {
+    const statusSelect = document.getElementById('exp-status');
+    const t = translations[currentLanguage];
+
+    // Clear existing options
+    statusSelect.innerHTML = '';
+
+    // For new experiments or drafts, only show draft and pending_review
+    if (!currentStatus || currentStatus === 'draft') {
+        statusSelect.innerHTML = `
+            <option value="draft" data-i18n="draft">${t['draft']}</option>
+            <option value="pending_review" data-i18n="submit_for_review">${t['submit_for_review']}</option>
+        `;
+    }
+    // For approved experiments, allow publishing (changing to 'open')
+    else if (currentStatus === 'approved') {
+        statusSelect.innerHTML = `
+            <option value="approved" data-i18n="approved">${t['approved']}</option>
+            <option value="open" data-i18n="open_for_recruitment">${t['open_for_recruitment']}</option>
+        `;
+    }
+    // For rejected experiments, allow resubmission
+    else if (currentStatus === 'rejected') {
+        statusSelect.innerHTML = `
+            <option value="rejected" data-i18n="rejected">${t['rejected']}</option>
+            <option value="pending_review" data-i18n="submit_for_review">${t['submit_for_review']}</option>
+        `;
+    }
+    // For pending_review, allow going back to draft
+    else if (currentStatus === 'pending_review') {
+        statusSelect.innerHTML = `
+            <option value="pending_review" data-i18n="pending_review">${t['pending_review']}</option>
+            <option value="draft" data-i18n="draft">${t['draft']}</option>
+        `;
+    }
+    // For open/in_progress experiments, keep current status
+    else if (currentStatus === 'open' || currentStatus === 'in_progress') {
+        const statusKey = currentStatus === 'open' ? 'open_for_recruitment' : 'in_progress';
+        statusSelect.innerHTML = `
+            <option value="${currentStatus}" data-i18n="${statusKey}">${t[statusKey]}</option>
+        `;
+    }
+    // For completed experiments, cannot change
+    else if (currentStatus === 'completed') {
+        statusSelect.innerHTML = `
+            <option value="completed" data-i18n="completed">${t['completed']}</option>
+        `;
+        statusSelect.disabled = true;
+    }
+}
+
 function showCreateExperiment() {
     currentMode = 'create';
     currentExperiment = null;
     const t = translations[currentLanguage];
     document.getElementById('experiment-modal-title').textContent = t['create_experiment'];
     document.getElementById('experiment-form').reset();
-    document.getElementById('exp-status').value = 'draft';
 
     // Clear selected requirements
     clearSelectedRequirements();
+
+    // Populate status options for new experiment
+    populateStatusOptions(null);
+    document.getElementById('exp-status').value = 'draft';
+    document.getElementById('exp-status').disabled = false;
 
     updateSubmitButtonText();
     document.getElementById('experiment-modal').classList.add('show');
@@ -441,6 +511,9 @@ async function editExperiment(expId) {
             document.getElementById('exp-duration').value = data.data.duration;
             document.getElementById('exp-compensation').value = data.data.compensation;
             document.getElementById('exp-maxParticipants').value = data.data.maxParticipants;
+
+            // Populate status options based on current status
+            populateStatusOptions(data.data.status);
             document.getElementById('exp-status').value = data.data.status;
 
             // Clear and populate selected requirements
@@ -603,6 +676,35 @@ async function deleteExperiment(expId) {
         }
     } catch (error) {
         alert('Error deleting experiment');
+    }
+}
+
+async function closeExperiment(expId) {
+    const t = translations[currentLanguage];
+    if (!confirm(t['confirm_close_experiment'] || 'Are you sure you want to close this experiment? This will mark it as completed.')) {
+        return;
+    }
+
+    try {
+        const response = await fetch(`/api/experiments/${expId}`, {
+            method: 'PATCH',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${localStorage.getItem('token')}`
+            },
+            body: JSON.stringify({ status: 'completed' })
+        });
+
+        const data = await response.json();
+
+        if (response.ok && data.success) {
+            showNotification(t['experiment_closed'] || 'Experiment closed successfully', 'success');
+            loadResearcherExperiments();
+        } else {
+            alert(data.error || 'Error closing experiment');
+        }
+    } catch (error) {
+        alert('Error closing experiment');
     }
 }
 
@@ -1889,6 +1991,9 @@ const translations = {
         'register': 'Register',
         'registered': 'Registered',
         'full': 'Full',
+        'close_experiment': 'Close Experiment',
+        'confirm_close_experiment': 'Are you sure you want to close this experiment? This will mark it as completed.',
+        'experiment_closed': 'Experiment closed successfully',
 
         // Suggested Requirements
         'suggested_requirements': 'Suggested Requirements',
@@ -2053,6 +2158,9 @@ const translations = {
         'register': '注册',
         'registered': '已注册',
         'full': '已满',
+        'close_experiment': '关闭实验',
+        'confirm_close_experiment': '您确定要关闭此实验吗？这将标记为已完成。',
+        'experiment_closed': '实验已成功关闭',
 
         // Suggested Requirements
         'suggested_requirements': '建议的要求',
