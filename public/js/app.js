@@ -470,6 +470,15 @@ async function editExperiment(expId) {
                 }
             });
 
+            // Show current IRB document if exists
+            if (data.data.irbDocument) {
+                document.getElementById('irb-current-file').style.display = 'block';
+                document.getElementById('irb-current-link').textContent = data.data.irbDocument.originalName;
+                document.getElementById('irb-current-link').href = `/api/experiments/${data.data._id}/irb-download`;
+            } else {
+                document.getElementById('irb-current-file').style.display = 'none';
+            }
+
             updateSubmitButtonText();
             document.getElementById('experiment-modal').classList.add('show');
         }
@@ -502,6 +511,14 @@ async function handleExperimentSubmit(event) {
 
     const errorEl = document.getElementById('experiment-error');
 
+    // Check if IRB document is required
+    const needsIRB = experimentData.status === 'pending_review' && !currentExperiment?.irbDocument && !selectedIRBFile;
+    if (needsIRB) {
+        errorEl.textContent = translations[currentLanguage].irb_required || 'IRB document is required when submitting for review';
+        errorEl.classList.add('show');
+        return;
+    }
+
     try {
         const url = currentMode === 'edit' ? `/api/experiments/${currentExperiment._id}` : '/api/experiments';
         const method = currentMode === 'edit' ? 'PATCH' : 'POST';
@@ -518,6 +535,20 @@ async function handleExperimentSubmit(event) {
         const data = await response.json();
 
         if (response.ok && data.success) {
+            // Upload IRB file if one was selected
+            if (selectedIRBFile) {
+                const uploadSuccess = await uploadIRBDocument(data.data._id, selectedIRBFile);
+                if (!uploadSuccess) {
+                    errorEl.textContent = translations[currentLanguage].irb_upload_failed || 'Experiment saved, but IRB upload failed';
+                    errorEl.classList.add('show');
+                    setTimeout(() => {
+                        closeExperimentModal();
+                        loadResearcherExperiments();
+                    }, 2000);
+                    return;
+                }
+            }
+
             closeExperimentModal();
             loadResearcherExperiments();
         } else {
@@ -527,6 +558,28 @@ async function handleExperimentSubmit(event) {
     } catch (error) {
         errorEl.textContent = 'An error occurred. Please try again.';
         errorEl.classList.add('show');
+    }
+}
+
+// Upload IRB document for an experiment
+async function uploadIRBDocument(experimentId, file) {
+    try {
+        const formData = new FormData();
+        formData.append('irbDocument', file);
+
+        const response = await fetch(`/api/experiments/${experimentId}/irb-upload`, {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${localStorage.getItem('token')}`
+            },
+            body: formData
+        });
+
+        const data = await response.json();
+        return response.ok && data.success;
+    } catch (error) {
+        console.error('IRB upload error:', error);
+        return false;
     }
 }
 
@@ -556,6 +609,12 @@ async function deleteExperiment(expId) {
 function closeExperimentModal() {
     document.getElementById('experiment-modal').classList.remove('show');
     document.getElementById('experiment-error').classList.remove('show');
+
+    // Clear IRB file selection
+    selectedIRBFile = null;
+    document.getElementById('exp-irb-document').value = '';
+    document.getElementById('irb-file-info').style.display = 'none';
+    document.getElementById('irb-current-file').style.display = 'none';
 }
 
 // Update submit button text based on status
@@ -916,29 +975,221 @@ function showAdminTab(tab, event) {
 }
 
 async function loadPendingExperiments() {
-    // TODO: Implement in next commit
     const container = document.getElementById('admin-pending-container');
-    container.innerHTML = '<p>Loading pending experiments...</p>';
+    container.innerHTML = '<p>Loading...</p>';
+
+    try {
+        const response = await fetch('/api/experiments/admin/pending', {
+            headers: {
+                'Authorization': `Bearer ${localStorage.getItem('token')}`
+            }
+        });
+
+        const data = await response.json();
+
+        if (response.ok && data.success) {
+            if (data.data.length === 0) {
+                container.innerHTML = `<p>${translations[currentLanguage].no_pending_experiments || 'No pending experiments'}</p>`;
+                return;
+            }
+
+            container.innerHTML = data.data.map(exp => `
+                <div class="experiment-card">
+                    <h3>${exp.title}</h3>
+                    <p>${exp.description}</p>
+                    <div class="experiment-meta">
+                        <span><i class="fas fa-user"></i> ${exp.researcher.firstName} ${exp.researcher.lastName}</span>
+                        <span><i class="fas fa-map-marker-alt"></i> ${exp.location}</span>
+                        <span><i class="fas fa-clock"></i> ${exp.duration} ${translations[currentLanguage].minutes || 'minutes'}</span>
+                        <span><i class="fas fa-users"></i> ${exp.maxParticipants} ${translations[currentLanguage].max_participants || 'max'}</span>
+                    </div>
+                    <div class="experiment-actions">
+                        ${exp.irbDocument ? `
+                            <button class="glass-button" onclick="window.open('/api/experiments/${exp._id}/irb-download', '_blank')">
+                                <i class="fas fa-file-download me-1"></i>${translations[currentLanguage].download_irb || 'Download IRB'}
+                            </button>
+                        ` : '<span style="color: #f87171;">No IRB Document</span>'}
+                        <button class="glass-button" onclick="openAdminReviewModal('${exp._id}')">
+                            <i class="fas fa-gavel me-1"></i>${translations[currentLanguage].review || 'Review'}
+                        </button>
+                    </div>
+                </div>
+            `).join('');
+        } else {
+            container.innerHTML = `<p>Error loading experiments</p>`;
+        }
+    } catch (error) {
+        container.innerHTML = `<p>Error loading experiments</p>`;
+    }
 }
 
 async function loadAllExperimentsForAdmin() {
-    // TODO: Implement in next commit
     const container = document.getElementById('admin-all-container');
-    container.innerHTML = '<p>Loading all experiments...</p>';
+    container.innerHTML = '<p>Loading...</p>';
+
+    try {
+        const response = await fetch('/api/experiments/admin/all', {
+            headers: {
+                'Authorization': `Bearer ${localStorage.getItem('token')}`
+            }
+        });
+
+        const data = await response.json();
+
+        if (response.ok && data.success) {
+            if (data.data.length === 0) {
+                container.innerHTML = `<p>${translations[currentLanguage].no_experiments || 'No experiments'}</p>`;
+                return;
+            }
+
+            container.innerHTML = data.data.map(exp => {
+                const statusColors = {
+                    'draft': '#9ca3af',
+                    'pending_review': '#fbbf24',
+                    'approved': '#48bb78',
+                    'rejected': '#f87171',
+                    'open': '#667eea',
+                    'in_progress': '#38b2ac',
+                    'completed': '#4299e1',
+                    'cancelled': '#cbd5e0'
+                };
+                const statusColor = statusColors[exp.status] || '#9ca3af';
+
+                return `
+                    <div class="experiment-card">
+                        <div style="display: flex; justify-content: space-between; align-items: start;">
+                            <h3>${exp.title}</h3>
+                            <span style="background: ${statusColor}; color: white; padding: 4px 12px; border-radius: 12px; font-size: 0.85rem;">
+                                ${translations[currentLanguage][exp.status] || exp.status}
+                            </span>
+                        </div>
+                        <p>${exp.description}</p>
+                        <div class="experiment-meta">
+                            <span><i class="fas fa-user"></i> ${exp.researcher.firstName} ${exp.researcher.lastName}</span>
+                            <span><i class="fas fa-map-marker-alt"></i> ${exp.location}</span>
+                            <span><i class="fas fa-clock"></i> ${exp.duration} ${translations[currentLanguage].minutes || 'minutes'}</span>
+                        </div>
+                        ${exp.adminReview ? `
+                            <div style="margin-top: 0.5rem; padding: 0.5rem; background: rgba(255,255,255,0.05); border-radius: 4px; font-size: 0.9rem;">
+                                <strong>${translations[currentLanguage].admin_notes || 'Admin Notes'}:</strong> ${exp.adminReview.notes}
+                            </div>
+                        ` : ''}
+                        <div class="experiment-actions">
+                            ${exp.status === 'pending_review' ? `
+                                <button class="glass-button" onclick="openAdminReviewModal('${exp._id}')">
+                                    <i class="fas fa-gavel me-1"></i>${translations[currentLanguage].review || 'Review'}
+                                </button>
+                            ` : ''}
+                            <button class="glass-button" onclick="viewSessions('${exp._id}')">
+                                <i class="fas fa-calendar me-1"></i>${translations[currentLanguage].view_details || 'View Details'}
+                            </button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        } else {
+            container.innerHTML = `<p>Error loading experiments</p>`;
+        }
+    } catch (error) {
+        container.innerHTML = `<p>Error loading experiments</p>`;
+    }
 }
 
-function openAdminReviewModal(experimentId) {
-    // TODO: Implement in next commit
-    document.getElementById('admin-review-modal').classList.add('show');
+let currentReviewExperiment = null;
+
+async function openAdminReviewModal(experimentId) {
+    try {
+        const response = await fetch(`/api/experiments/${experimentId}`, {
+            headers: {
+                'Authorization': `Bearer ${localStorage.getItem('token')}`
+            }
+        });
+
+        const data = await response.json();
+
+        if (response.ok && data.success) {
+            currentReviewExperiment = data.data;
+
+            // Display experiment details
+            const detailsContainer = document.getElementById('review-experiment-details');
+            detailsContainer.innerHTML = `
+                <div class="experiment-review-details">
+                    <h3>${currentReviewExperiment.title}</h3>
+                    <p><strong>${translations[currentLanguage].description || 'Description'}:</strong> ${currentReviewExperiment.description}</p>
+                    <div class="experiment-meta">
+                        <span><i class="fas fa-user"></i> ${currentReviewExperiment.researcher.firstName} ${currentReviewExperiment.researcher.lastName}</span>
+                        <span><i class="fas fa-map-marker-alt"></i> ${currentReviewExperiment.location}</span>
+                        <span><i class="fas fa-clock"></i> ${currentReviewExperiment.duration} ${translations[currentLanguage].minutes || 'minutes'}</span>
+                        <span><i class="fas fa-dollar-sign"></i> ${currentReviewExperiment.compensation}</span>
+                    </div>
+                    ${currentReviewExperiment.irbDocument ? `
+                        <div style="margin-top: 1rem;">
+                            <a href="/api/experiments/${currentReviewExperiment._id}/irb-download" target="_blank" class="glass-button">
+                                <i class="fas fa-file-download me-1"></i>${translations[currentLanguage].download_irb || 'Download IRB Document'}
+                            </a>
+                        </div>
+                    ` : `<p style="color: #f87171;">${translations[currentLanguage].no_irb || 'No IRB document uploaded'}</p>`}
+                </div>
+            `;
+
+            // Clear notes
+            document.getElementById('admin-notes').value = '';
+            document.getElementById('admin-review-error').classList.remove('show');
+
+            // Show modal
+            document.getElementById('admin-review-modal').classList.add('show');
+        }
+    } catch (error) {
+        alert('Error loading experiment details');
+    }
 }
 
 function closeAdminReviewModal() {
     document.getElementById('admin-review-modal').classList.remove('show');
+    currentReviewExperiment = null;
 }
 
 async function handleAdminAction(action) {
-    // TODO: Implement in next commit
-    console.log('Admin action:', action);
+    const notes = document.getElementById('admin-notes').value.trim();
+    const errorEl = document.getElementById('admin-review-error');
+
+    // Require notes for rejection
+    if (action === 'rejected' && !notes) {
+        errorEl.textContent = translations[currentLanguage].rejection_notes_required || 'Rejection notes are required';
+        errorEl.classList.add('show');
+        return;
+    }
+
+    try {
+        const endpoint = action === 'approved' ? 'approve' : 'reject';
+        const response = await fetch(`/api/experiments/${currentReviewExperiment._id}/${endpoint}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${localStorage.getItem('token')}`
+            },
+            body: JSON.stringify({ notes })
+        });
+
+        const data = await response.json();
+
+        if (response.ok && data.success) {
+            closeAdminReviewModal();
+            loadPendingExperiments();
+            showNotification(
+                action === 'approved'
+                    ? (translations[currentLanguage].experiment_approved || 'Experiment approved')
+                    : (translations[currentLanguage].experiment_rejected || 'Experiment rejected'),
+                'success'
+            );
+        } else {
+            errorEl.textContent = data.error || 'Failed to process review';
+            errorEl.classList.add('show');
+        }
+    } catch (error) {
+        errorEl.textContent = 'An error occurred. Please try again.';
+        errorEl.classList.add('show');
+    }
 }
 
 // Session Management
@@ -1575,6 +1826,18 @@ const translations = {
         'admin_notes': 'Review Notes',
         'approve': 'Approve',
         'reject': 'Reject',
+        'no_pending_experiments': 'No experiments pending review',
+        'download_irb': 'Download IRB',
+        'review': 'Review',
+        'no_irb': 'No IRB document uploaded',
+        'rejection_notes_required': 'Rejection notes are required',
+        'experiment_approved': 'Experiment approved successfully',
+        'experiment_rejected': 'Experiment rejected',
+        'irb_required': 'IRB document is required when submitting for review',
+        'irb_upload_failed': 'Experiment saved, but IRB upload failed',
+        'view_details': 'View Details',
+        'max_participants': 'max',
+        'minutes': 'minutes',
 
         // Session Modal
         'add_session': 'Add Session',
@@ -1727,6 +1990,18 @@ const translations = {
         'admin_notes': '审核备注',
         'approve': '批准',
         'reject': '拒绝',
+        'no_pending_experiments': '没有待审核的实验',
+        'download_irb': '下载IRB',
+        'review': '审核',
+        'no_irb': '未上传IRB文件',
+        'rejection_notes_required': '拒绝时必须填写备注',
+        'experiment_approved': '实验已批准',
+        'experiment_rejected': '实验已拒绝',
+        'irb_required': '提交审核时必须上传IRB文件',
+        'irb_upload_failed': '实验已保存，但IRB上传失败',
+        'view_details': '查看详情',
+        'max_participants': '最多',
+        'minutes': '分钟',
 
         // Session Modal
         'add_session': '添加会话',

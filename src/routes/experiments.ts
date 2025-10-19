@@ -13,6 +13,9 @@ import {
   sessionIdValidation,
   experimentQueryValidation
 } from '../middleware/validation';
+import { upload } from '../middleware/upload';
+import path from 'path';
+import fs from 'fs';
 
 const router = express.Router();
 
@@ -468,6 +471,266 @@ router.get('/my-sessions', auth, checkRole([UserRole.SUBJECT]), async (req: Auth
     res.status(500).json({
       success: false,
       error: 'Error fetching sessions'
+    });
+  }
+});
+
+// ====== IRB Document Upload Routes ======
+
+// Upload IRB document for an experiment
+router.post('/:id/irb-upload', auth, checkRole([UserRole.RESEARCHER]), upload.single('irbDocument'), async (req: AuthRequest, res: any) => {
+  try {
+    const experiment = await Experiment.findById(req.params.id);
+
+    if (!experiment) {
+      // Clean up uploaded file
+      if (req.file) {
+        fs.unlinkSync(req.file.path);
+      }
+      return res.status(404).json({
+        success: false,
+        error: 'Experiment not found'
+      });
+    }
+
+    // Check if user owns this experiment
+    if (experiment.researcher.toString() !== req.user!._id.toString()) {
+      // Clean up uploaded file
+      if (req.file) {
+        fs.unlinkSync(req.file.path);
+      }
+      return res.status(403).json({
+        success: false,
+        error: 'Not authorized to upload IRB for this experiment'
+      });
+    }
+
+    if (!req.file) {
+      return res.status(400).json({
+        success: false,
+        error: 'No file uploaded'
+      });
+    }
+
+    // Delete old IRB document if exists
+    if (experiment.irbDocument?.filename) {
+      const oldFilePath = path.join(process.cwd(), 'uploads', 'irb-documents', experiment.irbDocument.filename);
+      if (fs.existsSync(oldFilePath)) {
+        fs.unlinkSync(oldFilePath);
+      }
+    }
+
+    // Update experiment with new IRB document info
+    experiment.irbDocument = {
+      filename: req.file.filename,
+      originalName: req.file.originalname,
+      mimetype: req.file.mimetype,
+      size: req.file.size,
+      uploadDate: new Date()
+    };
+
+    await experiment.save();
+
+    res.json({
+      success: true,
+      data: {
+        irbDocument: experiment.irbDocument
+      }
+    });
+  } catch (error) {
+    // Clean up uploaded file on error
+    if (req.file) {
+      fs.unlinkSync(req.file.path);
+    }
+    console.error('IRB upload error:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Error uploading IRB document'
+    });
+  }
+});
+
+// Download IRB document
+router.get('/:id/irb-download', auth, async (req: AuthRequest, res: any) => {
+  try {
+    const experiment = await Experiment.findById(req.params.id);
+
+    if (!experiment) {
+      return res.status(404).json({
+        success: false,
+        error: 'Experiment not found'
+      });
+    }
+
+    if (!experiment.irbDocument) {
+      return res.status(404).json({
+        success: false,
+        error: 'No IRB document found for this experiment'
+      });
+    }
+
+    // Only allow researcher (owner), admin, or subjects registered for the experiment to download
+    const isOwner = experiment.researcher.toString() === req.user!._id.toString();
+    const isAdmin = req.user!.role === UserRole.ADMIN;
+    const isRegisteredParticipant = experiment.sessions.some((session: any) =>
+      session.participants.some((p: any) => p.user.toString() === req.user!._id.toString())
+    );
+
+    if (!isOwner && !isAdmin && !isRegisteredParticipant) {
+      return res.status(403).json({
+        success: false,
+        error: 'Not authorized to download this IRB document'
+      });
+    }
+
+    const filePath = path.join(process.cwd(), 'uploads', 'irb-documents', experiment.irbDocument.filename);
+
+    if (!fs.existsSync(filePath)) {
+      return res.status(404).json({
+        success: false,
+        error: 'IRB document file not found'
+      });
+    }
+
+    res.download(filePath, experiment.irbDocument.originalName);
+  } catch (error) {
+    console.error('IRB download error:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Error downloading IRB document'
+    });
+  }
+});
+
+// ====== Admin Routes ======
+
+// Get pending experiments (admin only)
+router.get('/admin/pending', auth, checkRole([UserRole.ADMIN]), async (req: AuthRequest, res: any) => {
+  try {
+    const experiments = await Experiment.find({ status: ExperimentStatus.PENDING_REVIEW })
+      .populate('researcher', '-password')
+      .sort({ createdAt: -1 });
+
+    res.json({
+      success: true,
+      data: experiments
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      error: 'Error fetching pending experiments'
+    });
+  }
+});
+
+// Get all experiments for admin
+router.get('/admin/all', auth, checkRole([UserRole.ADMIN]), async (req: AuthRequest, res: any) => {
+  try {
+    const experiments = await Experiment.find()
+      .populate('researcher', '-password')
+      .populate('adminReview.reviewedBy', '-password')
+      .sort({ createdAt: -1 });
+
+    res.json({
+      success: true,
+      data: experiments
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      error: 'Error fetching experiments'
+    });
+  }
+});
+
+// Approve experiment (admin only)
+router.post('/:id/approve', auth, checkRole([UserRole.ADMIN]), async (req: AuthRequest, res: any) => {
+  try {
+    const { notes } = req.body;
+    const experiment = await Experiment.findById(req.params.id);
+
+    if (!experiment) {
+      return res.status(404).json({
+        success: false,
+        error: 'Experiment not found'
+      });
+    }
+
+    // Check if experiment has IRB document
+    if (!experiment.irbDocument) {
+      return res.status(400).json({
+        success: false,
+        error: 'Experiment must have an IRB document before approval'
+      });
+    }
+
+    // Update status and admin review
+    experiment.status = ExperimentStatus.APPROVED;
+    experiment.adminReview = {
+      reviewedBy: req.user!._id,
+      reviewDate: new Date(),
+      notes: notes || 'Approved'
+    };
+
+    await experiment.save();
+    await experiment.populate('researcher', '-password');
+    await experiment.populate('adminReview.reviewedBy', '-password');
+
+    res.json({
+      success: true,
+      data: experiment
+    });
+  } catch (error) {
+    console.error('Approval error:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Error approving experiment'
+    });
+  }
+});
+
+// Reject experiment (admin only)
+router.post('/:id/reject', auth, checkRole([UserRole.ADMIN]), async (req: AuthRequest, res: any) => {
+  try {
+    const { notes } = req.body;
+
+    if (!notes || notes.trim() === '') {
+      return res.status(400).json({
+        success: false,
+        error: 'Rejection notes are required'
+      });
+    }
+
+    const experiment = await Experiment.findById(req.params.id);
+
+    if (!experiment) {
+      return res.status(404).json({
+        success: false,
+        error: 'Experiment not found'
+      });
+    }
+
+    // Update status and admin review
+    experiment.status = ExperimentStatus.REJECTED;
+    experiment.adminReview = {
+      reviewedBy: req.user!._id,
+      reviewDate: new Date(),
+      notes
+    };
+
+    await experiment.save();
+    await experiment.populate('researcher', '-password');
+    await experiment.populate('adminReview.reviewedBy', '-password');
+
+    res.json({
+      success: true,
+      data: experiment
+    });
+  } catch (error) {
+    console.error('Rejection error:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Error rejecting experiment'
     });
   }
 });
