@@ -349,11 +349,11 @@ function renderExperimentCard(exp) {
     const statusBadge = `<span class="status-badge status-${exp.status}">${t[statusKey]}</span>`;
 
     // Determine which buttons to show based on status
-    const canEdit = ['draft', 'rejected', 'approved'].includes(exp.status);
-    const canDelete = ['draft', 'rejected', 'approved'].includes(exp.status);
+    const canEdit = ['draft', 'rejected', 'completed'].includes(exp.status);
+    const canDelete = ['draft', 'rejected', 'approved', 'completed'].includes(exp.status);
     const canClose = ['open', 'in_progress'].includes(exp.status);
     const canWithdraw = exp.status === 'pending_review';
-    const canViewSessions = !['draft', 'pending_review'].includes(exp.status);
+    const canViewSessions = ['approved', 'open', 'in_progress'].includes(exp.status);
     const canPublish = exp.status === 'approved';
     const hasSession = exp.sessions && exp.sessions.length > 0;
 
