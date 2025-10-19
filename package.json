@@ -12,7 +12,8 @@
     "prestart": "npm run build",
     "test": "jest",
     "lint": "eslint . --ext .ts",
-    "type-check": "tsc --noEmit && tsc --project tsconfig.frontend.json --noEmit"
+    "type-check": "tsc --noEmit && tsc --project tsconfig.frontend.json --noEmit",
+    "create-admin": "ts-node scripts/create-admin.ts"
   },
   "dependencies": {
     "bcryptjs": "^2.4.3",
