@@ -13,22 +13,80 @@ A comprehensive web application for managing research experiments and connecting
 ### For Researchers | 研究人员功能
 
 **English:**
-- Create and manage experiments
-- Schedule multiple experiment sessions
-- Edit session details (time, location, participants)
-- Track participant registrations
-- Manage participant status (registered, confirmed, attended, no-show, cancelled)
-- View participant details and contact information
-- Control experiment status (draft, open, in progress, completed, cancelled)
+- **Experiment Lifecycle Management**
+  - Create experiments with requirements and details
+  - Upload IRB (Institutional Review Board) approval documents
+  - Submit experiments for admin review
+  - Withdraw submissions before approval
+  - Edit rejected experiments
+  - Publish approved experiments (requires at least one session)
+  - Close active experiments
+  - Reactivate completed experiments
+- **Session Management**
+  - Schedule multiple experiment sessions
+  - Edit session details (time, location, max participants)
+  - View and manage participant registrations
+- **Participant Tracking**
+  - Manage participant status (registered, confirmed, attended, no-show, cancelled)
+  - View participant details and contact information
+  - Track participation across sessions
+- **UI Features**
+  - Collapsible experiment cards for easy navigation
+  - Priority-based sorting (active experiments first)
+  - Status-specific action buttons
+  - Real-time experiment creation date display
 
 **中文:**
-- 创建和管理实验
-- 安排多个实验会话
-- 编辑会话详情（时间、地点、参与者）
-- 跟踪参与者注册情况
-- 管理参与者状态（已注册、已确认、已参加、缺席、已取消）
-- 查看参与者详细信息和联系方式
-- 控制实验状态（草稿、开放、进行中、已完成、已取消）
+- **实验生命周期管理**
+  - 创建包含要求和详情的实验
+  - 上传IRB（机构审查委员会）批准文件
+  - 提交实验供管理员审查
+  - 在批准前撤回提交
+  - 编辑被拒绝的实验
+  - 发布已批准的实验（至少需要一个会话）
+  - 关闭活动实验
+  - 重新激活已完成的实验
+- **会话管理**
+  - 安排多个实验会话
+  - 编辑会话详情（时间、地点、最大参与者数）
+  - 查看和管理参与者注册
+- **参与者跟踪**
+  - 管理参与者状态（已注册、已确认、已参加、缺席、已取消）
+  - 查看参与者详细信息和联系方式
+  - 跨会话追踪参与情况
+- **界面功能**
+  - 可折叠的实验卡片，便于导航
+  - 基于优先级的排序（活动实验优先）
+  - 状态特定的操作按钮
+  - 实时显示实验创建日期
+
+### For Admins | 管理员功能
+
+**English:**
+- **Review and Approval Workflow**
+  - View all pending experiments submitted for review
+  - Review experiment details and participant requirements
+  - Download and verify IRB (Institutional Review Board) documents
+  - Approve experiments with optional notes
+  - Reject experiments with required explanatory notes
+  - Track review history and decisions
+- **System Oversight**
+  - View all experiments across all researchers
+  - Monitor experiment statuses and progress
+  - Access comprehensive experiment data for compliance
+
+**中文:**
+- **审查和批准工作流**
+  - 查看所有提交审查的待处理实验
+  - 审查实验详情和参与者要求
+  - 下载并验证IRB（机构审查委员会）文件
+  - 批准实验并可添加备注
+  - 拒绝实验并必须提供说明性备注
+  - 追踪审查历史和决定
+- **系统监督**
+  - 查看所有研究人员的所有实验
+  - 监控实验状态和进展
+  - 访问全面的实验数据以保证合规性
 
 ### For Participants (Subjects) | 参与者（受试者）功能
 
@@ -435,8 +493,21 @@ Content-Type: application/json
   "duration": 60,
   "compensation": "$20 or 2 credits",
   "maxParticipants": 5,
-  "requirements": ["18+ years old", "Native English speaker"],
-  "status": "draft|open|in_progress|completed"
+  "requirements": ["18+ years old", "Native English speaker"]
+  // Note: status defaults to "draft" on creation
+  // Workflow: draft → pending_review → approved → open → in_progress → completed
+}
+```
+
+#### Upload IRB Document (Researcher only) | 上传IRB文件（仅研究员）
+
+```http
+POST /api/experiments/:id/irb
+Authorization: Bearer <token>
+Content-Type: multipart/form-data
+
+{
+  "irbDocument": <file>  // PDF or DOC file required for submission | 提交审查需要 PDF 或 DOC 文件
 }
 ```
 
@@ -543,6 +614,55 @@ Authorization: Bearer <token>
 
 ---
 
+### Admin Endpoints | 管理员接口
+
+#### Get Pending Experiments (Admin only) | 获取待审查实验（仅管理员）
+
+```http
+GET /api/experiments/admin/pending
+Authorization: Bearer <token>
+```
+
+#### Get All Experiments (Admin only) | 获取所有实验（仅管理员）
+
+```http
+GET /api/experiments/admin/all
+Authorization: Bearer <token>
+```
+
+#### Approve Experiment (Admin only) | 批准实验（仅管理员）
+
+```http
+POST /api/experiments/:id/approve
+Authorization: Bearer <token>
+Content-Type: application/json
+
+{
+  "notes": "Approved with recommendations for participant screening"  // Optional | 可选
+}
+```
+
+#### Reject Experiment (Admin only) | 拒绝实验（仅管理员）
+
+```http
+POST /api/experiments/:id/reject
+Authorization: Bearer <token>
+Content-Type: application/json
+
+{
+  "notes": "IRB document needs revision - please update consent form"  // Required | 必需
+}
+```
+
+#### Download IRB Document (Admin only) | 下载IRB文件（仅管理员）
+
+```http
+GET /api/experiments/:id/irb
+Authorization: Bearer <token>
+```
+
+---
+
 ## Database Schema | 数据库架构
 
 ### User Schema | 用户架构
@@ -568,17 +688,52 @@ Authorization: Bearer <token>
   title: string
   description: string
   researcher: ObjectId (ref: User)
-  status: 'draft' | 'open' | 'in_progress' | 'completed' | 'cancelled'
+  status: 'draft' | 'pending_review' | 'approved' | 'rejected' | 'open' | 'in_progress' | 'completed' | 'cancelled'
   location: string
   duration: number (minutes | 分钟)
   compensation: string
   requirements: string[]
   maxParticipants: number
   sessions: Session[]
+  irbDocument?: {
+    filename: string
+    originalName: string
+    mimetype: string
+    size: number
+    uploadDate: Date
+  }
+  adminReview?: {
+    reviewedBy: ObjectId (ref: User)
+    reviewedAt: Date
+    decision: 'approved' | 'rejected'
+    notes?: string
+  }
   createdAt: Date
   updatedAt: Date
 }
 ```
+
+**Experiment Status Workflow | 实验状态工作流:**
+
+**English:**
+1. **draft** - Initial creation state, researcher can edit freely
+2. **pending_review** - Submitted for admin review, requires IRB document
+3. **approved** - Approved by admin, researcher can add sessions and publish
+4. **rejected** - Rejected by admin with notes, returns to draft for revision
+5. **open** - Published and open for participant recruitment
+6. **in_progress** - Currently running with active sessions
+7. **completed** - Finished, can be reactivated to draft
+8. **cancelled** - Cancelled by researcher or admin
+
+**中文:**
+1. **draft（草稿）** - 初始创建状态，研究人员可自由编辑
+2. **pending_review（待审查）** - 提交供管理员审查，需要IRB文件
+3. **approved（已批准）** - 管理员批准，研究人员可添加会话并发布
+4. **rejected（已拒绝）** - 管理员拒绝并附说明，返回草稿状态修订
+5. **open（开放）** - 已发布并开放参与者招募
+6. **in_progress（进行中）** - 当前运行，有活动会话
+7. **completed（已完成）** - 已结束，可重新激活为草稿
+8. **cancelled（已取消）** - 被研究人员或管理员取消
 
 ### Session Schema (Subdocument) | 会话架构（子文档）
 
@@ -619,8 +774,21 @@ hsrp-web/
 │   │   ├── auth.ts           # Authentication routes | 身份验证路由
 │   │   ├── experiments.ts    # Experiment routes | 实验路由
 │   │   └── users.ts          # User routes | 用户路由
+│   ├── __tests__/            # Test files | 测试文件
+│   │   ├── setup.ts          # Test environment setup | 测试环境设置
+│   │   ├── utils/
+│   │   │   └── testHelpers.ts # Testing utilities | 测试工具
+│   │   ├── models/
+│   │   │   ├── User.test.ts  # User model tests | 用户模型测试
+│   │   │   └── Experiment.test.ts # Experiment tests | 实验测试
+│   │   └── routes/
+│   │       ├── auth.test.ts  # Auth API tests | 身份验证 API 测试
+│   │       └── experiments.test.ts # Experiments API tests | 实验 API 测试
 │   └── public/
 │       └── api.ts            # TypeScript API client | TypeScript API 客户端
+├── scripts/
+│   ├── create-admin.ts       # Admin creation script | 管理员创建脚本
+│   └── README.md             # Scripts documentation | 脚本文档
 ├── public/
 │   ├── index.html            # Main HTML file | 主 HTML 文件
 │   ├── css/
@@ -628,15 +796,18 @@ hsrp-web/
 │   └── js/
 │       ├── api.js            # Compiled API client | 编译后的 API 客户端
 │       └── app.js            # Main application logic | 主应用程序逻辑
+├── uploads/                  # IRB document uploads | IRB 文件上传
 ├── dist/                     # Compiled backend JavaScript | 编译后的后端 JavaScript
 ├── .env.example              # Environment variables template | 环境变量模板
 ├── .dockerignore             # Docker ignore file | Docker 忽略文件
 ├── .gitignore                # Git ignore file | Git 忽略文件
 ├── Dockerfile                # Docker image definition | Docker 镜像定义
 ├── docker-compose.yml        # Docker Compose configuration | Docker Compose 配置
+├── jest.config.js            # Jest testing configuration | Jest 测试配置
 ├── package.json              # Dependencies and scripts | 依赖和脚本
 ├── tsconfig.json             # Backend TypeScript configuration | 后端 TypeScript 配置
 ├── tsconfig.frontend.json    # Frontend TypeScript configuration | 前端 TypeScript 配置
+├── TESTING_PLAN.md           # Testing documentation | 测试文档
 └── README.md                 # This file | 本文件
 ```
 
@@ -720,9 +891,15 @@ docker-compose up --build
 - `npm run build:backend` - Build backend TypeScript only
 - `npm run build:frontend` - Build frontend TypeScript only
 - `npm start` - Start production server
-- `npm test` - Run tests (to be implemented)
+- `npm test` - Run all tests with Jest
+- `npm run test:watch` - Run tests in watch mode (re-run on file changes)
+- `npm run test:coverage` - Run tests with coverage report
+- `npm run test:unit` - Run unit tests only (models)
+- `npm run test:integration` - Run integration tests only (routes/API)
+- `npm run test:verbose` - Run tests with verbose output
 - `npm run lint` - Run ESLint
 - `npm run type-check` - Check all TypeScript types
+- `npm run create-admin` - Create admin user account
 
 **中文:**
 - `npm run dev` - 启动带自动重载的开发服务器
@@ -730,9 +907,193 @@ docker-compose up --build
 - `npm run build:backend` - 仅构建后端 TypeScript
 - `npm run build:frontend` - 仅构建前端 TypeScript
 - `npm start` - 启动生产服务器
-- `npm test` - 运行测试（待实现）
+- `npm test` - 使用 Jest 运行所有测试
+- `npm run test:watch` - 以监视模式运行测试（文件更改时重新运行）
+- `npm run test:coverage` - 运行测试并生成覆盖率报告
+- `npm run test:unit` - 仅运行单元测试（模型）
+- `npm run test:integration` - 仅运行集成测试（路由/API）
+- `npm run test:verbose` - 以详细输出运行测试
 - `npm run lint` - 运行 ESLint
 - `npm run type-check` - 检查所有 TypeScript 类型
+- `npm run create-admin` - 创建管理员用户账户
+
+### Testing | 测试
+
+**English:**
+
+The project includes comprehensive automated testing with **Jest** and **Supertest**:
+
+**Test Coverage:**
+- **Unit Tests** - Model validation, password hashing, status transitions
+- **Integration Tests** - Complete API workflows, authentication, authorization
+- **40+ Test Cases** covering all critical user workflows
+- **MongoDB Memory Server** for isolated, repeatable testing
+
+**Running Tests:**
+```bash
+# Run all tests
+npm test
+
+# Run with coverage report (minimum 80% required)
+npm run test:coverage
+
+# Run in watch mode for development
+npm run test:watch
+
+# Run only unit tests
+npm run test:unit
+
+# Run only integration tests
+npm run test:integration
+```
+
+**Test Structure:**
+```
+src/__tests__/
+├── setup.ts                 # Test environment configuration
+├── utils/
+│   └── testHelpers.ts       # Shared testing utilities
+├── models/
+│   ├── User.test.ts         # User model unit tests
+│   └── Experiment.test.ts   # Experiment model unit tests
+└── routes/
+    ├── auth.test.ts         # Authentication API tests
+    └── experiments.test.ts  # Experiments API tests
+```
+
+**Coverage Requirements:**
+- Statements: 80%+
+- Branches: 75%+
+- Functions: 80%+
+- Lines: 80%+
+
+For detailed testing documentation, see [TESTING_PLAN.md](TESTING_PLAN.md)
+
+**中文:**
+
+项目包含使用 **Jest** 和 **Supertest** 的全面自动化测试：
+
+**测试覆盖范围:**
+- **单元测试** - 模型验证、密码哈希、状态转换
+- **集成测试** - 完整的 API 工作流、身份验证、授权
+- **40+ 测试用例**涵盖所有关键用户工作流
+- **MongoDB Memory Server** 用于隔离、可重复的测试
+
+**运行测试:**
+```bash
+# 运行所有测试
+npm test
+
+# 运行并生成覆盖率报告（最低要求 80%）
+npm run test:coverage
+
+# 以监视模式运行用于开发
+npm run test:watch
+
+# 仅运行单元测试
+npm run test:unit
+
+# 仅运行集成测试
+npm run test:integration
+```
+
+**测试结构:**
+```
+src/__tests__/
+├── setup.ts                 # 测试环境配置
+├── utils/
+│   └── testHelpers.ts       # 共享测试工具
+├── models/
+│   ├── User.test.ts         # 用户模型单元测试
+│   └── Experiment.test.ts   # 实验模型单元测试
+└── routes/
+    ├── auth.test.ts         # 身份验证 API 测试
+    └── experiments.test.ts  # 实验 API 测试
+```
+
+**覆盖率要求:**
+- 语句：80%+
+- 分支：75%+
+- 函数：80%+
+- 行数：80%+
+
+详细的测试文档请参阅 [TESTING_PLAN.md](TESTING_PLAN.md)
+
+### Admin Account Setup | 管理员账户设置
+
+**English:**
+
+To create an admin account, you can use the automated script:
+
+```bash
+npm run create-admin
+```
+
+**Default Admin Credentials:**
+- Email: `admin@hsrp.com`
+- Password: `admin123456`
+
+**Manual Setup (if needed):**
+
+If the script doesn't work, you can create an admin manually in MongoDB:
+
+```javascript
+// Connect to MongoDB
+mongosh mongodb://localhost:27017/hsrp
+
+// Create admin user
+db.users.insertOne({
+  email: "admin@hsrp.com",
+  password: "$2a$10$YourBcryptHashHere",  // Use bcrypt to hash "admin123456"
+  firstName: "Admin",
+  lastName: "User",
+  role: "admin",  // IMPORTANT: Must be lowercase "admin"
+  createdAt: new Date(),
+  updatedAt: new Date()
+})
+```
+
+**Important Notes:**
+- Role must be lowercase `"admin"` not `"ADMIN"`
+- Password must be hashed with bcrypt (10 rounds)
+- Change default password after first login in production
+
+**中文:**
+
+要创建管理员账户，可以使用自动化脚本：
+
+```bash
+npm run create-admin
+```
+
+**默认管理员凭据:**
+- 电子邮件：`admin@hsrp.com`
+- 密码：`admin123456`
+
+**手动设置（如需要）:**
+
+如果脚本不起作用，可以在 MongoDB 中手动创建管理员：
+
+```javascript
+// 连接到 MongoDB
+mongosh mongodb://localhost:27017/hsrp
+
+// 创建管理员用户
+db.users.insertOne({
+  email: "admin@hsrp.com",
+  password: "$2a$10$YourBcryptHashHere",  // 使用 bcrypt 对 "admin123456" 进行哈希
+  firstName: "Admin",
+  lastName: "User",
+  role: "admin",  // 重要：必须是小写 "admin"
+  createdAt: new Date(),
+  updatedAt: new Date()
+})
+```
+
+**重要说明:**
+- 角色必须是小写的 `"admin"` 而不是 `"ADMIN"`
+- 密码必须使用 bcrypt（10轮）进行哈希
+- 在生产环境中首次登录后更改默认密码
 
 ### Contributing | 贡献
 
