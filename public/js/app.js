@@ -88,13 +88,15 @@ function showDashboard() {
 document.addEventListener('DOMContentLoaded', () => {
     const registerRole = document.getElementById('register-role');
     if (registerRole) {
-        registerRole.addEventListener('change', (e) => {
-            const researcherFields = document.getElementById('researcher-fields');
-            if (researcherFields) {
-                researcherFields.style.display = e.target.value === 'researcher' ? 'block' : 'none';
-            }
-        });
+        // Initialize researcher fields on page load
+        updateResearcherFields();
+
+        // Note: The onChange handler is now set directly in the HTML
+        // onchange="updateResearcherFields()"
     }
+
+    // Initialize name fields based on current language
+    updateNameFields();
 });
 
 // Authentication handlers
@@ -148,8 +150,6 @@ async function handleRegister(event) {
 
     console.log('Register form submitted');
 
-    const firstName = document.getElementById('register-firstName').value;
-    const lastName = document.getElementById('register-lastName').value;
     const email = document.getElementById('register-email').value;
     const password = document.getElementById('register-password').value;
     const role = document.getElementById('register-role').value;
@@ -160,6 +160,43 @@ async function handleRegister(event) {
     // Clear previous errors
     errorEl.textContent = '';
     errorEl.classList.remove('show');
+
+    // Get name based on language
+    let firstName, lastName;
+    if (currentLanguage === 'zh') {
+        const fullName = document.getElementById('register-fullName').value.trim();
+        if (!fullName) {
+            errorEl.textContent = translations[currentLanguage].name_required || '请输入姓名';
+            errorEl.classList.add('show');
+            return;
+        }
+        // For Chinese, use the full name as lastName and empty firstName
+        // In Chinese convention, family name comes first
+        firstName = '';
+        lastName = fullName;
+    } else {
+        firstName = document.getElementById('register-firstName').value.trim();
+        lastName = document.getElementById('register-lastName').value.trim();
+        if (!firstName || !lastName) {
+            errorEl.textContent = translations[currentLanguage].name_required || 'Please enter your name';
+            errorEl.classList.add('show');
+            return;
+        }
+    }
+
+    // Validate researcher fields
+    if (role === 'researcher') {
+        if (!institution || !institution.trim()) {
+            errorEl.textContent = translations[currentLanguage].institution_required || 'Institution is required for researchers';
+            errorEl.classList.add('show');
+            return;
+        }
+        if (!department || !department.trim()) {
+            errorEl.textContent = translations[currentLanguage].department_required || 'Department is required for researchers';
+            errorEl.classList.add('show');
+            return;
+        }
+    }
 
     const userData = {
         firstName,
@@ -206,6 +243,49 @@ async function handleRegister(event) {
         errorEl.textContent = 'An error occurred. Please try again.';
         errorEl.classList.add('show');
         showNotification('An error occurred. Please try again.', 'error');
+    }
+}
+
+// Update researcher fields visibility and requirements
+function updateResearcherFields() {
+    const role = document.getElementById('register-role').value;
+    const researcherFields = document.getElementById('researcher-fields');
+    const institutionInput = document.getElementById('register-institution');
+    const departmentInput = document.getElementById('register-department');
+
+    if (role === 'researcher') {
+        researcherFields.style.display = 'block';
+        institutionInput.required = true;
+        departmentInput.required = true;
+    } else {
+        researcherFields.style.display = 'none';
+        institutionInput.required = false;
+        departmentInput.required = false;
+    }
+}
+
+// Toggle name fields based on language
+function updateNameFields() {
+    const nameFieldZh = document.getElementById('name-field-zh');
+    const nameFieldsEn = document.getElementById('name-fields-en');
+    const fullNameInput = document.getElementById('register-fullName');
+    const firstNameInput = document.getElementById('register-firstName');
+    const lastNameInput = document.getElementById('register-lastName');
+
+    if (currentLanguage === 'zh') {
+        // Show Chinese combined name field
+        nameFieldZh.style.display = 'block';
+        nameFieldsEn.style.display = 'none';
+        fullNameInput.required = true;
+        firstNameInput.required = false;
+        lastNameInput.required = false;
+    } else {
+        // Show English separate name fields
+        nameFieldZh.style.display = 'none';
+        nameFieldsEn.style.display = 'block';
+        fullNameInput.required = false;
+        firstNameInput.required = true;
+        lastNameInput.required = true;
     }
 }
 
@@ -1353,9 +1433,13 @@ const translations = {
         'i_am_a': 'I am a:',
         'participant': 'Participant (Subject)',
         'researcher': 'Researcher',
-        'institution': 'Institution',
+        'institution': 'College/School',
         'department': 'Department',
         'already_have_account': 'Already have an account?',
+        'full_name': 'Full Name',
+        'name_required': 'Please enter your name',
+        'institution_required': 'Institution is required for researchers',
+        'department_required': 'Department is required for researchers',
         'email_register': 'Email',
         'wechat_register': 'WeChat',
         'qq_register': 'QQ',
@@ -1486,9 +1570,13 @@ const translations = {
         'i_am_a': '我是：',
         'participant': '参与者（受试者）',
         'researcher': '研究人员',
-        'institution': '机构',
-        'department': '部门',
+        'institution': '学院',
+        'department': '系',
         'already_have_account': '已经有账户？',
+        'full_name': '姓名',
+        'name_required': '请输入姓名',
+        'institution_required': '研究人员必须填写学院',
+        'department_required': '研究人员必须填写系',
         'email_register': '邮箱',
         'wechat_register': '微信',
         'qq_register': 'QQ',
@@ -1740,6 +1828,9 @@ function applyTranslations(lang) {
             }
         }
     }
+
+    // Update name fields based on language
+    updateNameFields();
 }
 
 // Floating button visibility control

@@ -112,14 +112,24 @@
                     <!-- Email Registration Form -->
                     <div id="register-email-content" class="auth-tab-content active">
                         <form id="register-form" onsubmit="handleRegister(event)">
-                            <div class="form-group">
-                                <label for="register-firstName" data-i18n="first_name">First Name</label>
-                                <input type="text" id="register-firstName" required>
+                            <!-- Chinese: Combined name field -->
+                            <div class="form-group" id="name-field-zh" style="display:none;">
+                                <label for="register-fullName" data-i18n="full_name">姓名</label>
+                                <input type="text" id="register-fullName">
                             </div>
-                            <div class="form-group">
-                                <label for="register-lastName" data-i18n="last_name">Last Name</label>
-                                <input type="text" id="register-lastName" required>
+
+                            <!-- English: Separate first/last name fields -->
+                            <div id="name-fields-en">
+                                <div class="form-group">
+                                    <label for="register-firstName" data-i18n="first_name">First Name</label>
+                                    <input type="text" id="register-firstName">
+                                </div>
+                                <div class="form-group">
+                                    <label for="register-lastName" data-i18n="last_name">Last Name</label>
+                                    <input type="text" id="register-lastName">
+                                </div>
                             </div>
+
                             <div class="form-group">
                                 <label for="register-email" data-i18n="email">Email</label>
                                 <input type="email" id="register-email" required>
@@ -130,7 +140,7 @@
                             </div>
                             <div class="form-group">
                                 <label for="register-role" data-i18n="i_am_a">I am a:</label>
-                                <select id="register-role" required>
+                                <select id="register-role" required onchange="updateResearcherFields()">
                                     <option value="subject" data-i18n="participant">Participant (Subject)</option>
                                     <option value="researcher" data-i18n="researcher">Researcher</option>
                                 </select>
