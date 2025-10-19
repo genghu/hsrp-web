@@ -1003,6 +1003,14 @@ async function loadPendingExperiments() {
                         <span><i class="fas fa-clock"></i> ${exp.duration} ${translations[currentLanguage].minutes || 'minutes'}</span>
                         <span><i class="fas fa-users"></i> ${exp.maxParticipants} ${translations[currentLanguage].max_participants || 'max'}</span>
                     </div>
+                    ${exp.requirements && exp.requirements.length > 0 ? `
+                        <div style="margin-top: 1rem;">
+                            <strong><i class="fas fa-list-check me-2"></i>${translations[currentLanguage].requirements || 'Requirements'}:</strong>
+                            <ul class="requirements-list" style="margin-top: 0.5rem;">
+                                ${exp.requirements.map(req => `<li>${req}</li>`).join('')}
+                            </ul>
+                        </div>
+                    ` : ''}
                     <div class="experiment-actions">
                         ${exp.irbDocument ? `
                             <button class="glass-button" onclick="window.open('/api/experiments/${exp._id}/irb-download', '_blank')">
@@ -1069,6 +1077,14 @@ async function loadAllExperimentsForAdmin() {
                             <span><i class="fas fa-map-marker-alt"></i> ${exp.location}</span>
                             <span><i class="fas fa-clock"></i> ${exp.duration} ${translations[currentLanguage].minutes || 'minutes'}</span>
                         </div>
+                        ${exp.requirements && exp.requirements.length > 0 ? `
+                            <div style="margin-top: 1rem;">
+                                <strong><i class="fas fa-list-check me-2"></i>${translations[currentLanguage].requirements || 'Requirements'}:</strong>
+                                <ul class="requirements-list" style="margin-top: 0.5rem;">
+                                    ${exp.requirements.map(req => `<li>${req}</li>`).join('')}
+                                </ul>
+                            </div>
+                        ` : ''}
                         ${exp.adminReview ? `
                             <div style="margin-top: 0.5rem; padding: 0.5rem; background: rgba(255,255,255,0.05); border-radius: 4px; font-size: 0.9rem;">
                                 <strong>${translations[currentLanguage].admin_notes || 'Admin Notes'}:</strong> ${exp.adminReview.notes}
@@ -1122,6 +1138,14 @@ async function openAdminReviewModal(experimentId) {
                         <span><i class="fas fa-clock"></i> ${currentReviewExperiment.duration} ${translations[currentLanguage].minutes || 'minutes'}</span>
                         <span><i class="fas fa-dollar-sign"></i> ${currentReviewExperiment.compensation}</span>
                     </div>
+                    ${currentReviewExperiment.requirements && currentReviewExperiment.requirements.length > 0 ? `
+                        <div style="margin-top: 1rem;">
+                            <p><strong><i class="fas fa-list-check me-2"></i>${translations[currentLanguage].requirements || 'Requirements'}:</strong></p>
+                            <ul class="requirements-list" style="margin-top: 0.5rem;">
+                                ${currentReviewExperiment.requirements.map(req => `<li>${req}</li>`).join('')}
+                            </ul>
+                        </div>
+                    ` : ''}
                     ${currentReviewExperiment.irbDocument ? `
                         <div style="margin-top: 1rem;">
                             <a href="/api/experiments/${currentReviewExperiment._id}/irb-download" target="_blank" class="glass-button">
