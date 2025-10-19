@@ -370,9 +370,9 @@ function renderExperimentCard(exp) {
 
     return `
         <div class="experiment-card" data-exp-id="${exp._id}">
-            <div class="experiment-header" onclick="toggleExperimentCard('${exp._id}')" style="cursor: pointer;">
+            <div class="experiment-header" style="cursor: pointer;">
                 <div class="d-flex justify-content-between align-items-start">
-                    <div style="flex: 1;">
+                    <div style="flex: 1;" onclick="toggleExperimentCard('${exp._id}')">
                         <div class="d-flex align-items-center gap-2">
                             <i class="fas fa-chevron-right experiment-toggle-icon" id="toggle-icon-${exp._id}" style="transition: transform 0.3s; font-size: 0.875rem;"></i>
                             <h4 style="margin: 0;"><i class="fas fa-flask me-2"></i>${exp.title}</h4>
@@ -382,18 +382,18 @@ function renderExperimentCard(exp) {
                             <i class="fas fa-clock me-1"></i>${t['created'] || 'Created'}: ${formattedDate}
                         </div>
                     </div>
+                    <div class="experiment-actions" style="display: flex; gap: 0.5rem; flex-wrap: wrap; margin-left: 1rem;">
+                        ${canEdit ? `<button class="glass-button" style="padding: 8px 16px; font-size: 0.875rem;" onclick="event.stopPropagation(); editExperiment('${exp._id}')"><i class="fas fa-edit me-1"></i>${t['edit']}</button>` : ''}
+                        ${canReactivate ? `<button class="glass-button" style="padding: 8px 16px; font-size: 0.875rem; background: linear-gradient(135deg, #667eea, #764ba2);" onclick="event.stopPropagation(); reactivateExperiment('${exp._id}')"><i class="fas fa-play-circle me-1"></i>${t['reactivate']}</button>` : ''}
+                        ${canViewSessions ? `<button class="glass-button" style="padding: 8px 16px; font-size: 0.875rem;" onclick="event.stopPropagation(); viewSessions('${exp._id}')"><i class="fas fa-calendar me-1"></i>${t['sessions']}</button>` : ''}
+                        ${canPublish ? `<button class="glass-button" style="padding: 8px 16px; font-size: 0.875rem; background: linear-gradient(135deg, ${hasSession ? '#48bb78, #2f855a' : '#9ca3af, #6b7280'});" onclick="event.stopPropagation(); ${hasSession ? `publishExperiment('${exp._id}')` : 'return false;'}" ${!hasSession ? 'disabled' : ''}><i class="fas fa-rocket me-1"></i>${t['publish']}</button>` : ''}
+                        ${canWithdraw ? `<button class="glass-button" style="padding: 8px 16px; font-size: 0.875rem; background: linear-gradient(135deg, #fbbf24, #f59e0b);" onclick="event.stopPropagation(); withdrawExperiment('${exp._id}')"><i class="fas fa-undo me-1"></i>${t['withdraw']}</button>` : ''}
+                        ${canClose ? `<button class="glass-button" style="padding: 8px 16px; font-size: 0.875rem; background: linear-gradient(135deg, #f87171, #dc2626);" onclick="event.stopPropagation(); closeExperiment('${exp._id}')"><i class="fas fa-times-circle me-1"></i>${t['close_experiment']}</button>` : ''}
+                        ${canDelete ? `<button class="glass-button" style="padding: 8px 16px; font-size: 0.875rem;" onclick="event.stopPropagation(); deleteExperiment('${exp._id}')"><i class="fas fa-trash me-1"></i>${t['delete']}</button>` : ''}
+                    </div>
                 </div>
             </div>
             <div class="experiment-content" id="content-${exp._id}" style="display: none; margin-top: 1rem;">
-                <div class="experiment-actions mb-3" style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
-                    ${canEdit ? `<button class="glass-button" style="padding: 8px 16px; font-size: 0.875rem;" onclick="event.stopPropagation(); editExperiment('${exp._id}')"><i class="fas fa-edit me-1"></i>${t['edit']}</button>` : ''}
-                    ${canReactivate ? `<button class="glass-button" style="padding: 8px 16px; font-size: 0.875rem; background: linear-gradient(135deg, #667eea, #764ba2);" onclick="event.stopPropagation(); reactivateExperiment('${exp._id}')"><i class="fas fa-play-circle me-1"></i>${t['reactivate']}</button>` : ''}
-                    ${canViewSessions ? `<button class="glass-button" style="padding: 8px 16px; font-size: 0.875rem;" onclick="event.stopPropagation(); viewSessions('${exp._id}')"><i class="fas fa-calendar me-1"></i>${t['sessions']}</button>` : ''}
-                    ${canPublish ? `<button class="glass-button" style="padding: 8px 16px; font-size: 0.875rem; background: linear-gradient(135deg, ${hasSession ? '#48bb78, #2f855a' : '#9ca3af, #6b7280'});" onclick="event.stopPropagation(); ${hasSession ? `publishExperiment('${exp._id}')` : 'return false;'}" ${!hasSession ? 'disabled' : ''}><i class="fas fa-rocket me-1"></i>${t['publish']}</button>` : ''}
-                    ${canWithdraw ? `<button class="glass-button" style="padding: 8px 16px; font-size: 0.875rem; background: linear-gradient(135deg, #fbbf24, #f59e0b);" onclick="event.stopPropagation(); withdrawExperiment('${exp._id}')"><i class="fas fa-undo me-1"></i>${t['withdraw']}</button>` : ''}
-                    ${canClose ? `<button class="glass-button" style="padding: 8px 16px; font-size: 0.875rem; background: linear-gradient(135deg, #f87171, #dc2626);" onclick="event.stopPropagation(); closeExperiment('${exp._id}')"><i class="fas fa-times-circle me-1"></i>${t['close_experiment']}</button>` : ''}
-                    ${canDelete ? `<button class="glass-button" style="padding: 8px 16px; font-size: 0.875rem;" onclick="event.stopPropagation(); deleteExperiment('${exp._id}')"><i class="fas fa-trash me-1"></i>${t['delete']}</button>` : ''}
-                </div>
                 <p style="margin-bottom: 1rem;">${exp.description}</p>
             <div class="row g-3 mb-3">
                 <div class="col-md-3">
