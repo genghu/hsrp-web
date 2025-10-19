@@ -48,6 +48,11 @@ function showPage(pageName) {
         return;
     }
 
+    // Cleanup QR polling when leaving registration page
+    if (document.getElementById('page-register').classList.contains('active') && pageName !== 'register') {
+        cleanupQRPolling();
+    }
+
     document.querySelectorAll('.page').forEach(page => {
         page.classList.remove('active');
     });
@@ -557,6 +562,234 @@ function addCustomRequirement() {
 function clearSelectedRequirements() {
     const container = document.getElementById('selected-requirements');
     container.innerHTML = '';
+}
+
+// Registration Tab Switching
+function switchRegisterTab(tabName) {
+    // Update tab buttons
+    document.querySelectorAll('.auth-tab').forEach(tab => {
+        tab.classList.remove('active');
+    });
+    document.querySelector(`.auth-tab[data-tab="${tabName}"]`).classList.add('active');
+
+    // Update tab content
+    document.querySelectorAll('.auth-tab-content').forEach(content => {
+        content.classList.remove('active');
+    });
+    document.getElementById(`register-${tabName}-content`).classList.add('active');
+
+    // Initialize QR code when switching to QR tabs
+    if (tabName === 'wechat') {
+        initWeChatQR();
+    } else if (tabName === 'qq') {
+        initQQQR();
+    }
+}
+
+// WeChat QR Code Management
+let wechatQRPolling = null;
+let wechatQRCode = null;
+
+async function initWeChatQR() {
+    try {
+        const qrContainer = document.getElementById('wechat-qr-code');
+        const statusEl = document.getElementById('wechat-qr-status');
+
+        // Show loading state
+        qrContainer.innerHTML = `
+            <div class="qr-loading">
+                <i class="fas fa-spinner fa-spin"></i>
+                <p data-i18n="loading_qr">Loading QR Code...</p>
+            </div>
+        `;
+        statusEl.textContent = '';
+        statusEl.className = 'qr-status';
+
+        // Request QR code from backend
+        const response = await fetch(`${API_URL}/api/auth/wechat/qr`, {
+            method: 'GET'
+        });
+
+        const result = await response.json();
+
+        if (result.success && result.data.qrCodeUrl) {
+            wechatQRCode = result.data;
+
+            // Display QR code
+            qrContainer.innerHTML = `<img src="${result.data.qrCodeUrl}" alt="WeChat QR Code">`;
+
+            // Start polling for scan status
+            startWeChatQRPolling(result.data.ticket);
+        } else {
+            throw new Error(result.error || 'Failed to generate QR code');
+        }
+    } catch (error) {
+        console.error('WeChat QR Error:', error);
+        const qrContainer = document.getElementById('wechat-qr-code');
+        const statusEl = document.getElementById('wechat-qr-status');
+
+        qrContainer.innerHTML = `
+            <div class="qr-loading">
+                <i class="fas fa-exclamation-triangle"></i>
+                <p>Failed to load QR code</p>
+            </div>
+        `;
+        statusEl.textContent = error.message || 'Error loading QR code';
+        statusEl.className = 'qr-status error';
+    }
+}
+
+function startWeChatQRPolling(ticket) {
+    // Clear existing polling
+    if (wechatQRPolling) {
+        clearInterval(wechatQRPolling);
+    }
+
+    const statusEl = document.getElementById('wechat-qr-status');
+    statusEl.textContent = translations[currentLanguage].waiting_for_scan || 'Waiting for scan...';
+    statusEl.className = 'qr-status waiting';
+
+    wechatQRPolling = setInterval(async () => {
+        try {
+            const response = await fetch(`${API_URL}/api/auth/wechat/check?ticket=${ticket}`);
+            const result = await response.json();
+
+            if (result.success && result.data.status === 'scanned') {
+                clearInterval(wechatQRPolling);
+                statusEl.textContent = translations[currentLanguage].qr_scanned || 'QR Code Scanned! Completing registration...';
+                statusEl.className = 'qr-status success';
+
+                // Handle successful authentication
+                if (result.data.token && result.data.user) {
+                    localStorage.setItem('token', result.data.token);
+                    localStorage.setItem('user', JSON.stringify(result.data.user));
+                    showDashboard();
+                }
+            } else if (result.data.status === 'expired') {
+                clearInterval(wechatQRPolling);
+                statusEl.textContent = translations[currentLanguage].qr_expired || 'QR Code expired. Please refresh.';
+                statusEl.className = 'qr-status error';
+            }
+        } catch (error) {
+            console.error('Polling error:', error);
+        }
+    }, 2000); // Poll every 2 seconds
+}
+
+function refreshWeChatQR() {
+    if (wechatQRPolling) {
+        clearInterval(wechatQRPolling);
+    }
+    initWeChatQR();
+}
+
+// QQ QR Code Management
+let qqQRPolling = null;
+let qqQRCode = null;
+
+async function initQQQR() {
+    try {
+        const qrContainer = document.getElementById('qq-qr-code');
+        const statusEl = document.getElementById('qq-qr-status');
+
+        // Show loading state
+        qrContainer.innerHTML = `
+            <div class="qr-loading">
+                <i class="fas fa-spinner fa-spin"></i>
+                <p data-i18n="loading_qr">Loading QR Code...</p>
+            </div>
+        `;
+        statusEl.textContent = '';
+        statusEl.className = 'qr-status';
+
+        // Request QR code from backend
+        const response = await fetch(`${API_URL}/api/auth/qq/qr`, {
+            method: 'GET'
+        });
+
+        const result = await response.json();
+
+        if (result.success && result.data.qrCodeUrl) {
+            qqQRCode = result.data;
+
+            // Display QR code
+            qrContainer.innerHTML = `<img src="${result.data.qrCodeUrl}" alt="QQ QR Code">`;
+
+            // Start polling for scan status
+            startQQQRPolling(result.data.ticket);
+        } else {
+            throw new Error(result.error || 'Failed to generate QR code');
+        }
+    } catch (error) {
+        console.error('QQ QR Error:', error);
+        const qrContainer = document.getElementById('qq-qr-code');
+        const statusEl = document.getElementById('qq-qr-status');
+
+        qrContainer.innerHTML = `
+            <div class="qr-loading">
+                <i class="fas fa-exclamation-triangle"></i>
+                <p>Failed to load QR code</p>
+            </div>
+        `;
+        statusEl.textContent = error.message || 'Error loading QR code';
+        statusEl.className = 'qr-status error';
+    }
+}
+
+function startQQQRPolling(ticket) {
+    // Clear existing polling
+    if (qqQRPolling) {
+        clearInterval(qqQRPolling);
+    }
+
+    const statusEl = document.getElementById('qq-qr-status');
+    statusEl.textContent = translations[currentLanguage].waiting_for_scan || 'Waiting for scan...';
+    statusEl.className = 'qr-status waiting';
+
+    qqQRPolling = setInterval(async () => {
+        try {
+            const response = await fetch(`${API_URL}/api/auth/qq/check?ticket=${ticket}`);
+            const result = await response.json();
+
+            if (result.success && result.data.status === 'scanned') {
+                clearInterval(qqQRPolling);
+                statusEl.textContent = translations[currentLanguage].qr_scanned || 'QR Code Scanned! Completing registration...';
+                statusEl.className = 'qr-status success';
+
+                // Handle successful authentication
+                if (result.data.token && result.data.user) {
+                    localStorage.setItem('token', result.data.token);
+                    localStorage.setItem('user', JSON.stringify(result.data.user));
+                    showDashboard();
+                }
+            } else if (result.data.status === 'expired') {
+                clearInterval(qqQRPolling);
+                statusEl.textContent = translations[currentLanguage].qr_expired || 'QR Code expired. Please refresh.';
+                statusEl.className = 'qr-status error';
+            }
+        } catch (error) {
+            console.error('Polling error:', error);
+        }
+    }, 2000); // Poll every 2 seconds
+}
+
+function refreshQQQR() {
+    if (qqQRPolling) {
+        clearInterval(qqQRPolling);
+    }
+    initQQQR();
+}
+
+// Cleanup polling when leaving registration page
+function cleanupQRPolling() {
+    if (wechatQRPolling) {
+        clearInterval(wechatQRPolling);
+        wechatQRPolling = null;
+    }
+    if (qqQRPolling) {
+        clearInterval(qqQRPolling);
+        qqQRPolling = null;
+    }
 }
 
 // Session Management
@@ -1123,6 +1356,18 @@ const translations = {
         'institution': 'Institution',
         'department': 'Department',
         'already_have_account': 'Already have an account?',
+        'email_register': 'Email',
+        'wechat_register': 'WeChat',
+        'qq_register': 'QQ',
+        'scan_wechat_qr': 'Scan with WeChat',
+        'wechat_qr_desc': 'Open WeChat and scan the QR code to register',
+        'scan_qq_qr': 'Scan with QQ',
+        'qq_qr_desc': 'Open QQ and scan the QR code to register',
+        'loading_qr': 'Loading QR Code...',
+        'refresh_qr': 'Refresh QR Code',
+        'waiting_for_scan': 'Waiting for scan...',
+        'qr_scanned': 'QR Code Scanned! Completing registration...',
+        'qr_expired': 'QR Code expired. Please refresh.',
 
         // Researcher Dashboard
         'researcher_dashboard': 'Researcher Dashboard',
@@ -1244,6 +1489,18 @@ const translations = {
         'institution': '机构',
         'department': '部门',
         'already_have_account': '已经有账户？',
+        'email_register': '邮箱',
+        'wechat_register': '微信',
+        'qq_register': 'QQ',
+        'scan_wechat_qr': '使用微信扫描',
+        'wechat_qr_desc': '打开微信扫描二维码进行注册',
+        'scan_qq_qr': '使用QQ扫描',
+        'qq_qr_desc': '打开QQ扫描二维码进行注册',
+        'loading_qr': '加载二维码中...',
+        'refresh_qr': '刷新二维码',
+        'waiting_for_scan': '等待扫描...',
+        'qr_scanned': '二维码已扫描！正在完成注册...',
+        'qr_expired': '二维码已过期。请刷新。',
 
         // Researcher Dashboard
         'researcher_dashboard': '研究人员仪表板',

@@ -41,6 +41,16 @@ const userSchema = new Schema({
   department: {
     type: String,
     trim: true
+  },
+  wechatId: {
+    type: String,
+    sparse: true,
+    unique: true
+  },
+  qqId: {
+    type: String,
+    sparse: true,
+    unique: true
   }
 }, {
   timestamps: true
@@ -68,5 +78,7 @@ userSchema.methods.comparePassword = async function(candidatePassword: string): 
 userSchema.index({ email: 1 }, { unique: true }); // Unique index on email
 userSchema.index({ role: 1 }); // Index for filtering by role
 userSchema.index({ createdAt: -1 }); // Index for sorting by registration date
+userSchema.index({ wechatId: 1 }, { unique: true, sparse: true }); // Index for WeChat OAuth
+userSchema.index({ qqId: 1 }, { unique: true, sparse: true }); // Index for QQ OAuth
 
 export const User = mongoose.model<UserDocument>('User', userSchema);

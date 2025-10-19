@@ -95,43 +95,107 @@
             <div id="page-register" class="page">
                 <div class="auth-container">
                     <h2 data-i18n="register_title">Register</h2>
-                    <form id="register-form" onsubmit="handleRegister(event)">
-                        <div class="form-group">
-                            <label for="register-firstName" data-i18n="first_name">First Name</label>
-                            <input type="text" id="register-firstName" required>
-                        </div>
-                        <div class="form-group">
-                            <label for="register-lastName" data-i18n="last_name">Last Name</label>
-                            <input type="text" id="register-lastName" required>
-                        </div>
-                        <div class="form-group">
-                            <label for="register-email" data-i18n="email">Email</label>
-                            <input type="email" id="register-email" required>
-                        </div>
-                        <div class="form-group">
-                            <label for="register-password" data-i18n="password">Password</label>
-                            <input type="password" id="register-password" required minlength="6">
-                        </div>
-                        <div class="form-group">
-                            <label for="register-role" data-i18n="i_am_a">I am a:</label>
-                            <select id="register-role" required>
-                                <option value="subject" data-i18n="participant">Participant (Subject)</option>
-                                <option value="researcher" data-i18n="researcher">Researcher</option>
-                            </select>
-                        </div>
-                        <div id="researcher-fields" style="display:none;">
+
+                    <!-- Registration Method Tabs -->
+                    <div class="auth-tabs">
+                        <button class="auth-tab active" data-tab="email" onclick="switchRegisterTab('email')">
+                            <i class="fas fa-envelope me-2"></i><span data-i18n="email_register">Email</span>
+                        </button>
+                        <button class="auth-tab" data-tab="wechat" onclick="switchRegisterTab('wechat')">
+                            <i class="fab fa-weixin me-2"></i><span data-i18n="wechat_register">WeChat</span>
+                        </button>
+                        <button class="auth-tab" data-tab="qq" onclick="switchRegisterTab('qq')">
+                            <i class="fab fa-qq me-2"></i><span data-i18n="qq_register">QQ</span>
+                        </button>
+                    </div>
+
+                    <!-- Email Registration Form -->
+                    <div id="register-email-content" class="auth-tab-content active">
+                        <form id="register-form" onsubmit="handleRegister(event)">
                             <div class="form-group">
-                                <label for="register-institution" data-i18n="institution">Institution</label>
-                                <input type="text" id="register-institution">
+                                <label for="register-firstName" data-i18n="first_name">First Name</label>
+                                <input type="text" id="register-firstName" required>
                             </div>
                             <div class="form-group">
-                                <label for="register-department" data-i18n="department">Department</label>
-                                <input type="text" id="register-department">
+                                <label for="register-lastName" data-i18n="last_name">Last Name</label>
+                                <input type="text" id="register-lastName" required>
                             </div>
+                            <div class="form-group">
+                                <label for="register-email" data-i18n="email">Email</label>
+                                <input type="email" id="register-email" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="register-password" data-i18n="password">Password</label>
+                                <input type="password" id="register-password" required minlength="6">
+                            </div>
+                            <div class="form-group">
+                                <label for="register-role" data-i18n="i_am_a">I am a:</label>
+                                <select id="register-role" required>
+                                    <option value="subject" data-i18n="participant">Participant (Subject)</option>
+                                    <option value="researcher" data-i18n="researcher">Researcher</option>
+                                </select>
+                            </div>
+                            <div id="researcher-fields" style="display:none;">
+                                <div class="form-group">
+                                    <label for="register-institution" data-i18n="institution">Institution</label>
+                                    <input type="text" id="register-institution">
+                                </div>
+                                <div class="form-group">
+                                    <label for="register-department" data-i18n="department">Department</label>
+                                    <input type="text" id="register-department">
+                                </div>
+                            </div>
+                            <div id="register-error" class="error-message"></div>
+                            <button type="submit" class="glass-button" style="width:100%;" data-i18n="register"><i class="fas fa-user-plus me-2"></i>Register</button>
+                        </form>
+                    </div>
+
+                    <!-- WeChat QR Code Registration -->
+                    <div id="register-wechat-content" class="auth-tab-content">
+                        <div class="qr-container">
+                            <div class="qr-header">
+                                <i class="fab fa-weixin" style="font-size: 2rem; color: #07C160;"></i>
+                                <h3 data-i18n="scan_wechat_qr">Scan with WeChat</h3>
+                                <p data-i18n="wechat_qr_desc">Open WeChat and scan the QR code to register</p>
+                            </div>
+                            <div class="qr-code-wrapper">
+                                <div id="wechat-qr-code" class="qr-code">
+                                    <div class="qr-loading">
+                                        <i class="fas fa-spinner fa-spin"></i>
+                                        <p data-i18n="loading_qr">Loading QR Code...</p>
+                                    </div>
+                                </div>
+                                <div id="wechat-qr-status" class="qr-status"></div>
+                            </div>
+                            <button class="glass-button" style="width:100%; margin-top: 1rem;" onclick="refreshWeChatQR()">
+                                <i class="fas fa-sync-alt me-2"></i><span data-i18n="refresh_qr">Refresh QR Code</span>
+                            </button>
                         </div>
-                        <div id="register-error" class="error-message"></div>
-                        <button type="submit" class="glass-button" style="width:100%;" data-i18n="register"><i class="fas fa-user-plus me-2"></i>Register</button>
-                    </form>
+                    </div>
+
+                    <!-- QQ QR Code Registration -->
+                    <div id="register-qq-content" class="auth-tab-content">
+                        <div class="qr-container">
+                            <div class="qr-header">
+                                <i class="fab fa-qq" style="font-size: 2rem; color: #12B7F5;"></i>
+                                <h3 data-i18n="scan_qq_qr">Scan with QQ</h3>
+                                <p data-i18n="qq_qr_desc">Open QQ and scan the QR code to register</p>
+                            </div>
+                            <div class="qr-code-wrapper">
+                                <div id="qq-qr-code" class="qr-code">
+                                    <div class="qr-loading">
+                                        <i class="fas fa-spinner fa-spin"></i>
+                                        <p data-i18n="loading_qr">Loading QR Code...</p>
+                                    </div>
+                                </div>
+                                <div id="qq-qr-status" class="qr-status"></div>
+                            </div>
+                            <button class="glass-button" style="width:100%; margin-top: 1rem;" onclick="refreshQQQR()">
+                                <i class="fas fa-sync-alt me-2"></i><span data-i18n="refresh_qr">Refresh QR Code</span>
+                            </button>
+                        </div>
+                    </div>
+
                     <p class="auth-link"><span data-i18n="already_have_account">Already have an account?</span> <a href="#" onclick="showPage('login')" data-i18n="login">Login</a></p>
                 </div>
             </div>

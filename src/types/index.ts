@@ -14,6 +14,8 @@ export interface IUser {
   role: UserRole;
   institution?: string;
   department?: string;
+  wechatId?: string;
+  qqId?: string;
   createdAt: Date;
   updatedAt: Date;
 }
