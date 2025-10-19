@@ -353,7 +353,7 @@ function renderExperimentCard(exp) {
     const canDelete = ['draft', 'rejected'].includes(exp.status);
     const canClose = ['open', 'in_progress'].includes(exp.status);
     const canWithdraw = exp.status === 'pending_review';
-    const canViewSessions = exp.status !== 'pending_review';
+    const canViewSessions = !['draft', 'pending_review'].includes(exp.status);
 
     return `
         <div class="experiment-card">
