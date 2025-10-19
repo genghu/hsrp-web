@@ -352,6 +352,8 @@ function renderExperimentCard(exp) {
     const canEdit = ['draft', 'rejected', 'approved'].includes(exp.status);
     const canDelete = ['draft', 'rejected'].includes(exp.status);
     const canClose = ['open', 'in_progress'].includes(exp.status);
+    const canWithdraw = exp.status === 'pending_review';
+    const canViewSessions = exp.status !== 'pending_review';
 
     return `
         <div class="experiment-card">
@@ -362,7 +364,8 @@ function renderExperimentCard(exp) {
                 </div>
                 <div class="d-flex gap-2">
                     ${canEdit ? `<button class="glass-button" style="padding: 8px 16px; font-size: 0.875rem;" onclick="editExperiment('${exp._id}')"><i class="fas fa-edit me-1"></i>${t['edit']}</button>` : ''}
-                    <button class="glass-button" style="padding: 8px 16px; font-size: 0.875rem;" onclick="viewSessions('${exp._id}')"><i class="fas fa-calendar me-1"></i>${t['sessions']}</button>
+                    ${canViewSessions ? `<button class="glass-button" style="padding: 8px 16px; font-size: 0.875rem;" onclick="viewSessions('${exp._id}')"><i class="fas fa-calendar me-1"></i>${t['sessions']}</button>` : ''}
+                    ${canWithdraw ? `<button class="glass-button" style="padding: 8px 16px; font-size: 0.875rem; background: linear-gradient(135deg, #fbbf24, #f59e0b);" onclick="withdrawExperiment('${exp._id}')"><i class="fas fa-undo me-1"></i>${t['withdraw']}</button>` : ''}
                     ${canClose ? `<button class="glass-button" style="padding: 8px 16px; font-size: 0.875rem; background: linear-gradient(135deg, #f87171, #dc2626);" onclick="closeExperiment('${exp._id}')"><i class="fas fa-times-circle me-1"></i>${t['close_experiment']}</button>` : ''}
                     ${canDelete ? `<button class="glass-button" style="padding: 8px 16px; font-size: 0.875rem;" onclick="deleteExperiment('${exp._id}')"><i class="fas fa-trash me-1"></i>${t['delete']}</button>` : ''}
                 </div>
@@ -705,6 +708,35 @@ async function closeExperiment(expId) {
         }
     } catch (error) {
         alert('Error closing experiment');
+    }
+}
+
+async function withdrawExperiment(expId) {
+    const t = translations[currentLanguage];
+    if (!confirm(t['confirm_withdraw_experiment'] || 'Are you sure you want to withdraw this experiment from review? It will be returned to draft status.')) {
+        return;
+    }
+
+    try {
+        const response = await fetch(`/api/experiments/${expId}`, {
+            method: 'PATCH',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${localStorage.getItem('token')}`
+            },
+            body: JSON.stringify({ status: 'draft' })
+        });
+
+        const data = await response.json();
+
+        if (response.ok && data.success) {
+            showNotification(t['experiment_withdrawn'] || 'Experiment withdrawn successfully. You can now edit it.', 'success');
+            loadResearcherExperiments();
+        } else {
+            alert(data.error || 'Error withdrawing experiment');
+        }
+    } catch (error) {
+        alert('Error withdrawing experiment');
     }
 }
 
@@ -1991,9 +2023,12 @@ const translations = {
         'register': 'Register',
         'registered': 'Registered',
         'full': 'Full',
+        'withdraw': 'Withdraw',
         'close_experiment': 'Close Experiment',
         'confirm_close_experiment': 'Are you sure you want to close this experiment? This will mark it as completed.',
         'experiment_closed': 'Experiment closed successfully',
+        'confirm_withdraw_experiment': 'Are you sure you want to withdraw this experiment from review? It will be returned to draft status.',
+        'experiment_withdrawn': 'Experiment withdrawn successfully. You can now edit it.',
 
         // Suggested Requirements
         'suggested_requirements': 'Suggested Requirements',
@@ -2158,9 +2193,12 @@ const translations = {
         'register': '注册',
         'registered': '已注册',
         'full': '已满',
+        'withdraw': '撤回',
         'close_experiment': '关闭实验',
         'confirm_close_experiment': '您确定要关闭此实验吗？这将标记为已完成。',
         'experiment_closed': '实验已成功关闭',
+        'confirm_withdraw_experiment': '您确定要撤回此实验的审核请求吗？它将返回到草稿状态。',
+        'experiment_withdrawn': '实验已成功撤回。您现在可以编辑它。',
 
         // Suggested Requirements
         'suggested_requirements': '建议的要求',
