@@ -32,7 +32,8 @@ const userSchema = new Schema({
   role: {
     type: String,
     enum: Object.values(UserRole),
-    required: true
+    required: true,
+    default: UserRole.SUBJECT
   },
   institution: {
     type: String,
