@@ -475,7 +475,7 @@ router.patch('/:id/sessions/:sessionId/participants/:userId', auth, checkRole([U
 });
 
 // Get participants for a session (researchers only)
-router.get('/:id/sessions/:sessionId/participants', auth, checkRole([UserRole.RESEARCHER]), sessionIdValidation, async (req: AuthRequest, res: any) => {
+router.get('/:id/sessions/:sessionId/participants', auth, checkRole([UserRole.RESEARCHER]), async (req: AuthRequest, res: any) => {
   try {
     console.log('GET participants - params:', req.params);
     console.log('GET participants - experimentId:', req.params.id, 'sessionId:', req.params.sessionId);
@@ -523,9 +523,11 @@ router.get('/:id/sessions/:sessionId/participants', auth, checkRole([UserRole.RE
       }
     });
   } catch (error) {
+    console.error('Error in GET participants endpoint:', error);
     res.status(500).json({
       success: false,
-      error: 'Error fetching participants'
+      error: 'Error fetching participants',
+      details: error instanceof Error ? error.message : String(error)
     });
   }
 });
