@@ -4,6 +4,49 @@ let currentExperiment = null;
 let currentMode = null; // 'create' or 'edit'
 let currentSession = null; // Track current session for editing
 
+// Chinese name utility functions
+const COMPOUND_SURNAMES = [
+  '欧阳', '司马', '上官', '诸葛', '东方', '皇甫', '尉迟', '公孙',
+  '慕容', '令狐', '轩辕', '长孙', '宇文', '鲜于', '闾丘', '司徒',
+  '司空', '太史', '端木', '呼延', '南宫', '钟离', '夏侯', '东郭'
+];
+
+function hasCompoundSurname(fullName) {
+  if (!fullName || fullName.length < 2) return false;
+  const firstTwoChars = fullName.substring(0, 2);
+  return COMPOUND_SURNAMES.includes(firstTwoChars);
+}
+
+function splitChineseName(fullName) {
+  if (!fullName) {
+    return { lastName: '', firstName: '' };
+  }
+
+  const trimmedName = fullName.trim();
+
+  if (trimmedName.length === 0) {
+    return { lastName: '', firstName: '' };
+  }
+
+  if (trimmedName.length === 1) {
+    return { lastName: trimmedName, firstName: '' };
+  }
+
+  // Check for compound surname (2 characters)
+  if (hasCompoundSurname(trimmedName)) {
+    return {
+      lastName: trimmedName.substring(0, 2),
+      firstName: trimmedName.substring(2)
+    };
+  }
+
+  // Default: single-character surname
+  return {
+    lastName: trimmedName.substring(0, 1),
+    firstName: trimmedName.substring(1)
+  };
+}
+
 // Initialize app
 document.addEventListener('DOMContentLoaded', () => {
     initializeApp();
@@ -173,10 +216,10 @@ async function handleRegister(event) {
             errorEl.classList.add('show');
             return;
         }
-        // For Chinese, use the full name as lastName and empty firstName
-        // In Chinese convention, family name comes first
-        firstName = '';
-        lastName = fullName;
+        // Split Chinese name into lastName (surname) and firstName (given name)
+        const { lastName: ln, firstName: fn } = splitChineseName(fullName);
+        lastName = ln;
+        firstName = fn;
     } else {
         firstName = document.getElementById('register-firstName').value.trim();
         lastName = document.getElementById('register-lastName').value.trim();

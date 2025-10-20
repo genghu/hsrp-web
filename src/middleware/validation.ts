@@ -19,7 +19,7 @@ export const validate = (req: Request, res: Response, next: NextFunction) => {
 export const registerValidation = [
   body('email').isEmail().normalizeEmail().withMessage('Valid email is required'),
   body('password').isLength({ min: 6 }).withMessage('Password must be at least 6 characters'),
-  body('firstName').trim().notEmpty().withMessage('First name is required'),
+  body('firstName').trim().optional({ values: 'falsy' }),
   body('lastName').trim().notEmpty().withMessage('Last name is required'),
   body('role').isIn(Object.values(UserRole)).withMessage('Invalid role'),
   body('institution').optional().trim(),
