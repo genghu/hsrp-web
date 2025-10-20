@@ -721,6 +721,25 @@ body {
     text-decoration: underline;
 }
 
+.participant-count-link {
+    color: #a5b4fc;
+    text-decoration: none;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    padding: 2px 8px;
+    border-radius: 4px;
+    background: rgba(165, 180, 252, 0.1);
+    display: inline-block;
+}
+
+.participant-count-link:hover {
+    color: #c7d2fe;
+    background: rgba(165, 180, 252, 0.2);
+    text-decoration: none;
+    box-shadow: 0 0 12px rgba(165, 180, 252, 0.4);
+    transform: translateY(-1px);
+}
+
 .error-message {
     color: #fecaca;
     font-size: 0.875rem;

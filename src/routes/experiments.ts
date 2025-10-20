@@ -473,6 +473,55 @@ router.patch('/:id/sessions/:sessionId/participants/:userId', auth, checkRole([U
   }
 });
 
+// Get participants for a session (researchers only)
+router.get('/:id/sessions/:sessionId/participants', auth, checkRole([UserRole.RESEARCHER]), sessionIdValidation, async (req: AuthRequest, res: any) => {
+  try {
+    const experiment = await Experiment.findOne({
+      _id: req.params.id,
+      researcher: req.user!._id
+    });
+
+    if (!experiment) {
+      return res.status(404).json({
+        success: false,
+        error: 'Experiment not found'
+      });
+    }
+
+    const session: any = (experiment.sessions as any).id(req.params.sessionId);
+    if (!session) {
+      return res.status(404).json({
+        success: false,
+        error: 'Session not found'
+      });
+    }
+
+    // Populate participant user data
+    await experiment.populate('sessions.participants.user', '-password');
+
+    // Find the session again after population
+    const populatedSession: any = (experiment.sessions as any).id(req.params.sessionId);
+
+    res.json({
+      success: true,
+      data: {
+        sessionId: populatedSession._id,
+        startTime: populatedSession.startTime,
+        endTime: populatedSession.endTime,
+        location: populatedSession.location,
+        maxParticipants: populatedSession.maxParticipants,
+        participants: populatedSession.participants,
+        activeParticipants: populatedSession.participants.filter((p: any) => p.status !== ParticipantStatus.CANCELLED).length
+      }
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      error: 'Error fetching participants'
+    });
+  }
+});
+
 // Get subject's registered sessions
 router.get('/my-sessions', auth, checkRole([UserRole.SUBJECT]), async (req: AuthRequest, res: any) => {
   try {

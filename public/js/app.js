@@ -1548,14 +1548,13 @@ function renderSessionDetails(session, experimentId) {
                     <button class="btn btn-small btn-danger" onclick="deleteSession('${experimentId}', '${session._id}')">${t['delete']}</button>
                 </div>
             </div>
-            <p><strong>${t['participants']}:</strong> ${session.participants.filter(p => p.status !== 'cancelled').length}/${session.maxParticipants}</p>
+            <p>
+                <strong>${t['participants']}:</strong>
+                <a href="#" class="participant-count-link" onclick="event.preventDefault(); viewParticipants('${experimentId}', '${session._id}')">
+                    ${session.participants.filter(p => p.status !== 'cancelled').length}/${session.maxParticipants}
+                </a>
+            </p>
             ${session.notes ? `<p><strong>${t['notes']}:</strong> ${session.notes}</p>` : ''}
-            ${session.participants.length > 0 ? `
-                <div class="participants-list">
-                    <strong>${t['registered_participants']}:</strong>
-                    ${session.participants.map(p => renderParticipant(p, experimentId, session._id)).join('')}
-                </div>
-            ` : ''}
         </div>
     `;
 }
@@ -1590,6 +1589,111 @@ function renderParticipant(participant, experimentId, sessionId) {
 
 function closeSessionsModal() {
     const modal = document.getElementById('sessions-view-modal');
+    if (modal) {
+        modal.remove();
+    }
+}
+
+async function viewParticipants(experimentId, sessionId) {
+    const t = translations[currentLanguage];
+
+    try {
+        const response = await fetch(`/api/experiments/${experimentId}/sessions/${sessionId}/participants`, {
+            headers: {
+                'Authorization': `Bearer ${localStorage.getItem('token')}`
+            }
+        });
+
+        const data = await response.json();
+
+        if (!response.ok || !data.success) {
+            showNotification(data.error || t['error_loading_participants'] || 'Error loading participants', 'error');
+            return;
+        }
+
+        const sessionData = data.data;
+        const participants = sessionData.participants;
+
+        // Create modal
+        const modal = document.createElement('div');
+        modal.className = 'modal show';
+        modal.innerHTML = `
+            <div class="modal-content" style="max-width: 700px;">
+                <div class="modal-header">
+                    <h2>${t['registered_participants'] || 'Registered Participants'}</h2>
+                    <button class="modal-close" onclick="closeParticipantsModal()">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <div class="session-info-summary" style="background: rgba(255, 255, 255, 0.05); padding: 1rem; border-radius: 8px; margin-bottom: 1.5rem;">
+                        <p><strong>${t['session_time'] || 'Session Time'}:</strong> ${new Date(sessionData.startTime).toLocaleString(currentLanguage === 'zh' ? 'zh-CN' : 'en-US')}</p>
+                        <p><strong>${t['location'] || 'Location'}:</strong> ${sessionData.location}</p>
+                        <p><strong>${t['total_participants'] || 'Total Participants'}:</strong> ${sessionData.activeParticipants}/${sessionData.maxParticipants}</p>
+                    </div>
+
+                    ${participants.length === 0 ? `
+                        <p style="text-align: center; color: rgba(255, 255, 255, 0.6); padding: 2rem;">
+                            <i class="fas fa-info-circle" style="font-size: 2rem; margin-bottom: 1rem;"></i><br>
+                            ${t['no_participants'] || 'No participants have registered yet'}
+                        </p>
+                    ` : `
+                        <div class="participants-list">
+                            ${participants.map(p => renderParticipantInModal(p, experimentId, sessionId)).join('')}
+                        </div>
+                    `}
+                </div>
+            </div>
+        `;
+        modal.id = 'participants-modal';
+        document.body.appendChild(modal);
+    } catch (error) {
+        console.error('Error loading participants:', error);
+        showNotification(t['error_loading_participants'] || 'Error loading participants', 'error');
+    }
+}
+
+function renderParticipantInModal(participant, experimentId, sessionId) {
+    const t = translations[currentLanguage];
+    const user = participant.user;
+    const statusKey = participant.status === 'registered' ? 'registered' :
+                      participant.status === 'confirmed' ? 'confirmed' :
+                      participant.status === 'attended' ? 'attended' :
+                      participant.status === 'no_show' ? 'no_show' : 'cancelled';
+    const statusBadge = `<span class="badge badge-${participant.status}">${t[statusKey]}</span>`;
+
+    // Format signup time
+    const signupTime = new Date(participant.signupTime).toLocaleString(currentLanguage === 'zh' ? 'zh-CN' : 'en-US');
+
+    return `
+        <div class="participant-item" style="background: rgba(255, 255, 255, 0.05); padding: 1rem; border-radius: 8px; margin-bottom: 0.75rem;">
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 1rem;">
+                <div style="flex: 1;">
+                    <div style="margin-bottom: 0.5rem;">
+                        <strong style="font-size: 1.1rem;">${user.firstName} ${user.lastName}</strong>
+                    </div>
+                    <div style="color: rgba(255, 255, 255, 0.7); font-size: 0.9rem;">
+                        <i class="fas fa-envelope"></i> ${user.email}
+                    </div>
+                    <div style="color: rgba(255, 255, 255, 0.6); font-size: 0.85rem; margin-top: 0.25rem;">
+                        <i class="fas fa-clock"></i> ${t['registered_at'] || 'Registered'}: ${signupTime}
+                    </div>
+                </div>
+                <div style="display: flex; flex-direction: column; gap: 0.5rem; align-items: flex-end;">
+                    ${statusBadge}
+                    <select class="participant-status-select" onchange="updateParticipantStatus('${experimentId}', '${sessionId}', '${user._id}', this.value)" style="padding: 0.25rem 0.5rem; border-radius: 4px; background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(255, 255, 255, 0.2); color: white; font-size: 0.875rem;">
+                        <option value="registered" ${participant.status === 'registered' ? 'selected' : ''}>${t['registered']}</option>
+                        <option value="confirmed" ${participant.status === 'confirmed' ? 'selected' : ''}>${t['confirmed']}</option>
+                        <option value="attended" ${participant.status === 'attended' ? 'selected' : ''}>${t['attended']}</option>
+                        <option value="no_show" ${participant.status === 'no_show' ? 'selected' : ''}>${t['no_show']}</option>
+                        <option value="cancelled" ${participant.status === 'cancelled' ? 'selected' : ''}>${t['cancelled']}</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+    `;
+}
+
+function closeParticipantsModal() {
+    const modal = document.getElementById('participants-modal');
     if (modal) {
         modal.remove();
     }
@@ -1721,6 +1825,7 @@ async function deleteSession(experimentId, sessionId) {
 }
 
 async function updateParticipantStatus(experimentId, sessionId, userId, status) {
+    const t = translations[currentLanguage];
     try {
         const response = await fetch(`/api/experiments/${experimentId}/sessions/${sessionId}/participants/${userId}`, {
             method: 'PATCH',
@@ -1731,11 +1836,28 @@ async function updateParticipantStatus(experimentId, sessionId, userId, status) 
             body: JSON.stringify({ status })
         });
 
-        if (!response.ok) {
-            alert('Error updating participant status');
+        if (response.ok) {
+            showNotification(t['status_updated'] || 'Status updated successfully', 'success');
+
+            // If participants modal is open, reload it
+            const participantsModal = document.getElementById('participants-modal');
+            if (participantsModal) {
+                closeParticipantsModal();
+                await viewParticipants(experimentId, sessionId);
+            }
+
+            // If sessions modal is open, reload the sessions view
+            const sessionsModal = document.getElementById('sessions-view-modal');
+            if (sessionsModal) {
+                closeSessionsModal();
+                await viewSessions(experimentId);
+            }
+        } else {
+            showNotification(t['error_updating_status'] || 'Error updating participant status', 'error');
         }
     } catch (error) {
-        alert('Error updating participant status');
+        console.error('Error updating participant status:', error);
+        showNotification(t['error_updating_status'] || 'Error updating participant status', 'error');
     }
 }
 
@@ -2156,6 +2278,13 @@ const translations = {
         'attended': 'Attended',
         'no_show': 'No Show',
         'cancelled': 'Cancelled',
+        'registered_at': 'Registered at',
+        'session_time': 'Session Time',
+        'total_participants': 'Total Participants',
+        'no_participants': 'No participants have registered yet',
+        'error_loading_participants': 'Error loading participants',
+        'status_updated': 'Status updated successfully',
+        'error_updating_status': 'Error updating participant status',
 
         // Actions
         'edit': 'Edit',
@@ -2334,6 +2463,13 @@ const translations = {
         'attended': '已出席',
         'no_show': '未出席',
         'cancelled': '已取消',
+        'registered_at': '注册时间',
+        'session_time': '会话时间',
+        'total_participants': '参与者总数',
+        'no_participants': '暂无参与者注册',
+        'error_loading_participants': '加载参与者失败',
+        'status_updated': '状态更新成功',
+        'error_updating_status': '更新参与者状态失败',
 
         // Actions
         'edit': '编辑',
