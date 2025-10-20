@@ -1,9 +1,11 @@
 import mongoose, { Schema, Document } from 'mongoose';
 import { IUser, UserRole } from '../types';
 import bcrypt from 'bcryptjs';
+import { getFullName, formatName } from '../utils/nameUtils';
 
 export interface UserDocument extends IUser, Document {
   comparePassword(candidatePassword: string): Promise<boolean>;
+  getFullName(locale?: 'zh' | 'en'): string;
 }
 
 const userSchema = new Schema({
@@ -74,6 +76,24 @@ userSchema.pre('save', async function(next) {
 userSchema.methods.comparePassword = async function(candidatePassword: string): Promise<boolean> {
   return bcrypt.compare(candidatePassword, this.password);
 };
+
+// Get full name with locale support
+userSchema.methods.getFullName = function(locale?: 'zh' | 'en'): string {
+  if (locale) {
+    return formatName(this.firstName, this.lastName, locale);
+  }
+  // Auto-detect locale based on name characters
+  return getFullName(this.firstName, this.lastName);
+};
+
+// Virtual field for fullName (auto-detects locale)
+userSchema.virtual('fullName').get(function() {
+  return getFullName(this.firstName, this.lastName);
+});
+
+// Ensure virtuals are included in JSON output
+userSchema.set('toJSON', { virtuals: true });
+userSchema.set('toObject', { virtuals: true });
 
 // Indexes for better query performance
 userSchema.index({ email: 1 }, { unique: true }); // Unique index on email
