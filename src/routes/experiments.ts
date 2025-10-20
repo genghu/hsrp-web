@@ -44,7 +44,8 @@ router.get('/', auth, experimentQueryValidation, async (req: AuthRequest, res: a
     }
 
     let experiments = await Experiment.find(query)
-      .populate('researcher', '-password');
+      .populate('researcher', '-password')
+      .lean(); // Convert to plain JavaScript objects with proper serialization
 
     // Sort experiments by status priority for researchers
     if (req.user?.role === UserRole.RESEARCHER) {

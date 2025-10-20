@@ -486,14 +486,29 @@ function toggleExperimentCard(expId) {
 
 function renderSessionsPreview(sessions, experimentId) {
     const t = translations[currentLanguage];
-    console.log('renderSessionsPreview:', { experimentId, sessions });
+    console.log('renderSessionsPreview:', { experimentId, sessionCount: sessions.length });
     return `
         <div class="sessions-container">
             <strong>${t['scheduled_sessions']} (${sessions.length}):</strong>
             ${sessions.slice(0, 3).map(session => {
-                console.log('Session in map:', session);
-                const sessionId = session._id || session.id;
-                console.log('Using sessionId:', sessionId);
+                // Get session ID - could be _id or id, convert to string
+                let sessionId = session._id || session.id;
+                if (sessionId && typeof sessionId === 'object') {
+                    sessionId = sessionId.toString();
+                }
+
+                console.log('Session:', {
+                    hasId: !!session._id,
+                    id: session._id,
+                    sessionId: sessionId,
+                    location: session.location
+                });
+
+                if (!sessionId) {
+                    console.error('No session ID found for session:', session);
+                    return '';
+                }
+
                 return `
                 <div class="session-card session-card-clickable" onclick="event.stopPropagation(); viewParticipants('${experimentId}', '${sessionId}')">
                     <div class="session-header">
