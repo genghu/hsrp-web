@@ -1,3 +1,5 @@
+
+
 {
   "name": "hsrp-web",
   "version": "1.0.0",
@@ -18,7 +20,8 @@
     "test:verbose": "jest --verbose",
     "lint": "eslint . --ext .ts",
     "type-check": "tsc --noEmit && tsc --project tsconfig.frontend.json --noEmit",
-    "create-admin": "ts-node scripts/create-admin.ts"
+    "create-admin": "ts-node scripts/create-admin.ts",
+    "populate-subjects": "ts-node scripts/populate-subjects.ts"
   },
   "dependencies": {
     "bcryptjs": "^2.4.3",
