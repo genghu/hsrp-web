@@ -1628,10 +1628,31 @@ async function viewParticipants(experimentId, sessionId) {
             }
         });
 
-        const data = await response.json();
-        console.log('Response:', { status: response.status, data });
+        console.log('Response status:', response.status, response.statusText);
 
-        if (!response.ok || !data.success) {
+        // Check if response is ok before trying to parse JSON
+        if (!response.ok) {
+            const contentType = response.headers.get('content-type');
+            let errorMessage = t['error_loading_participants'] || 'Error loading participants';
+
+            // Try to parse JSON error if available
+            if (contentType && contentType.includes('application/json')) {
+                const data = await response.json();
+                errorMessage = data.error || data.message || errorMessage;
+            } else {
+                // Non-JSON response (likely HTML error page)
+                errorMessage = `${errorMessage} (${response.status} ${response.statusText})`;
+            }
+
+            console.error('Error response:', { status: response.status, message: errorMessage });
+            showNotification(errorMessage, 'error');
+            return;
+        }
+
+        const data = await response.json();
+        console.log('Response data:', data);
+
+        if (!data.success) {
             console.error('Error response:', data);
             showNotification(data.error || t['error_loading_participants'] || 'Error loading participants', 'error');
             return;
