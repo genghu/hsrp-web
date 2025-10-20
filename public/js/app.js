@@ -464,7 +464,7 @@ function renderExperimentCard(exp) {
                         </ul>
                     </div>
                 ` : ''}
-                ${exp.sessions && exp.sessions.length > 0 ? renderSessionsPreview(exp.sessions) : `<p style="margin-top: 1rem; color: rgba(255, 255, 255, 0.7);"><i class="fas fa-info-circle me-2"></i>${t['no_sessions_scheduled']}</p>`}
+                ${exp.sessions && exp.sessions.length > 0 ? renderSessionsPreview(exp.sessions, exp._id) : `<p style="margin-top: 1rem; color: rgba(255, 255, 255, 0.7);"><i class="fas fa-info-circle me-2"></i>${t['no_sessions_scheduled']}</p>`}
             </div>
         </div>
     `;
@@ -484,18 +484,21 @@ function toggleExperimentCard(expId) {
     }
 }
 
-function renderSessionsPreview(sessions) {
+function renderSessionsPreview(sessions, experimentId) {
     const t = translations[currentLanguage];
     return `
         <div class="sessions-container">
             <strong>${t['scheduled_sessions']} (${sessions.length}):</strong>
             ${sessions.slice(0, 3).map(session => `
-                <div class="session-card">
+                <div class="session-card session-card-clickable" onclick="event.stopPropagation(); viewParticipants('${experimentId}', '${session._id}')">
                     <div class="session-header">
                         <span class="session-time">${formatDate(session.startTime)}</span>
                         <span class="session-info">${session.participants.filter(p => p.status !== 'cancelled').length}/${session.maxParticipants} ${t['participants']}</span>
                     </div>
                     <div class="session-info">📍 ${session.location}</div>
+                    <div style="font-size: 0.85rem; color: rgba(255, 255, 255, 0.6); margin-top: 0.25rem;">
+                        <i class="fas fa-hand-pointer"></i> ${t['click_to_view_participants'] || 'Click to view participants'}
+                    </div>
                 </div>
             `).join('')}
             ${sessions.length > 3 ? `<p style="color: var(--text-muted); font-size: 0.875rem; margin-top: 0.5rem;">+${sessions.length - 3} ${t['sessions']}</p>` : ''}
@@ -1548,12 +1551,7 @@ function renderSessionDetails(session, experimentId) {
                     <button class="btn btn-small btn-danger" onclick="deleteSession('${experimentId}', '${session._id}')">${t['delete']}</button>
                 </div>
             </div>
-            <p>
-                <strong>${t['participants']}:</strong>
-                <a href="#" class="participant-count-link" onclick="event.preventDefault(); viewParticipants('${experimentId}', '${session._id}')">
-                    ${session.participants.filter(p => p.status !== 'cancelled').length}/${session.maxParticipants}
-                </a>
-            </p>
+            <p><strong>${t['participants']}:</strong> ${session.participants.filter(p => p.status !== 'cancelled').length}/${session.maxParticipants}</p>
             ${session.notes ? `<p><strong>${t['notes']}:</strong> ${session.notes}</p>` : ''}
         </div>
     `;
@@ -2222,6 +2220,7 @@ const translations = {
         'scheduled_sessions': 'Scheduled Sessions',
         'participants': 'Participants',
         'spots_left': 'spots left',
+        'click_to_view_participants': 'Click to view participants',
 
         // Modal titles and labels
         'create_experiment': 'Create Experiment',
@@ -2407,6 +2406,7 @@ const translations = {
         'scheduled_sessions': '已安排的会话',
         'participants': '参与者',
         'spots_left': '个名额',
+        'click_to_view_participants': '点击查看参与者',
 
         // Modal titles and labels
         'create_experiment': '创建实验',
