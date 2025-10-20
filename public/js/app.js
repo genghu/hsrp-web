@@ -486,11 +486,16 @@ function toggleExperimentCard(expId) {
 
 function renderSessionsPreview(sessions, experimentId) {
     const t = translations[currentLanguage];
+    console.log('renderSessionsPreview:', { experimentId, sessions });
     return `
         <div class="sessions-container">
             <strong>${t['scheduled_sessions']} (${sessions.length}):</strong>
-            ${sessions.slice(0, 3).map(session => `
-                <div class="session-card session-card-clickable" onclick="event.stopPropagation(); viewParticipants('${experimentId}', '${session._id}')">
+            ${sessions.slice(0, 3).map(session => {
+                console.log('Session in map:', session);
+                const sessionId = session._id || session.id;
+                console.log('Using sessionId:', sessionId);
+                return `
+                <div class="session-card session-card-clickable" onclick="event.stopPropagation(); viewParticipants('${experimentId}', '${sessionId}')">
                     <div class="session-header">
                         <span class="session-time">${formatDate(session.startTime)}</span>
                         <span class="session-info">${session.participants.filter(p => p.status !== 'cancelled').length}/${session.maxParticipants} ${t['participants']}</span>
@@ -500,7 +505,8 @@ function renderSessionsPreview(sessions, experimentId) {
                         <i class="fas fa-hand-pointer"></i> ${t['click_to_view_participants'] || 'Click to view participants'}
                     </div>
                 </div>
-            `).join('')}
+                `;
+            }).join('')}
             ${sessions.length > 3 ? `<p style="color: var(--text-muted); font-size: 0.875rem; margin-top: 0.5rem;">+${sessions.length - 3} ${t['sessions']}</p>` : ''}
         </div>
     `;
@@ -1595,16 +1601,23 @@ function closeSessionsModal() {
 async function viewParticipants(experimentId, sessionId) {
     const t = translations[currentLanguage];
 
+    console.log('viewParticipants called with:', { experimentId, sessionId });
+
     try {
-        const response = await fetch(`/api/experiments/${experimentId}/sessions/${sessionId}/participants`, {
+        const url = `/api/experiments/${experimentId}/sessions/${sessionId}/participants`;
+        console.log('Fetching:', url);
+
+        const response = await fetch(url, {
             headers: {
                 'Authorization': `Bearer ${localStorage.getItem('token')}`
             }
         });
 
         const data = await response.json();
+        console.log('Response:', { status: response.status, data });
 
         if (!response.ok || !data.success) {
+            console.error('Error response:', data);
             showNotification(data.error || t['error_loading_participants'] || 'Error loading participants', 'error');
             return;
         }
