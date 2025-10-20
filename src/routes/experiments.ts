@@ -476,25 +476,32 @@ router.patch('/:id/sessions/:sessionId/participants/:userId', auth, checkRole([U
 // Get participants for a session (researchers only)
 router.get('/:id/sessions/:sessionId/participants', auth, checkRole([UserRole.RESEARCHER]), sessionIdValidation, async (req: AuthRequest, res: any) => {
   try {
+    console.log('GET participants - params:', req.params);
+    console.log('GET participants - experimentId:', req.params.id, 'sessionId:', req.params.sessionId);
+
     const experiment = await Experiment.findOne({
       _id: req.params.id,
       researcher: req.user!._id
     });
 
     if (!experiment) {
+      console.log('Experiment not found:', req.params.id);
       return res.status(404).json({
         success: false,
         error: 'Experiment not found'
       });
     }
 
+    console.log('Found experiment, sessions:', experiment.sessions.map((s: any) => s._id));
     const session: any = (experiment.sessions as any).id(req.params.sessionId);
     if (!session) {
+      console.log('Session not found:', req.params.sessionId);
       return res.status(404).json({
         success: false,
         error: 'Session not found'
       });
     }
+    console.log('Found session:', session._id);
 
     // Populate participant user data
     await experiment.populate('sessions.participants.user', '-password');
