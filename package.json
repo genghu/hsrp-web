@@ -21,7 +21,8 @@
     "lint": "eslint . --ext .ts",
     "type-check": "tsc --noEmit && tsc --project tsconfig.frontend.json --noEmit",
     "create-admin": "ts-node scripts/create-admin.ts",
-    "populate-subjects": "ts-node scripts/populate-subjects.ts"
+    "populate-subjects": "ts-node scripts/populate-subjects.ts",
+    "populate-experiments": "ts-node scripts/populate-experiments.ts"
   },
   "dependencies": {
     "bcryptjs": "^2.4.3",
