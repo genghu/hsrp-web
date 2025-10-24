@@ -162,6 +162,43 @@ router.post('/', auth, checkRole([UserRole.RESEARCHER]), createExperimentValidat
   }
 });
 
+// Get subject's registered sessions (must be before /:id route)
+router.get('/my-sessions', auth, checkRole([UserRole.SUBJECT]), async (req: AuthRequest, res: any) => {
+  try {
+    const experiments = await Experiment.find({
+      'sessions.participants.user': req.user!._id
+    })
+      .populate('researcher', '-password')
+      .populate('sessions.participants.user', '-password');
+
+    // Filter to only show sessions the user is registered for
+    const userSessions = experiments.map((exp: any) => {
+      const filteredSessions = exp.sessions.filter((session: any) =>
+        session.participants.some((p: any) => {
+          // After populate, p.user is an object with _id property
+          const userId = p.user._id || p.user;
+          return userId.toString() === req.user!._id.toString();
+        })
+      );
+      return {
+        ...exp.toObject(),
+        sessions: filteredSessions
+      };
+    });
+
+    res.json({
+      success: true,
+      data: userSessions
+    });
+  } catch (error) {
+    console.error('Error fetching user sessions:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Error fetching sessions'
+    });
+  }
+});
+
 // Get experiment by ID
 router.get('/:id', auth, idValidation, async (req: any, res: any) => {
   try {
@@ -592,43 +629,6 @@ router.get('/:id/sessions/:sessionId/participants', auth, checkRole([UserRole.RE
       success: false,
       error: 'Error fetching participants',
       details: error instanceof Error ? error.message : String(error)
-    });
-  }
-});
-
-// Get subject's registered sessions
-router.get('/my-sessions', auth, checkRole([UserRole.SUBJECT]), async (req: AuthRequest, res: any) => {
-  try {
-    const experiments = await Experiment.find({
-      'sessions.participants.user': req.user!._id
-    })
-      .populate('researcher', '-password')
-      .populate('sessions.participants.user', '-password');
-
-    // Filter to only show sessions the user is registered for
-    const userSessions = experiments.map((exp: any) => {
-      const filteredSessions = exp.sessions.filter((session: any) =>
-        session.participants.some((p: any) => {
-          // After populate, p.user is an object with _id property
-          const userId = p.user._id || p.user;
-          return userId.toString() === req.user!._id.toString();
-        })
-      );
-      return {
-        ...exp.toObject(),
-        sessions: filteredSessions
-      };
-    });
-
-    res.json({
-      success: true,
-      data: userSessions
-    });
-  } catch (error) {
-    console.error('Error fetching user sessions:', error);
-    res.status(500).json({
-      success: false,
-      error: 'Error fetching sessions'
     });
   }
 });
