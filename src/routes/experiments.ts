@@ -50,28 +50,42 @@ router.get('/', auth, experimentQueryValidation, async (req: AuthRequest, res: a
     // For subjects, filter to only show active sessions (future sessions with available spots)
     if (req.user?.role === UserRole.SUBJECT) {
       const now = new Date();
-      experiments = experiments.map((exp: any) => {
-        const activeSessions = exp.sessions.filter((session: any) => {
-          // Only show future sessions
-          const sessionStartTime = new Date(session.startTime);
-          if (sessionStartTime <= now) {
-            return false;
-          }
+      const userId = req.user._id.toString();
 
-          // Only show sessions with available spots
-          const nonCancelledParticipants = session.participants.filter(
-            (p: any) => p.status !== 'cancelled'
-          ).length;
-          const spotsAvailable = session.maxParticipants > nonCancelledParticipants;
+      experiments = experiments
+        .filter((exp: any) => {
+          // Check if user is already registered for ANY session in this experiment
+          const isRegistered = exp.sessions.some((session: any) =>
+            session.participants.some((p: any) =>
+              p.user.toString() === userId && p.status !== 'cancelled'
+            )
+          );
+          // Exclude experiments where user is already registered
+          return !isRegistered;
+        })
+        .map((exp: any) => {
+          const activeSessions = exp.sessions.filter((session: any) => {
+            // Only show future sessions
+            const sessionStartTime = new Date(session.startTime);
+            if (sessionStartTime <= now) {
+              return false;
+            }
 
-          return spotsAvailable;
-        });
+            // Only show sessions with available spots
+            const nonCancelledParticipants = session.participants.filter(
+              (p: any) => p.status !== 'cancelled'
+            ).length;
+            const spotsAvailable = session.maxParticipants > nonCancelledParticipants;
 
-        return {
-          ...exp,
-          sessions: activeSessions
-        };
-      }).filter((exp: any) => exp.sessions.length > 0); // Only show experiments with active sessions
+            return spotsAvailable;
+          });
+
+          return {
+            ...exp,
+            sessions: activeSessions
+          };
+        })
+        .filter((exp: any) => exp.sessions.length > 0); // Only show experiments with active sessions
     }
 
     // Sort experiments by status priority for researchers
