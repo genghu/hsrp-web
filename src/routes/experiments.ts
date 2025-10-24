@@ -47,6 +47,33 @@ router.get('/', auth, experimentQueryValidation, async (req: AuthRequest, res: a
       .populate('researcher', '-password')
       .lean(); // Convert to plain JavaScript objects with proper serialization
 
+    // For subjects, filter to only show active sessions (future sessions with available spots)
+    if (req.user?.role === UserRole.SUBJECT) {
+      const now = new Date();
+      experiments = experiments.map((exp: any) => {
+        const activeSessions = exp.sessions.filter((session: any) => {
+          // Only show future sessions
+          const sessionStartTime = new Date(session.startTime);
+          if (sessionStartTime <= now) {
+            return false;
+          }
+
+          // Only show sessions with available spots
+          const nonCancelledParticipants = session.participants.filter(
+            (p: any) => p.status !== 'cancelled'
+          ).length;
+          const spotsAvailable = session.maxParticipants > nonCancelledParticipants;
+
+          return spotsAvailable;
+        });
+
+        return {
+          ...exp,
+          sessions: activeSessions
+        };
+      }).filter((exp: any) => exp.sessions.length > 0); // Only show experiments with active sessions
+    }
+
     // Sort experiments by status priority for researchers
     if (req.user?.role === UserRole.RESEARCHER) {
       const statusPriority: { [key: string]: number } = {
@@ -544,7 +571,11 @@ router.get('/my-sessions', auth, checkRole([UserRole.SUBJECT]), async (req: Auth
     // Filter to only show sessions the user is registered for
     const userSessions = experiments.map((exp: any) => {
       const filteredSessions = exp.sessions.filter((session: any) =>
-        session.participants.some((p: any) => p.user.toString() === req.user!._id.toString())
+        session.participants.some((p: any) => {
+          // After populate, p.user is an object with _id property
+          const userId = p.user._id || p.user;
+          return userId.toString() === req.user!._id.toString();
+        })
       );
       return {
         ...exp.toObject(),
@@ -557,6 +588,7 @@ router.get('/my-sessions', auth, checkRole([UserRole.SUBJECT]), async (req: Auth
       data: userSessions
     });
   } catch (error) {
+    console.error('Error fetching user sessions:', error);
     res.status(500).json({
       success: false,
       error: 'Error fetching sessions'
