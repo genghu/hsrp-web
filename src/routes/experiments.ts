@@ -120,6 +120,14 @@ router.get('/', auth, experimentQueryValidation, async (req: AuthRequest, res: a
 // Create new experiment (researchers only)
 router.post('/', auth, checkRole([UserRole.RESEARCHER]), createExperimentValidation, async (req: AuthRequest, res: any) => {
   try {
+    // Validate that experiments cannot be OPEN without sessions
+    if (req.body.status === ExperimentStatus.OPEN) {
+      return res.status(400).json({
+        success: false,
+        error: 'Cannot open experiment without sessions. Please add sessions first.'
+      });
+    }
+
     const experiment = new Experiment({
       ...req.body,
       researcher: req.user!.id
@@ -178,6 +186,14 @@ router.patch('/:id', auth, checkRole([UserRole.RESEARCHER]), updateExperimentVal
       return res.status(404).json({
         success: false,
         error: 'Experiment not found'
+      });
+    }
+
+    // Validate that experiments cannot be set to OPEN without sessions
+    if (req.body.status === ExperimentStatus.OPEN && experiment.sessions.length === 0) {
+      return res.status(400).json({
+        success: false,
+        error: 'Cannot open experiment without sessions. Please add sessions first.'
       });
     }
 
@@ -329,6 +345,13 @@ router.delete('/:id/sessions/:sessionId', auth, checkRole([UserRole.RESEARCHER])
     }
 
     session.deleteOne();
+
+    // If this was the last session and experiment is OPEN, revert status
+    if (experiment.sessions.length === 0 && experiment.status === ExperimentStatus.OPEN) {
+      // Revert to APPROVED if it was approved, otherwise back to DRAFT
+      experiment.status = experiment.status === ExperimentStatus.OPEN ? ExperimentStatus.APPROVED : ExperimentStatus.DRAFT;
+    }
+
     await experiment.save();
 
     res.json({
