@@ -126,7 +126,8 @@ function showDashboard() {
         loadPendingExperiments();
     } else {
         showPage('subject-dashboard');
-        loadAvailableExperiments();
+        // Initialize the first tab
+        showSubjectTab('available', null);
     }
 }
 
