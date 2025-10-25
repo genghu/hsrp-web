@@ -52,6 +52,7 @@ body {
     transform: rotate(45deg);
     transition: all 0.6s;
     opacity: 0;
+    pointer-events: none; /* Don't block clicks on child elements */
 }
 
 .glass-container:hover::before {
@@ -96,6 +97,7 @@ body {
     background: rgba(255, 255, 255, 0.3);
     transform: translate(-50%, -50%);
     transition: width 0.6s, height 0.6s;
+    pointer-events: none; /* Don't block clicks */
 }
 
 .glass-button:hover::before {
@@ -311,6 +313,7 @@ body {
         rgba(255, 255, 255, 0.1),
         transparent);
     transition: left 0.6s;
+    pointer-events: none; /* Don't block clicks */
 }
 
 .experiment-card:hover::before {
