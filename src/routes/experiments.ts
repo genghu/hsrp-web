@@ -55,12 +55,14 @@ router.get('/', auth, experimentQueryValidation, async (req: AuthRequest, res: a
       experiments = experiments
         .filter((exp: any) => {
           // Check if user is already registered for ANY session in this experiment
+          // IMPORTANT: Cancelled registrations (p.status === 'cancelled') are NOT counted
+          // This allows subjects to see experiments again after they cancel
           const isRegistered = exp.sessions.some((session: any) =>
             session.participants.some((p: any) =>
               p.user.toString() === userId && p.status !== 'cancelled'
             )
           );
-          // Exclude experiments where user is already registered
+          // Exclude experiments where user is already registered (non-cancelled)
           return !isRegistered;
         })
         .map((exp: any) => {
@@ -556,6 +558,15 @@ router.patch('/:id/sessions/:sessionId/participants/:userId', auth, checkRole([U
       return res.status(404).json({
         success: false,
         error: 'Participant not found'
+      });
+    }
+
+    // BUSINESS RULE: Once a subject cancels, researchers cannot change the status
+    // This respects subject autonomy and maintains clear audit trail
+    if (participant.status === ParticipantStatus.CANCELLED) {
+      return res.status(400).json({
+        success: false,
+        error: 'Cannot modify status of cancelled participants. Once a subject cancels, the decision is final.'
       });
     }
 
