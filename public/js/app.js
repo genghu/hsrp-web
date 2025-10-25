@@ -1919,8 +1919,16 @@ function showSubjectTab(tab, event) {
     document.querySelectorAll('.tab-button').forEach(btn => btn.classList.remove('active'));
     document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
 
+    // Activate the clicked tab button
     if (event && event.target) {
         event.target.classList.add('active');
+    } else {
+        // If no event (programmatic call), find and activate the correct button
+        const buttons = document.querySelectorAll('.tab-button');
+        const index = tab === 'available' ? 0 : 1;
+        if (buttons[index]) {
+            buttons[index].classList.add('active');
+        }
     }
 
     if (tab === 'available') {

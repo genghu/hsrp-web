@@ -1,5 +1,4 @@
 import mongoose from 'mongoose';
-import bcrypt from 'bcryptjs';
 import dotenv from 'dotenv';
 import { User } from '../models/User';
 import { Experiment } from '../models/Experiment';
@@ -22,11 +21,10 @@ async function addTestData() {
     // Create test users
     console.log('\n👥 Creating test users...');
 
-    const hashedPassword = await bcrypt.hash('password123', 10);
-
+    // Note: Don't hash the password manually - the User model's pre-save hook will hash it
     const researcher = await User.create({
       email: 'researcher-test@example.com',
-      password: hashedPassword,
+      password: 'password123',
       role: UserRole.RESEARCHER,
       firstName: 'Test',
       lastName: 'Researcher',
@@ -37,7 +35,7 @@ async function addTestData() {
 
     const subject = await User.create({
       email: 'subject-test@example.com',
-      password: hashedPassword,
+      password: 'password123',
       role: UserRole.SUBJECT,
       firstName: 'Test',
       lastName: 'Subject',
