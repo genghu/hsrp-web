@@ -66,15 +66,31 @@ router.put('/me', auth, async (req: AuthRequest, res) => {
   }
 });
 
-// Get all researchers (for admin/public purposes)
+// Get all researchers (for admin/public purposes) - PERFORMANCE: Added pagination
 router.get('/researchers', auth, async (req: AuthRequest, res) => {
   try {
-    const researchers = await User.find({ role: UserRole.RESEARCHER })
-      .select('-password');
+    const page = parseInt(req.query.page as string) || 1;
+    const limit = parseInt(req.query.limit as string) || 20;
+    const skip = (page - 1) * limit;
+
+    const [researchers, total] = await Promise.all([
+      User.find({ role: UserRole.RESEARCHER })
+          .select('-password')
+          .skip(skip)
+          .limit(limit)
+          .lean(), // Use lean() for better performance
+      User.countDocuments({ role: UserRole.RESEARCHER })
+    ]);
 
     res.json({
       success: true,
-      data: researchers
+      data: researchers,
+      pagination: {
+        page,
+        limit,
+        total,
+        pages: Math.ceil(total / limit)
+      }
     });
   } catch (error) {
     res.status(500).json({
@@ -84,15 +100,31 @@ router.get('/researchers', auth, async (req: AuthRequest, res) => {
   }
 });
 
-// Get all subjects (for researcher purposes)
+// Get all subjects (for researcher purposes) - PERFORMANCE: Added pagination
 router.get('/subjects', auth, checkRole([UserRole.RESEARCHER, UserRole.ADMIN]), async (req: AuthRequest, res) => {
   try {
-    const subjects = await User.find({ role: UserRole.SUBJECT })
-      .select('-password');
+    const page = parseInt(req.query.page as string) || 1;
+    const limit = parseInt(req.query.limit as string) || 20;
+    const skip = (page - 1) * limit;
+
+    const [subjects, total] = await Promise.all([
+      User.find({ role: UserRole.SUBJECT })
+          .select('-password')
+          .skip(skip)
+          .limit(limit)
+          .lean(), // Use lean() for better performance
+      User.countDocuments({ role: UserRole.SUBJECT })
+    ]);
 
     res.json({
       success: true,
-      data: subjects
+      data: subjects,
+      pagination: {
+        page,
+        limit,
+        total,
+        pages: Math.ceil(total / limit)
+      }
     });
   } catch (error) {
     res.status(500).json({

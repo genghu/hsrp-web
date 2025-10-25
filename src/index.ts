@@ -3,6 +3,7 @@ import mongoose from 'mongoose';
 import cors from 'cors';
 import morgan from 'morgan';
 import helmet from 'helmet';
+import compression from 'compression';
 import dotenv from 'dotenv';
 import path from 'path';
 
@@ -16,6 +17,7 @@ import userRoutes from './routes/users';
 
 // Import utilities
 import { initDatabase } from './utils/initDatabase';
+import { initializeCache } from './utils/cache';
 
 // Initialize express
 const app: Application = express();
@@ -51,9 +53,13 @@ app.use(helmet({
     },
   },
 }));
+app.use(compression()); // PERFORMANCE: Gzip compression
 app.use(morgan('dev'));
 app.use(express.json());
 app.use(express.static(path.join(__dirname, '../public')));
+
+// Initialize cache (Redis or in-memory fallback)
+initializeCache().catch((err) => console.error('Cache initialization warning:', err));
 
 // Connect to MongoDB
 mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/hsrp')

@@ -462,8 +462,11 @@ router.post('/:id/sessions/:sessionId/register', auth, checkRole([UserRole.SUBJE
     } as any);
 
     await experiment.save();
-    await experiment.populate('researcher', '-password');
-    await experiment.populate('sessions.participants.user', '-password');
+    // PERFORMANCE: Consolidate populate calls into one
+    await experiment.populate([
+      { path: 'researcher', select: '-password' },
+      { path: 'sessions.participants.user', select: '-password' }
+    ]);
 
     res.json({
       success: true,
@@ -641,9 +644,9 @@ router.post('/:id/irb-upload', auth, checkRole([UserRole.RESEARCHER]), upload.si
     const experiment = await Experiment.findById(req.params.id);
 
     if (!experiment) {
-      // Clean up uploaded file
+      // Clean up uploaded file (async for better performance)
       if (req.file) {
-        fs.unlinkSync(req.file.path);
+        fs.promises.unlink(req.file.path).catch(console.error);
       }
       return res.status(404).json({
         success: false,
@@ -653,9 +656,9 @@ router.post('/:id/irb-upload', auth, checkRole([UserRole.RESEARCHER]), upload.si
 
     // Check if user owns this experiment
     if (experiment.researcher.toString() !== req.user!._id.toString()) {
-      // Clean up uploaded file
+      // Clean up uploaded file (async for better performance)
       if (req.file) {
-        fs.unlinkSync(req.file.path);
+        fs.promises.unlink(req.file.path).catch(console.error);
       }
       return res.status(403).json({
         success: false,
@@ -670,12 +673,10 @@ router.post('/:id/irb-upload', auth, checkRole([UserRole.RESEARCHER]), upload.si
       });
     }
 
-    // Delete old IRB document if exists
+    // Delete old IRB document if exists (async for better performance)
     if (experiment.irbDocument?.filename) {
       const oldFilePath = path.join(process.cwd(), 'uploads', 'irb-documents', experiment.irbDocument.filename);
-      if (fs.existsSync(oldFilePath)) {
-        fs.unlinkSync(oldFilePath);
-      }
+      fs.promises.unlink(oldFilePath).catch(console.error); // Don't block on cleanup
     }
 
     // Update experiment with new IRB document info

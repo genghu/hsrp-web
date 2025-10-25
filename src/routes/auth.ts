@@ -5,31 +5,12 @@ import jwt from 'jsonwebtoken';
 import { LoginCredentials, AuthResponse, UserRole } from '../types';
 import { registerValidation, loginValidation } from '../middleware/validation';
 import crypto from 'crypto';
+import { QRCodeState, setQRState, getQRState, deleteQRState } from '../utils/cache';
 
 const router = express.Router();
 
-// In-memory storage for QR code states (use Redis in production)
-interface QRCodeState {
-  ticket: string;
-  status: 'pending' | 'scanned' | 'expired';
-  provider: 'wechat' | 'qq';
-  createdAt: number;
-  userData?: any;
-}
-
-const qrCodeStates = new Map<string, QRCodeState>();
-
-// Cleanup expired QR codes every 5 minutes
-setInterval(() => {
-  const now = Date.now();
-  const EXPIRY_TIME = 5 * 60 * 1000; // 5 minutes
-
-  for (const [ticket, state] of qrCodeStates.entries()) {
-    if (now - state.createdAt > EXPIRY_TIME) {
-      qrCodeStates.delete(ticket);
-    }
-  }
-}, 5 * 60 * 1000);
+// QR Code state is now managed in Redis/cache (PERFORMANCE OPTIMIZATION)
+// No more in-memory Map - prevents memory leaks and supports horizontal scaling
 
 // Register new user
 router.post('/register', registerValidation, async (req: any, res: any) => {
@@ -175,13 +156,13 @@ router.get('/wechat/qr', async (req: any, res: any) => {
     // For development: Generate a placeholder QR code
     const mockQRUrl = `https://api.qrserver.com/v1/create-qr-code/?size=240x240&data=${encodeURIComponent(`wechat-login:${ticket}`)}`;
 
-    // Store QR code state
-    qrCodeStates.set(ticket, {
+    // Store QR code state in Redis/cache (PERFORMANCE OPTIMIZATION)
+    await setQRState(ticket, {
       ticket,
       status: 'pending',
       provider: 'wechat',
       createdAt: Date.now()
-    });
+    }, 300); // TTL 5 minutes
 
     res.json({
       success: true,
@@ -212,20 +193,10 @@ router.get('/wechat/check', async (req: any, res: any) => {
       });
     }
 
-    const state = qrCodeStates.get(ticket as string);
+    const state = await getQRState(ticket as string);
 
     if (!state) {
-      return res.json({
-        success: true,
-        data: {
-          status: 'expired'
-        }
-      });
-    }
-
-    // Check if expired (5 minutes)
-    if (Date.now() - state.createdAt > 5 * 60 * 1000) {
-      qrCodeStates.delete(ticket as string);
+      // State not found or expired (TTL handled by Redis)
       return res.json({
         success: true,
         data: {
@@ -236,7 +207,7 @@ router.get('/wechat/check', async (req: any, res: any) => {
 
     if (state.status === 'scanned' && state.userData) {
       // Clean up the QR code state
-      qrCodeStates.delete(ticket as string);
+      await deleteQRState(ticket as string);
 
       return res.json({
         success: true,
@@ -331,14 +302,15 @@ router.get('/wechat/callback', async (req: any, res: any) => {
     const userResponse: any = user.toObject();
     delete userResponse.password;
 
-    // Update QR code state
-    const qrState = qrCodeStates.get(state as string);
+    // Update QR code state in cache
+    const qrState = await getQRState(state as string);
     if (qrState) {
       qrState.status = 'scanned';
       qrState.userData = {
         token,
         user: userResponse
       };
+      await setQRState(state as string, qrState, 60); // Keep for 1 minute for polling to retrieve
     }
 
     // Redirect to success page or close window
@@ -382,13 +354,13 @@ router.get('/qq/qr', async (req: any, res: any) => {
     // For development: Generate a placeholder QR code
     const mockQRUrl = `https://api.qrserver.com/v1/create-qr-code/?size=240x240&data=${encodeURIComponent(`qq-login:${ticket}`)}`;
 
-    // Store QR code state
-    qrCodeStates.set(ticket, {
+    // Store QR code state in Redis/cache (PERFORMANCE OPTIMIZATION)
+    await setQRState(ticket, {
       ticket,
       status: 'pending',
       provider: 'qq',
       createdAt: Date.now()
-    });
+    }, 300); // TTL 5 minutes
 
     res.json({
       success: true,
@@ -419,20 +391,10 @@ router.get('/qq/check', async (req: any, res: any) => {
       });
     }
 
-    const state = qrCodeStates.get(ticket as string);
+    const state = await getQRState(ticket as string);
 
     if (!state) {
-      return res.json({
-        success: true,
-        data: {
-          status: 'expired'
-        }
-      });
-    }
-
-    // Check if expired (5 minutes)
-    if (Date.now() - state.createdAt > 5 * 60 * 1000) {
-      qrCodeStates.delete(ticket as string);
+      // State not found or expired (TTL handled by Redis)
       return res.json({
         success: true,
         data: {
@@ -443,7 +405,7 @@ router.get('/qq/check', async (req: any, res: any) => {
 
     if (state.status === 'scanned' && state.userData) {
       // Clean up the QR code state
-      qrCodeStates.delete(ticket as string);
+      await deleteQRState(ticket as string);
 
       return res.json({
         success: true,
@@ -545,14 +507,15 @@ router.get('/qq/callback', async (req: any, res: any) => {
     const userResponse: any = user.toObject();
     delete userResponse.password;
 
-    // Update QR code state
-    const qrState = qrCodeStates.get(state as string);
+    // Update QR code state in cache
+    const qrState = await getQRState(state as string);
     if (qrState) {
       qrState.status = 'scanned';
       qrState.userData = {
         token,
         user: userResponse
       };
+      await setQRState(state as string, qrState, 60); // Keep for 1 minute for polling to retrieve
     }
 
     // Redirect to success page or close window
