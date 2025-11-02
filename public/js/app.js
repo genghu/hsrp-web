@@ -62,18 +62,10 @@ async function initializeApp() {
     const token = localStorage.getItem('token');
     if (token) {
         try {
-            const response = await fetch('/api/auth/me', {
-                headers: {
-                    'Authorization': `Bearer ${token}`
-                }
-            });
-            if (response.ok) {
-                const data = await response.json();
-                currentUser = data.data;
-                updateNavigation(true);
-                showDashboard();
-                return;
-            }
+            currentUser = await api.getCurrentUser();
+            updateNavigation(true);
+            showDashboard();
+            return;
         } catch (error) {
             console.error('Error checking auth:', error);
         }
@@ -209,34 +201,18 @@ async function handleLogin(event) {
     errorEl.classList.remove('show');
 
     try {
-        const response = await fetch('/api/auth/login', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({ email, password })
-        });
-
-        const data = await response.json();
-
-        if (response.ok && data.success) {
-            console.log('Login successful');
-            localStorage.setItem('token', data.data.token);
-            currentUser = data.data.user;
-            showNotification(`Welcome back, ${data.data.user.firstName}!`, 'success');
-            updateNavigation(true);
-            showDashboard();
-        } else {
-            console.error('Login failed:', data.error);
-            errorEl.textContent = data.error || 'Login failed';
-            errorEl.classList.add('show');
-            showNotification(data.error || 'Login failed', 'error');
-        }
+        const data = await api.login(email, password);
+        console.log('Login successful');
+        currentUser = data.user;
+        showNotification(`Welcome back, ${data.user.firstName}!`, 'success');
+        updateNavigation(true);
+        showDashboard();
     } catch (error) {
         console.error('Login error:', error);
-        errorEl.textContent = 'An error occurred. Please try again.';
+        const errorMessage = error.message || 'An error occurred. Please try again.';
+        errorEl.textContent = errorMessage;
         errorEl.classList.add('show');
-        showNotification('An error occurred. Please try again.', 'error');
+        showNotification(errorMessage, 'error');
     }
 }
 
@@ -309,35 +285,18 @@ async function handleRegister(event) {
     console.log('Sending registration data:', { ...userData, password: '***' });
 
     try {
-        const response = await fetch('/api/auth/register', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(userData)
-        });
-
-        const data = await response.json();
-        console.log('Registration response:', data);
-
-        if (response.ok && data.success) {
-            console.log('Registration successful');
-            localStorage.setItem('token', data.data.token);
-            currentUser = data.data.user;
-            showNotification('Registration successful! Welcome to HSRP!', 'success');
-            updateNavigation(true);
-            showDashboard();
-        } else {
-            console.error('Registration failed:', data.error);
-            errorEl.textContent = data.error || 'Registration failed';
-            errorEl.classList.add('show');
-            showNotification(data.error || 'Registration failed', 'error');
-        }
+        const data = await api.register(userData);
+        console.log('Registration successful');
+        currentUser = data.user;
+        showNotification('Registration successful! Welcome to HSRP!', 'success');
+        updateNavigation(true);
+        showDashboard();
     } catch (error) {
         console.error('Registration error:', error);
-        errorEl.textContent = 'An error occurred. Please try again.';
+        const errorMessage = error.message || 'An error occurred. Please try again.';
+        errorEl.textContent = errorMessage;
         errorEl.classList.add('show');
-        showNotification('An error occurred. Please try again.', 'error');
+        showNotification(errorMessage, 'error');
     }
 }
 
@@ -397,36 +356,25 @@ async function loadResearcherExperiments() {
     container.innerHTML = '<p>Loading...</p>';
 
     try {
-        const response = await fetch('/api/experiments', {
-            headers: {
-                'Authorization': `Bearer ${localStorage.getItem('token')}`
-            }
-        });
+        const experiments = await api.getExperiments();
+        allExperiments = experiments; // Store for filtering
 
-        const data = await response.json();
+        // Update statistics if on dashboard view
+        updateDashboardStatistics(experiments);
 
-        if (response.ok && data.success) {
-            allExperiments = data.data; // Store for filtering
+        // Load upcoming sessions if on dashboard view
+        loadUpcomingSessions(experiments);
 
-            // Update statistics if on dashboard view
-            updateDashboardStatistics(data.data);
-
-            // Load upcoming sessions if on dashboard view
-            loadUpcomingSessions(data.data);
-
-            if (data.data.length === 0) {
-                container.innerHTML = `
-                    <div class="empty-state">
-                        <div class="empty-state-icon">📋</div>
-                        <p>No experiments yet. Create your first experiment to get started!</p>
-                    </div>
-                `;
-            } else {
-                // Apply current filter
-                displayFilteredExperiments();
-            }
+        if (experiments.length === 0) {
+            container.innerHTML = `
+                <div class="empty-state">
+                    <div class="empty-state-icon">📋</div>
+                    <p>No experiments yet. Create your first experiment to get started!</p>
+                </div>
+            `;
         } else {
-            container.innerHTML = '<p class="error-message show">Error loading experiments</p>';
+            // Apply current filter
+            displayFilteredExperiments();
         }
     } catch (error) {
         container.innerHTML = '<p class="error-message show">Error loading experiments</p>';
@@ -597,14 +545,6 @@ function showResearcherView(viewName) {
     if (selectedView) {
         selectedView.classList.add('active');
     }
-
-    // Update navigation buttons
-    document.querySelectorAll('.researcher-nav-btn').forEach(btn => {
-        btn.classList.remove('active');
-        if (btn.getAttribute('data-view') === viewName) {
-            btn.classList.add('active');
-        }
-    });
 
     // Load data for the view if needed
     if (viewName === 'experiments') {
@@ -831,8 +771,53 @@ function loadSchedule() {
 }
 
 // Export All Data
-function exportAllData() {
-    showNotification(translations[currentLanguage]['export_data_placeholder'] || 'Export functionality coming soon!', 'info');
+async function exportAllData() {
+    const t = translations[currentLanguage];
+    try {
+        // Get all experiments
+        const experiments = await api.getExperiments();
+
+        if (experiments.length === 0) {
+            showNotification(t['no_data_export'] || 'No experiments to export', 'warning');
+            return;
+        }
+
+        // Prepare CSV data
+        const csvHeaders = ['Title', 'Status', 'Location', 'Duration (min)', 'Compensation', 'Max Participants', 'Sessions', 'Total Registered', 'Created Date'];
+        const csvRows = experiments.map(exp => {
+            const totalRegistered = exp.sessions?.reduce((sum, session) =>
+                sum + (session.participants?.filter(p => p.status !== 'cancelled').length || 0), 0) || 0;
+
+            return [
+                `"${exp.title}"`,
+                exp.status,
+                `"${exp.location}"`,
+                exp.duration,
+                `"${exp.compensation}"`,
+                exp.maxParticipants,
+                exp.sessions?.length || 0,
+                totalRegistered,
+                new Date(exp.createdAt).toLocaleString()
+            ].join(',');
+        });
+
+        const csvContent = [csvHeaders.join(','), ...csvRows].join('\n');
+
+        // Create and download file
+        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+        const link = document.createElement('a');
+        const url = URL.createObjectURL(blob);
+        link.setAttribute('href', url);
+        link.setAttribute('download', `experiments_${new Date().toISOString().split('T')[0]}.csv`);
+        link.style.visibility = 'hidden';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+
+        showNotification(t['export_success'] || 'Data exported successfully!', 'success');
+    } catch (error) {
+        showNotification(t['export_error'] || 'Error exporting data', 'error');
+    }
 }
 
 // Update researcher name display
@@ -938,27 +923,13 @@ async function handleProfileUpdate(event) {
     };
 
     try {
-        const response = await fetch('/api/auth/profile', {
-            method: 'PATCH',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${localStorage.getItem('token')}`
-            },
-            body: JSON.stringify(updatedData)
-        });
-
-        const data = await response.json();
-
-        if (response.ok && data.success) {
-            currentUser = { ...currentUser, ...updatedData };
-            updateResearcherName();
-            cancelEditProfile();
-            showNotification(translations[currentLanguage]['account.profileUpdated'] || 'Profile updated successfully!', 'success');
-        } else {
-            showNotification(data.error || 'Failed to update profile', 'error');
-        }
+        const data = await api.updateProfile(updatedData);
+        currentUser = { ...currentUser, ...data };
+        updateResearcherName();
+        cancelEditProfile();
+        showNotification(translations[currentLanguage]['account.profileUpdated'] || 'Profile updated successfully!', 'success');
     } catch (error) {
-        showNotification('An error occurred while updating profile', 'error');
+        showNotification(error.message || 'An error occurred while updating profile', 'error');
     }
 }
 
@@ -982,46 +953,33 @@ async function handleChangePassword(event) {
     }
 
     try {
-        const response = await fetch('/api/auth/change-password', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${localStorage.getItem('token')}`
-            },
-            body: JSON.stringify({
-                currentPassword,
-                newPassword
-            })
-        });
-
-        const data = await response.json();
-
-        if (response.ok && data.success) {
-            // Clear form
-            document.getElementById('password-form').reset();
-            showNotification(translations[currentLanguage]['account.passwordChanged'] || 'Password changed successfully!', 'success');
-        } else {
-            errorEl.textContent = data.error || 'Failed to change password';
-            errorEl.classList.add('show');
-        }
+        await api.changePassword(currentPassword, newPassword);
+        // Clear form
+        document.getElementById('password-form').reset();
+        showNotification(translations[currentLanguage]['account.passwordChanged'] || 'Password changed successfully!', 'success');
     } catch (error) {
-        errorEl.textContent = 'An error occurred while changing password';
+        errorEl.textContent = error.message || 'An error occurred while changing password';
         errorEl.classList.add('show');
     }
 }
 
 // Settings page
 function showSettings() {
-    const t = translations[currentLanguage];
-    showNotification(t['account.settings'] || 'Settings', 'info');
-    // TODO: Implement settings page
+    // Navigate to account page which contains settings
+    showResearcherView('account');
+    // Scroll to settings section if exists
+    const settingsSection = document.querySelector('#password-form');
+    if (settingsSection) {
+        settingsSection.scrollIntoView({ behavior: 'smooth' });
+    }
 }
 
 // Show attendance from dashboard
 function showDashboardAttendance() {
+    // Navigate to experiments view where sessions can be managed
+    showResearcherView('experiments');
     const t = translations[currentLanguage];
-    showNotification(t['action.updateAttendance'] || 'Update Attendance', 'info');
-    // TODO: Implement attendance tracking
+    showNotification(t['action.updateAttendance'] || 'Select an experiment to update attendance', 'info');
 }
 
 // Add event listener for profile form
@@ -1107,68 +1065,60 @@ async function editExperiment(expId) {
     currentMode = 'edit';
 
     try {
-        const response = await fetch(`/api/experiments/${expId}`, {
-            headers: {
-                'Authorization': `Bearer ${localStorage.getItem('token')}`
-            }
-        });
+        const experiment = await api.getExperiment(expId);
+        currentExperiment = experiment;
+        const t = translations[currentLanguage];
+        document.getElementById('experiment-modal-title').textContent = t['edit_experiment'];
+        document.getElementById('exp-title').value = experiment.title;
+        document.getElementById('exp-description').value = experiment.description;
+        document.getElementById('exp-location').value = experiment.location;
+        document.getElementById('exp-duration').value = experiment.duration;
+        document.getElementById('exp-compensation').value = experiment.compensation;
+        document.getElementById('exp-maxParticipants').value = experiment.maxParticipants;
 
-        const data = await response.json();
+        // Populate status options based on current status
+        populateStatusOptions(experiment.status);
+        document.getElementById('exp-status').value = experiment.status;
 
-        if (response.ok && data.success) {
-            currentExperiment = data.data;
-            const t = translations[currentLanguage];
-            document.getElementById('experiment-modal-title').textContent = t['edit_experiment'];
-            document.getElementById('exp-title').value = data.data.title;
-            document.getElementById('exp-description').value = data.data.description;
-            document.getElementById('exp-location').value = data.data.location;
-            document.getElementById('exp-duration').value = data.data.duration;
-            document.getElementById('exp-compensation').value = data.data.compensation;
-            document.getElementById('exp-maxParticipants').value = data.data.maxParticipants;
+        // Clear and populate selected requirements
+        clearSelectedRequirements();
 
-            // Populate status options based on current status
-            populateStatusOptions(data.data.status);
-            document.getElementById('exp-status').value = data.data.status;
+        experiment.requirements.forEach(req => {
+            // Check if it matches a suggested requirement
+            let matched = false;
+            const requirementOptions = document.querySelectorAll('.requirement-option');
 
-            // Clear and populate selected requirements
-            clearSelectedRequirements();
+            requirementOptions.forEach(option => {
+                const reqKey = option.getAttribute('data-req-key');
+                const translatedText = t[reqKey];
+                const englishText = translations['en'][reqKey];
 
-            data.data.requirements.forEach(req => {
-                // Check if it matches a suggested requirement
-                let matched = false;
-                const requirementOptions = document.querySelectorAll('.requirement-option');
-
-                requirementOptions.forEach(option => {
-                    const reqKey = option.getAttribute('data-req-key');
-                    const translatedText = t[reqKey];
-                    const englishText = translations['en'][reqKey];
-
-                    // Check both languages
-                    if (req === translatedText || req === englishText) {
-                        addRequirement(reqKey, req);
-                        matched = true;
-                    }
-                });
-
-                // If not matched, it's a custom requirement
-                if (!matched) {
-                    const customKey = 'custom_' + Date.now() + '_' + Math.random();
-                    addRequirement(customKey, req);
+                // Check both languages
+                if (req === translatedText || req === englishText) {
+                    addRequirement(reqKey, req);
+                    matched = true;
                 }
             });
 
-            // Show current IRB document if exists
-            if (data.data.irbDocument) {
-                document.getElementById('irb-current-file').style.display = 'block';
-                document.getElementById('irb-current-link').textContent = data.data.irbDocument.originalName;
-                document.getElementById('irb-current-link').href = `/api/experiments/${data.data._id}/irb-download`;
-            } else {
-                document.getElementById('irb-current-file').style.display = 'none';
+            // If not matched, it's a custom requirement
+            if (!matched) {
+                const customKey = 'custom_' + Date.now() + '_' + Math.random();
+                addRequirement(customKey, req);
             }
+        });
 
-            updateSubmitButtonText();
-            document.getElementById('experiment-modal').classList.add('show');
+        // Show current IRB document if exists
+        if (experiment.irbDocument) {
+            document.getElementById('irb-current-file').style.display = 'block';
+            document.getElementById('irb-current-link').textContent = experiment.irbDocument.originalName;
+            document.getElementById('irb-current-link').href = `/api/experiments/${experiment._id}/irb-download`;
+        } else {
+            document.getElementById('irb-current-file').style.display = 'none';
         }
+
+        updateSubmitButtonText();
+        document.getElementById('experiment-modal').classList.add('show');
+
     } catch (error) {
         alert('Error loading experiment');
     }
@@ -1207,43 +1157,28 @@ async function handleExperimentSubmit(event) {
     }
 
     try {
-        const url = currentMode === 'edit' ? `/api/experiments/${currentExperiment._id}` : '/api/experiments';
-        const method = currentMode === 'edit' ? 'PATCH' : 'POST';
+        const savedExperiment = currentMode === 'edit'
+            ? await api.updateExperiment(currentExperiment._id, experimentData)
+            : await api.createExperiment(experimentData);
 
-        const response = await fetch(url, {
-            method,
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${localStorage.getItem('token')}`
-            },
-            body: JSON.stringify(experimentData)
-        });
-
-        const data = await response.json();
-
-        if (response.ok && data.success) {
-            // Upload IRB file if one was selected
-            if (selectedIRBFile) {
-                const uploadSuccess = await uploadIRBDocument(data.data._id, selectedIRBFile);
-                if (!uploadSuccess) {
-                    errorEl.textContent = translations[currentLanguage].irb_upload_failed || 'Experiment saved, but IRB upload failed';
-                    errorEl.classList.add('show');
-                    setTimeout(() => {
-                        closeExperimentModal();
-                        loadResearcherExperiments();
-                    }, 2000);
-                    return;
-                }
+        // Upload IRB file if one was selected
+        if (selectedIRBFile) {
+            const uploadSuccess = await uploadIRBDocument(savedExperiment._id, selectedIRBFile);
+            if (!uploadSuccess) {
+                errorEl.textContent = translations[currentLanguage].irb_upload_failed || 'Experiment saved, but IRB upload failed';
+                errorEl.classList.add('show');
+                setTimeout(() => {
+                    closeExperimentModal();
+                    loadResearcherExperiments();
+                }, 2000);
+                return;
             }
-
-            closeExperimentModal();
-            loadResearcherExperiments();
-        } else {
-            errorEl.textContent = data.error || 'Failed to save experiment';
-            errorEl.classList.add('show');
         }
+
+        closeExperimentModal();
+        loadResearcherExperiments();
     } catch (error) {
-        errorEl.textContent = 'An error occurred. Please try again.';
+        errorEl.textContent = error.message || 'An error occurred. Please try again.';
         errorEl.classList.add('show');
     }
 }
@@ -1276,20 +1211,10 @@ async function deleteExperiment(expId) {
     }
 
     try {
-        const response = await fetch(`/api/experiments/${expId}`, {
-            method: 'DELETE',
-            headers: {
-                'Authorization': `Bearer ${localStorage.getItem('token')}`
-            }
-        });
-
-        if (response.ok) {
-            loadResearcherExperiments();
-        } else {
-            alert('Error deleting experiment');
-        }
+        await api.deleteExperiment(expId);
+        loadResearcherExperiments();
     } catch (error) {
-        alert('Error deleting experiment');
+        alert(error.message || 'Error deleting experiment');
     }
 }
 
@@ -1300,25 +1225,11 @@ async function closeExperiment(expId) {
     }
 
     try {
-        const response = await fetch(`/api/experiments/${expId}`, {
-            method: 'PATCH',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${localStorage.getItem('token')}`
-            },
-            body: JSON.stringify({ status: 'completed' })
-        });
-
-        const data = await response.json();
-
-        if (response.ok && data.success) {
-            showNotification(t['experiment_closed'] || 'Experiment closed successfully', 'success');
-            loadResearcherExperiments();
-        } else {
-            alert(data.error || 'Error closing experiment');
-        }
+        await api.updateExperiment(expId, { status: 'completed' });
+        showNotification(t['experiment_closed'] || 'Experiment closed successfully', 'success');
+        loadResearcherExperiments();
     } catch (error) {
-        alert('Error closing experiment');
+        alert(error.message || 'Error closing experiment');
     }
 }
 
@@ -1329,25 +1240,11 @@ async function withdrawExperiment(expId) {
     }
 
     try {
-        const response = await fetch(`/api/experiments/${expId}`, {
-            method: 'PATCH',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${localStorage.getItem('token')}`
-            },
-            body: JSON.stringify({ status: 'draft' })
-        });
-
-        const data = await response.json();
-
-        if (response.ok && data.success) {
-            showNotification(t['experiment_withdrawn'] || 'Experiment withdrawn successfully. You can now edit it.', 'success');
-            loadResearcherExperiments();
-        } else {
-            alert(data.error || 'Error withdrawing experiment');
-        }
+        await api.updateExperiment(expId, { status: 'draft' });
+        showNotification(t['experiment_withdrawn'] || 'Experiment withdrawn successfully. You can now edit it.', 'success');
+        loadResearcherExperiments();
     } catch (error) {
-        alert('Error withdrawing experiment');
+        alert(error.message || 'Error withdrawing experiment');
     }
 }
 
@@ -1358,25 +1255,11 @@ async function publishExperiment(expId) {
     }
 
     try {
-        const response = await fetch(`/api/experiments/${expId}`, {
-            method: 'PATCH',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${localStorage.getItem('token')}`
-            },
-            body: JSON.stringify({ status: 'open' })
-        });
-
-        const data = await response.json();
-
-        if (response.ok && data.success) {
-            showNotification(t['experiment_published'] || 'Experiment published successfully! It is now open for recruitment.', 'success');
-            loadResearcherExperiments();
-        } else {
-            alert(data.error || 'Error publishing experiment');
-        }
+        await api.updateExperiment(expId, { status: 'open' });
+        showNotification(t['experiment_published'] || 'Experiment published successfully! It is now open for recruitment.', 'success');
+        loadResearcherExperiments();
     } catch (error) {
-        alert('Error publishing experiment');
+        alert(error.message || 'Error publishing experiment');
     }
 }
 
@@ -1387,25 +1270,11 @@ async function reactivateExperiment(expId) {
     }
 
     try {
-        const response = await fetch(`/api/experiments/${expId}`, {
-            method: 'PATCH',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${localStorage.getItem('token')}`
-            },
-            body: JSON.stringify({ status: 'draft' })
-        });
-
-        const data = await response.json();
-
-        if (response.ok && data.success) {
-            showNotification(t['experiment_reactivated'] || 'Experiment reactivated successfully. You can now edit and resubmit it.', 'success');
-            loadResearcherExperiments();
-        } else {
-            alert(data.error || 'Error reactivating experiment');
-        }
+        await api.updateExperiment(expId, { status: 'draft' });
+        showNotification(t['experiment_reactivated'] || 'Experiment reactivated successfully. You can now edit and resubmit it.', 'success');
+        loadResearcherExperiments();
     } catch (error) {
-        alert('Error reactivating experiment');
+        alert(error.message || 'Error reactivating experiment');
     }
 }
 
@@ -2320,34 +2189,19 @@ async function handleSessionSubmit(event) {
     const errorEl = document.getElementById('session-error');
 
     try {
-        const url = currentMode === 'edit'
-            ? `/api/experiments/${currentExperiment._id}/sessions/${currentSession._id}`
-            : `/api/experiments/${currentExperiment._id}/sessions`;
-        const method = currentMode === 'edit' ? 'PATCH' : 'POST';
-
-        const response = await fetch(url, {
-            method,
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${localStorage.getItem('token')}`
-            },
-            body: JSON.stringify(sessionData)
-        });
-
-        const data = await response.json();
-
-        if (response.ok && data.success) {
-            closeSessionModal();
-            closeSessionsModal();
-            loadResearcherExperiments();
-            const message = currentMode === 'edit' ? 'Session updated successfully!' : 'Session added successfully!';
-            showNotification(message, 'success');
+        if (currentMode === 'edit') {
+            await api.updateSession(currentExperiment._id, currentSession._id, sessionData);
         } else {
-            errorEl.textContent = data.error || `Failed to ${currentMode === 'edit' ? 'update' : 'add'} session`;
-            errorEl.classList.add('show');
+            await api.createSession(currentExperiment._id, sessionData);
         }
+
+        closeSessionModal();
+        closeSessionsModal();
+        loadResearcherExperiments();
+        const message = currentMode === 'edit' ? 'Session updated successfully!' : 'Session added successfully!';
+        showNotification(message, 'success');
     } catch (error) {
-        errorEl.textContent = 'An error occurred. Please try again.';
+        errorEl.textContent = error.message || 'An error occurred. Please try again.';
         errorEl.classList.add('show');
     }
 }
@@ -2358,58 +2212,36 @@ async function deleteSession(experimentId, sessionId) {
     }
 
     try {
-        const response = await fetch(`/api/experiments/${experimentId}/sessions/${sessionId}`, {
-            method: 'DELETE',
-            headers: {
-                'Authorization': `Bearer ${localStorage.getItem('token')}`
-            }
-        });
-
-        if (response.ok) {
-            closeSessionsModal();
-            viewSessions(experimentId);
-        } else {
-            alert('Error deleting session');
-        }
+        await api.deleteSession(experimentId, sessionId);
+        closeSessionsModal();
+        viewSessions(experimentId);
     } catch (error) {
-        alert('Error deleting session');
+        alert(error.message || 'Error deleting session');
     }
 }
 
 async function updateParticipantStatus(experimentId, sessionId, userId, status) {
     const t = translations[currentLanguage];
     try {
-        const response = await fetch(`/api/experiments/${experimentId}/sessions/${sessionId}/participants/${userId}`, {
-            method: 'PATCH',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${localStorage.getItem('token')}`
-            },
-            body: JSON.stringify({ status })
-        });
+        await api.updateParticipantStatus(experimentId, sessionId, userId, status);
+        showNotification(t['status_updated'] || 'Status updated successfully', 'success');
 
-        if (response.ok) {
-            showNotification(t['status_updated'] || 'Status updated successfully', 'success');
+        // If participants modal is open, reload it
+        const participantsModal = document.getElementById('participants-modal');
+        if (participantsModal) {
+            closeParticipantsModal();
+            await viewParticipants(experimentId, sessionId);
+        }
 
-            // If participants modal is open, reload it
-            const participantsModal = document.getElementById('participants-modal');
-            if (participantsModal) {
-                closeParticipantsModal();
-                await viewParticipants(experimentId, sessionId);
-            }
-
-            // If sessions modal is open, reload the sessions view
-            const sessionsModal = document.getElementById('sessions-view-modal');
-            if (sessionsModal) {
-                closeSessionsModal();
-                await viewSessions(experimentId);
-            }
-        } else {
-            showNotification(t['error_updating_status'] || 'Error updating participant status', 'error');
+        // If sessions modal is open, reload the sessions view
+        const sessionsModal = document.getElementById('sessions-view-modal');
+        if (sessionsModal) {
+            closeSessionsModal();
+            await viewSessions(experimentId);
         }
     } catch (error) {
         console.error('Error updating participant status:', error);
-        showNotification(t['error_updating_status'] || 'Error updating participant status', 'error');
+        showNotification(error.message || t['error_updating_status'] || 'Error updating participant status', 'error');
     }
 }
 
@@ -2449,27 +2281,16 @@ async function loadAvailableExperiments() {
     container.innerHTML = '<p>Loading...</p>';
 
     try {
-        const response = await fetch('/api/experiments?status=open', {
-            headers: {
-                'Authorization': `Bearer ${localStorage.getItem('token')}`
-            }
-        });
-
-        const data = await response.json();
-
-        if (response.ok && data.success) {
-            if (data.data.length === 0) {
-                container.innerHTML = `
-                    <div class="empty-state">
-                        <div class="empty-state-icon">🔬</div>
-                        <p>No experiments available at the moment. Check back later!</p>
-                    </div>
-                `;
-            } else {
-                container.innerHTML = data.data.map(exp => renderSubjectExperimentCard(exp)).join('');
-            }
+        const experiments = await api.getExperiments({ status: 'open' });
+        if (experiments.length === 0) {
+            container.innerHTML = `
+                <div class="empty-state">
+                    <div class="empty-state-icon">🔬</div>
+                    <p>No experiments available at the moment. Check back later!</p>
+                </div>
+            `;
         } else {
-            container.innerHTML = '<p class="error-message show">Error loading experiments</p>';
+            container.innerHTML = experiments.map(exp => renderSubjectExperimentCard(exp)).join('');
         }
     } catch (error) {
         container.innerHTML = '<p class="error-message show">Error loading experiments</p>';
@@ -2544,23 +2365,11 @@ function renderSubjectSession(session, experimentId) {
 
 async function registerForSession(experimentId, sessionId) {
     try {
-        const response = await fetch(`/api/experiments/${experimentId}/sessions/${sessionId}/register`, {
-            method: 'POST',
-            headers: {
-                'Authorization': `Bearer ${localStorage.getItem('token')}`
-            }
-        });
-
-        const data = await response.json();
-
-        if (response.ok && data.success) {
-            alert('Successfully registered for session!');
-            loadAvailableExperiments();
-        } else {
-            alert(data.error || 'Failed to register');
-        }
+        await api.registerForSession(experimentId, sessionId);
+        alert('Successfully registered for session!');
+        loadAvailableExperiments();
     } catch (error) {
-        alert('Error registering for session');
+        alert(error.message || 'Error registering for session');
     }
 }
 
@@ -2569,27 +2378,16 @@ async function loadRegisteredSessions() {
     container.innerHTML = '<p>Loading...</p>';
 
     try {
-        const response = await fetch('/api/experiments/my-sessions', {
-            headers: {
-                'Authorization': `Bearer ${localStorage.getItem('token')}`
-            }
-        });
-
-        const data = await response.json();
-
-        if (response.ok && data.success) {
-            if (data.data.length === 0) {
-                container.innerHTML = `
-                    <div class="empty-state">
-                        <div class="empty-state-icon">📅</div>
-                        <p>You haven't registered for any sessions yet.</p>
-                    </div>
-                `;
-            } else {
-                container.innerHTML = data.data.map(exp => renderRegisteredExperiment(exp)).join('');
-            }
+        const experiments = await api.getMySession();
+        if (experiments.length === 0) {
+            container.innerHTML = `
+                <div class="empty-state">
+                    <div class="empty-state-icon">📅</div>
+                    <p>You haven't registered for any sessions yet.</p>
+                </div>
+            `;
         } else {
-            container.innerHTML = '<p class="error-message show">Error loading sessions</p>';
+            container.innerHTML = experiments.map(exp => renderRegisteredExperiment(exp)).join('');
         }
     } catch (error) {
         container.innerHTML = '<p class="error-message show">Error loading sessions</p>';
@@ -2638,23 +2436,11 @@ async function cancelRegistration(experimentId, sessionId) {
     }
 
     try {
-        const response = await fetch(`/api/experiments/${experimentId}/sessions/${sessionId}/register`, {
-            method: 'DELETE',
-            headers: {
-                'Authorization': `Bearer ${localStorage.getItem('token')}`
-            }
-        });
-
-        const data = await response.json();
-
-        if (response.ok && data.success) {
-            alert('Registration cancelled successfully');
-            loadRegisteredSessions();
-        } else {
-            alert(data.error || 'Failed to cancel registration');
-        }
+        await api.cancelRegistration(experimentId, sessionId);
+        alert('Registration cancelled successfully');
+        loadRegisteredSessions();
     } catch (error) {
-        alert('Error cancelling registration');
+        alert(error.message || 'Error cancelling registration');
     }
 }
 

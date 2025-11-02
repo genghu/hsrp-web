@@ -20,7 +20,7 @@ class API {
         if (includeAuth) {
             const token = this.getToken();
             if (token) {
-                headers['x-auth-token'] = token;
+                headers['Authorization'] = `Bearer ${token}`;
             }
         }
         return headers;
@@ -63,6 +63,49 @@ class API {
                 const data = yield this.handleResponse(response);
                 localStorage.setItem('token', data.token);
                 return data;
+            }
+            catch (error) {
+                throw error;
+            }
+        });
+    }
+    getCurrentUser() {
+        return __awaiter(this, void 0, void 0, function* () {
+            try {
+                const response = yield fetch('/api/auth/me', {
+                    headers: this.getHeaders(true)
+                });
+                return this.handleResponse(response);
+            }
+            catch (error) {
+                throw error;
+            }
+        });
+    }
+    updateProfile(profileData) {
+        return __awaiter(this, void 0, void 0, function* () {
+            try {
+                const response = yield fetch('/api/auth/profile', {
+                    method: 'PATCH',
+                    headers: this.getHeaders(true),
+                    body: JSON.stringify(profileData)
+                });
+                return this.handleResponse(response);
+            }
+            catch (error) {
+                throw error;
+            }
+        });
+    }
+    changePassword(currentPassword, newPassword) {
+        return __awaiter(this, void 0, void 0, function* () {
+            try {
+                const response = yield fetch('/api/auth/change-password', {
+                    method: 'POST',
+                    headers: this.getHeaders(true),
+                    body: JSON.stringify({ currentPassword, newPassword })
+                });
+                return this.handleResponse(response);
             }
             catch (error) {
                 throw error;
@@ -147,6 +190,21 @@ class API {
             try {
                 const response = yield fetch(`/api/experiments/${experimentId}/sessions`, {
                     method: 'POST',
+                    headers: this.getHeaders(true),
+                    body: JSON.stringify(sessionData)
+                });
+                return this.handleResponse(response);
+            }
+            catch (error) {
+                throw error;
+            }
+        });
+    }
+    updateSession(experimentId, sessionId, sessionData) {
+        return __awaiter(this, void 0, void 0, function* () {
+            try {
+                const response = yield fetch(`/api/experiments/${experimentId}/sessions/${sessionId}`, {
+                    method: 'PATCH',
                     headers: this.getHeaders(true),
                     body: JSON.stringify(sessionData)
                 });

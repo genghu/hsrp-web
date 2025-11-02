@@ -67,7 +67,7 @@ class API {
     if (includeAuth) {
       const token = this.getToken();
       if (token) {
-        headers['x-auth-token'] = token;
+        headers['Authorization'] = `Bearer ${token}`;
       }
     }
 
@@ -120,6 +120,46 @@ class API {
       const data = await this.handleResponse<{ token: string; user: User }>(response);
       localStorage.setItem('token', data.token);
       return data;
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  async getCurrentUser(): Promise<User> {
+    try {
+      const response = await fetch('/api/auth/me', {
+        headers: this.getHeaders(true)
+      });
+
+      return this.handleResponse<User>(response);
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  async updateProfile(profileData: Partial<User>): Promise<User> {
+    try {
+      const response = await fetch('/api/auth/profile', {
+        method: 'PATCH',
+        headers: this.getHeaders(true),
+        body: JSON.stringify(profileData)
+      });
+
+      return this.handleResponse<User>(response);
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  async changePassword(currentPassword: string, newPassword: string): Promise<{ message: string }> {
+    try {
+      const response = await fetch('/api/auth/change-password', {
+        method: 'POST',
+        headers: this.getHeaders(true),
+        body: JSON.stringify({ currentPassword, newPassword })
+      });
+
+      return this.handleResponse<{ message: string }>(response);
     } catch (error) {
       throw error;
     }
@@ -197,6 +237,20 @@ class API {
     try {
       const response = await fetch(`/api/experiments/${experimentId}/sessions`, {
         method: 'POST',
+        headers: this.getHeaders(true),
+        body: JSON.stringify(sessionData)
+      });
+
+      return this.handleResponse<Experiment>(response);
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  async updateSession(experimentId: string, sessionId: string, sessionData: Partial<Session>): Promise<Experiment> {
+    try {
+      const response = await fetch(`/api/experiments/${experimentId}/sessions/${sessionId}`, {
+        method: 'PATCH',
         headers: this.getHeaders(true),
         body: JSON.stringify(sessionData)
       });
