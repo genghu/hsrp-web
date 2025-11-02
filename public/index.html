@@ -26,9 +26,14 @@
                                 <i class="fas fa-home me-1"></i><span data-i18n="nav.home">Home</span>
                             </a>
                         </li>
+                        <li class="nav-item" id="nav-home-link" style="display:none;">
+                            <a class="nav-link" href="#" onclick="showPage('home'); return false;">
+                                <i class="fas fa-home me-1"></i><span data-i18n="nav.home">首页</span>
+                            </a>
+                        </li>
                         <li class="nav-item" id="nav-dashboard-item" style="display:none;">
                             <a class="nav-link" href="#" onclick="showDashboard(); return false;">
-                                <i class="fas fa-home me-1"></i><span data-i18n="nav.dashboard">仪表板</span>
+                                <i class="fas fa-th-large me-1"></i><span data-i18n="nav.dashboard">仪表板</span>
                             </a>
                         </li>
                         <li class="nav-item" id="nav-experiments-item" style="display:none;">
@@ -40,17 +45,6 @@
                             <a class="nav-link" href="#" onclick="showResearcherView('schedule'); return false;">
                                 <i class="fas fa-calendar me-1"></i><span data-i18n="nav.myCalendar">我的日程</span>
                             </a>
-                        </li>
-                        <li class="nav-item dropdown" id="nav-account-dropdown" style="display:none;">
-                            <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
-                                <i class="fas fa-user me-1"></i><span data-i18n="nav.account">账户</span>
-                            </a>
-                            <ul class="dropdown-menu">
-                                <li><a class="dropdown-item" href="#" onclick="showResearcherView('account'); return false;"><span data-i18n="account.profile">个人资料</span></a></li>
-                                <li><a class="dropdown-item" href="#" onclick="showSettings(); return false;"><span data-i18n="account.settings">设置</span></a></li>
-                                <li><hr class="dropdown-divider"></li>
-                                <li><a class="dropdown-item" href="#" onclick="logout(); return false;"><span data-i18n="account.logout">退出登录</span></a></li>
-                            </ul>
                         </li>
                     </ul>
                     <div class="d-flex align-items-center">
@@ -85,8 +79,22 @@
                                 </div>
                             </div>
                             <span class="role-badge role-researcher me-3" id="nav-role-badge" data-i18n="role.researcher">研究员</span>
-                            <span class="me-3" id="nav-username">User</span>
-                            <i class="fas fa-bell"></i>
+
+                            <!-- User Dropdown with Account Functions -->
+                            <div class="dropdown">
+                                <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" role="button" data-bs-toggle="dropdown" style="cursor: pointer;">
+                                    <i class="fas fa-user me-2"></i>
+                                    <span id="nav-username">User</span>
+                                </a>
+                                <ul class="dropdown-menu dropdown-menu-end">
+                                    <li><a class="dropdown-item" href="#" onclick="showResearcherView('account'); return false;"><i class="fas fa-user-circle me-2"></i><span data-i18n="account.profile">个人资料</span></a></li>
+                                    <li><a class="dropdown-item" href="#" onclick="showSettings(); return false;"><i class="fas fa-cog me-2"></i><span data-i18n="account.settings">设置</span></a></li>
+                                    <li><hr class="dropdown-divider"></li>
+                                    <li><a class="dropdown-item" href="#" onclick="logout(); return false;"><i class="fas fa-sign-out-alt me-2"></i><span data-i18n="account.logout">退出登录</span></a></li>
+                                </ul>
+                            </div>
+
+                            <i class="fas fa-bell ms-3"></i>
                         </div>
                     </div>
                 </div>

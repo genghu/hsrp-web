@@ -108,10 +108,10 @@ function updateNavigation(isLoggedIn) {
 
     // Toggle navigation items based on role
     const homeItem = document.getElementById('nav-home-item');
+    const homeLink = document.getElementById('nav-home-link');
     const dashboardItem = document.getElementById('nav-dashboard-item');
     const experimentsItem = document.getElementById('nav-experiments-item');
     const scheduleItem = document.getElementById('nav-schedule-item');
-    const accountDropdown = document.getElementById('nav-account-dropdown');
 
     if (homeItem) homeItem.style.display = isLoggedIn ? 'none' : 'block';
 
@@ -132,21 +132,21 @@ function updateNavigation(isLoggedIn) {
 
         // Show/hide nav items based on role
         if (currentUser.role === 'researcher') {
+            if (homeLink) homeLink.style.display = 'block';
             if (dashboardItem) dashboardItem.style.display = 'block';
             if (experimentsItem) experimentsItem.style.display = 'block';
             if (scheduleItem) scheduleItem.style.display = 'block';
-            if (accountDropdown) accountDropdown.style.display = 'block';
         } else {
+            if (homeLink) homeLink.style.display = 'none';
             if (dashboardItem) dashboardItem.style.display = 'none';
             if (experimentsItem) experimentsItem.style.display = 'none';
             if (scheduleItem) scheduleItem.style.display = 'none';
-            if (accountDropdown) accountDropdown.style.display = 'none';
         }
     } else {
+        if (homeLink) homeLink.style.display = 'none';
         if (dashboardItem) dashboardItem.style.display = 'none';
         if (experimentsItem) experimentsItem.style.display = 'none';
         if (scheduleItem) scheduleItem.style.display = 'none';
-        if (accountDropdown) accountDropdown.style.display = 'none';
     }
 
     updateFloatingButton();
