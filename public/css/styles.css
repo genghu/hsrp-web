@@ -1521,3 +1521,156 @@ body {
         padding: 1.5rem;
     }
 }
+
+/* Researcher Dashboard - Enhanced Navigation */
+.researcher-nav-btn {
+    padding: 8px 16px !important;
+    font-size: 0.9rem;
+    border-radius: 20px;
+}
+
+.researcher-nav-btn.active {
+    background: linear-gradient(135deg, rgba(58, 134, 255, 0.5), rgba(162, 59, 114, 0.5)) !important;
+    border-color: rgba(58, 134, 255, 0.6) !important;
+    box-shadow: 0 4px 15px rgba(58, 134, 255, 0.4);
+}
+
+/* Researcher View Management */
+.researcher-view {
+    display: none;
+}
+
+.researcher-view.active {
+    display: block;
+    animation: fadeIn 0.4s ease;
+}
+
+/* Statistics Cards with Pulse */
+.pulse h3 {
+    font-size: 2rem;
+    margin: 0.5rem 0;
+    font-weight: bold;
+    color: white;
+}
+
+.pulse p {
+    margin: 0;
+    font-size: 0.85rem;
+    color: rgba(255, 255, 255, 0.8);
+}
+
+/* Search Container Enhancements */
+.search-container .glass-input {
+    width: 100%;
+    padding: 18px 55px 18px 25px;
+    border-radius: 35px;
+    background: rgba(255, 255, 255, 0.15);
+    border: 1px solid rgba(255, 255, 255, 0.35);
+    color: white;
+    font-size: 16px;
+}
+
+.search-container .glass-input:focus {
+    background: rgba(255, 255, 255, 0.25);
+    border-color: rgba(58, 134, 255, 0.6);
+    box-shadow: 0 0 25px rgba(58, 134, 255, 0.3);
+}
+
+/* Text Muted */
+.text-muted {
+    color: rgba(255, 255, 255, 0.6);
+}
+
+/* Tabs Styling */
+.tabs {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.tab-button {
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.25);
+    color: white;
+    padding: 10px 20px;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-size: 0.9rem;
+    font-weight: 500;
+}
+
+.tab-button:hover {
+    background: rgba(255, 255, 255, 0.15);
+    border-color: rgba(255, 255, 255, 0.35);
+}
+
+.tab-button.active {
+    background: rgba(58, 134, 255, 0.3);
+    border-color: rgba(58, 134, 255, 0.5);
+    box-shadow: 0 4px 12px rgba(58, 134, 255, 0.3);
+}
+
+/* Dashboard Header */
+.dashboard-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+
+.dashboard-header h2 {
+    margin: 0;
+}
+
+/* Session Cards in Dashboard */
+.upcoming-session-card {
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(8px);
+    border-radius: 15px;
+    border: 1px solid rgba(255, 255, 255, 0.25);
+    padding: 18px;
+    margin: 12px 0;
+    transition: all 0.3s ease;
+}
+
+.upcoming-session-card:hover {
+    background: rgba(255, 255, 255, 0.15);
+    transform: translateX(5px) scale(1.02);
+    box-shadow: 0 5px 20px rgba(58, 134, 255, 0.3);
+}
+
+/* Recent Activity */
+.activity-item {
+    padding: 12px;
+    margin: 8px 0;
+    background: rgba(255, 255, 255, 0.08);
+    border-radius: 10px;
+    border: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+.activity-item strong {
+    color: white;
+    display: block;
+    margin-bottom: 4px;
+}
+
+.activity-item .activity-time {
+    font-size: 0.75rem;
+    color: rgba(255, 255, 255, 0.6);
+}
+
+/* Responsive for Researcher Dashboard */
+@media (max-width: 992px) {
+    .researcher-nav-btn {
+        font-size: 0.85rem;
+        padding: 6px 12px !important;
+    }
+
+    .dashboard-header {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+}

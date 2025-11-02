@@ -212,12 +212,149 @@
 
             <!-- Researcher Dashboard -->
             <div id="page-researcher-dashboard" class="page">
-                <div class="glass-container">
-                    <div class="dashboard-header">
-                        <h2 data-i18n="researcher_dashboard"><i class="fas fa-tachometer-alt me-2"></i>Researcher Dashboard</h2>
-                        <button class="glass-button" onclick="showCreateExperiment()" data-i18n="create_new_experiment"><i class="fas fa-plus me-2"></i>Create New Experiment</button>
+                <!-- Researcher Navigation Menu -->
+                <div class="researcher-nav glass-container" style="margin-bottom: 20px; padding: 15px 25px;">
+                    <div class="d-flex align-items-center justify-content-between flex-wrap gap-3">
+                        <div class="d-flex gap-3">
+                            <button class="glass-button researcher-nav-btn active" data-view="dashboard" onclick="showResearcherView('dashboard')">
+                                <i class="fas fa-home me-1"></i><span data-i18n="nav.dashboard">Dashboard</span>
+                            </button>
+                            <button class="glass-button researcher-nav-btn" data-view="experiments" onclick="showResearcherView('experiments')">
+                                <i class="fas fa-flask me-1"></i><span data-i18n="nav.experiments">Experiments</span>
+                            </button>
+                            <button class="glass-button researcher-nav-btn" data-view="schedule" onclick="showResearcherView('schedule')">
+                                <i class="fas fa-calendar me-1"></i><span data-i18n="nav.schedule">Schedule</span>
+                            </button>
+                        </div>
+                        <div>
+                            <span class="role-badge role-researcher me-2" data-i18n="role.researcher">Researcher</span>
+                            <span id="researcher-name"></span>
+                        </div>
                     </div>
-                    <div id="researcher-experiments-container"></div>
+                </div>
+
+                <!-- Dashboard View -->
+                <div id="researcher-view-dashboard" class="researcher-view active">
+                    <div class="row">
+                        <div class="col-lg-8">
+                            <!-- Statistics Overview -->
+                            <div class="glass-container">
+                                <h2><i class="fas fa-chart-line me-2"></i><span data-i18n="dashboard.overview">Dashboard Overview</span></h2>
+                                <div class="row mt-4">
+                                    <div class="col-md-3">
+                                        <div class="glass-card text-center pulse">
+                                            <h3 id="stat-active-experiments">0</h3>
+                                            <p data-i18n="dashboard.activeExperiments">Active Experiments</p>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <div class="glass-card text-center pulse">
+                                            <h3 id="stat-total-participants">0</h3>
+                                            <p data-i18n="dashboard.totalParticipants">Total Participants</p>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <div class="glass-card text-center pulse">
+                                            <h3 id="stat-pending-approval">0</h3>
+                                            <p data-i18n="dashboard.pendingApproval">Pending Approval</p>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <div class="glass-card text-center pulse">
+                                            <h3 id="stat-attendance-rate">0%</h3>
+                                            <p data-i18n="dashboard.attendanceRate">Attendance Rate</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Upcoming Sessions -->
+                            <div class="glass-container mt-4">
+                                <h3><i class="fas fa-clock me-2"></i><span data-i18n="dashboard.upcomingSessions">Upcoming Sessions</span></h3>
+                                <div id="upcoming-sessions-container">
+                                    <p class="text-muted"><i class="fas fa-info-circle me-2"></i>No upcoming sessions</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-lg-4">
+                            <!-- Quick Actions -->
+                            <div class="glass-container">
+                                <h3><i class="fas fa-tasks me-2"></i><span data-i18n="dashboard.quickActions">Quick Actions</span></h3>
+                                <div class="d-grid gap-2 mt-3">
+                                    <button class="glass-button" onclick="showCreateExperiment()">
+                                        <i class="fas fa-plus me-2"></i><span data-i18n="action.createExperiment">Create New Experiment</span>
+                                    </button>
+                                    <button class="glass-button" onclick="showResearcherView('experiments')">
+                                        <i class="fas fa-list me-2"></i><span data-i18n="action.myExperiments">My Experiments</span>
+                                    </button>
+                                    <button class="glass-button" onclick="showResearcherView('schedule')">
+                                        <i class="fas fa-calendar me-2"></i><span data-i18n="action.viewSchedule">View Schedule</span>
+                                    </button>
+                                    <button class="glass-button" onclick="exportAllData()">
+                                        <i class="fas fa-download me-2"></i><span data-i18n="action.exportData">Export Data</span>
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- Recent Activity -->
+                            <div class="glass-container mt-4">
+                                <h3><i class="fas fa-bell me-2"></i><span data-i18n="dashboard.recentActivity">Recent Activity</span></h3>
+                                <div id="recent-activity-container">
+                                    <p class="text-muted small">No recent activity</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Experiments View -->
+                <div id="researcher-view-experiments" class="researcher-view">
+                    <div class="glass-container">
+                        <h2><i class="fas fa-flask me-2"></i><span data-i18n="experiments.title">Experiment Management</span></h2>
+
+                        <!-- Search Bar -->
+                        <div class="search-container" style="margin-top: 20px;">
+                            <input type="text" class="glass-input" id="experiment-search" placeholder="Search experiments by title, location, or description..." data-i18n-placeholder="search.placeholder">
+                            <button class="search-button" onclick="filterExperiments()">
+                                <i class="fas fa-search"></i>
+                            </button>
+                        </div>
+
+                        <!-- Filter Tabs -->
+                        <div class="tabs mt-4">
+                            <button class="tab-button active" onclick="filterExperimentsByStatus('all', event)">
+                                <i class="fas fa-list me-1"></i><span data-i18n="tabs.allExperiments">All Experiments</span>
+                            </button>
+                            <button class="tab-button" onclick="filterExperimentsByStatus('draft', event)">
+                                <i class="fas fa-edit me-1"></i><span data-i18n="tabs.drafts">Drafts</span>
+                            </button>
+                            <button class="tab-button" onclick="filterExperimentsByStatus('pending_review', event)">
+                                <i class="fas fa-clock me-1"></i><span data-i18n="tabs.pendingApproval">Pending Approval</span>
+                            </button>
+                            <button class="tab-button" onclick="filterExperimentsByStatus('open', event)">
+                                <i class="fas fa-check-circle me-1"></i><span data-i18n="tabs.active">Active</span>
+                            </button>
+                        </div>
+
+                        <div id="researcher-experiments-container" class="mt-4"></div>
+                    </div>
+                </div>
+
+                <!-- Schedule View -->
+                <div id="researcher-view-schedule" class="researcher-view">
+                    <div class="glass-container">
+                        <h2><i class="fas fa-calendar-alt me-2"></i><span data-i18n="schedule.title">My Schedule</span></h2>
+
+                        <div class="row mt-4">
+                            <div class="col-md-12">
+                                <h4><span data-i18n="schedule.upcomingSessions">Upcoming Sessions</span></h4>
+                                <div id="schedule-sessions-container">
+                                    <p class="text-muted">No sessions scheduled</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
 

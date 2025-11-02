@@ -3,6 +3,8 @@ let currentUser = null;
 let currentExperiment = null;
 let currentMode = null; // 'create' or 'edit'
 let currentSession = null; // Track current session for editing
+let allExperiments = []; // Store all experiments for filtering
+let currentStatusFilter = 'all'; // Current status filter
 
 // Chinese name utility functions
 const COMPOUND_SURNAMES = [
@@ -120,7 +122,7 @@ function showDashboard() {
 
     if (currentUser.role === 'researcher') {
         showPage('researcher-dashboard');
-        loadResearcherExperiments();
+        initializeResearcherDashboard();
     } else if (currentUser.role === 'admin') {
         showPage('admin-dashboard');
         loadPendingExperiments();
@@ -358,6 +360,14 @@ async function loadResearcherExperiments() {
         const data = await response.json();
 
         if (response.ok && data.success) {
+            allExperiments = data.data; // Store for filtering
+
+            // Update statistics if on dashboard view
+            updateDashboardStatistics(data.data);
+
+            // Load upcoming sessions if on dashboard view
+            loadUpcomingSessions(data.data);
+
             if (data.data.length === 0) {
                 container.innerHTML = `
                     <div class="empty-state">
@@ -366,7 +376,8 @@ async function loadResearcherExperiments() {
                     </div>
                 `;
             } else {
-                container.innerHTML = data.data.map(exp => renderExperimentCard(exp)).join('');
+                // Apply current filter
+                displayFilteredExperiments();
             }
         } else {
             container.innerHTML = '<p class="error-message show">Error loading experiments</p>';
@@ -526,6 +537,268 @@ function renderSessionsPreview(sessions, experimentId) {
             ${sessions.length > 3 ? `<p style="color: var(--text-muted); font-size: 0.875rem; margin-top: 0.5rem;">+${sessions.length - 3} ${t['sessions']}</p>` : ''}
         </div>
     `;
+}
+
+// Researcher Dashboard View Management
+function showResearcherView(viewName) {
+    // Hide all views
+    document.querySelectorAll('.researcher-view').forEach(view => {
+        view.classList.remove('active');
+    });
+
+    // Show selected view
+    const selectedView = document.getElementById(`researcher-view-${viewName}`);
+    if (selectedView) {
+        selectedView.classList.add('active');
+    }
+
+    // Update navigation buttons
+    document.querySelectorAll('.researcher-nav-btn').forEach(btn => {
+        btn.classList.remove('active');
+        if (btn.getAttribute('data-view') === viewName) {
+            btn.classList.add('active');
+        }
+    });
+
+    // Load data for the view if needed
+    if (viewName === 'experiments') {
+        displayFilteredExperiments();
+    } else if (viewName === 'schedule') {
+        loadSchedule();
+    }
+}
+
+// Update Dashboard Statistics
+function updateDashboardStatistics(experiments) {
+    // Count active experiments (open or in_progress)
+    const activeCount = experiments.filter(exp =>
+        exp.status === 'open' || exp.status === 'in_progress'
+    ).length;
+
+    // Count total participants across all sessions
+    let totalParticipants = 0;
+    let totalAttended = 0;
+    let totalScheduled = 0;
+
+    experiments.forEach(exp => {
+        if (exp.sessions) {
+            exp.sessions.forEach(session => {
+                if (session.participants) {
+                    const activeParticipants = session.participants.filter(p => p.status !== 'cancelled');
+                    totalParticipants += activeParticipants.length;
+                    totalScheduled += activeParticipants.length;
+                    totalAttended += session.participants.filter(p => p.status === 'attended').length;
+                }
+            });
+        }
+    });
+
+    // Count pending approval
+    const pendingCount = experiments.filter(exp =>
+        exp.status === 'pending_review'
+    ).length;
+
+    // Calculate attendance rate
+    const attendanceRate = totalScheduled > 0
+        ? Math.round((totalAttended / totalScheduled) * 100)
+        : 0;
+
+    // Update the UI
+    const activeEl = document.getElementById('stat-active-experiments');
+    const participantsEl = document.getElementById('stat-total-participants');
+    const pendingEl = document.getElementById('stat-pending-approval');
+    const attendanceEl = document.getElementById('stat-attendance-rate');
+
+    if (activeEl) activeEl.textContent = activeCount;
+    if (participantsEl) participantsEl.textContent = totalParticipants;
+    if (pendingEl) pendingEl.textContent = pendingCount;
+    if (attendanceEl) attendanceEl.textContent = `${attendanceRate}%`;
+}
+
+// Load Upcoming Sessions
+function loadUpcomingSessions(experiments) {
+    const container = document.getElementById('upcoming-sessions-container');
+    if (!container) return;
+
+    const t = translations[currentLanguage];
+    const now = new Date();
+    const upcomingSessions = [];
+
+    // Collect all upcoming sessions
+    experiments.forEach(exp => {
+        if (exp.sessions && (exp.status === 'open' || exp.status === 'in_progress')) {
+            exp.sessions.forEach(session => {
+                const sessionDate = new Date(session.startTime);
+                if (sessionDate > now) {
+                    upcomingSessions.push({
+                        ...session,
+                        experimentId: exp._id,
+                        experimentTitle: exp.title,
+                        experimentStatus: exp.status
+                    });
+                }
+            });
+        }
+    });
+
+    // Sort by start time
+    upcomingSessions.sort((a, b) => new Date(a.startTime) - new Date(b.startTime));
+
+    // Display first 3 sessions
+    if (upcomingSessions.length === 0) {
+        container.innerHTML = '<p class="text-muted"><i class="fas fa-info-circle me-2"></i>No upcoming sessions</p>';
+    } else {
+        container.innerHTML = upcomingSessions.slice(0, 3).map(session => {
+            const participantCount = session.participants ? session.participants.filter(p => p.status !== 'cancelled').length : 0;
+            return `
+                <div class="upcoming-session-card">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h5>${session.experimentTitle}</h5>
+                            <p class="mb-1"><i class="fas fa-calendar me-2"></i>${formatDate(session.startTime)}</p>
+                            <p class="mb-1"><i class="fas fa-map-marker-alt me-2"></i>${session.location}</p>
+                        </div>
+                        <div class="text-center">
+                            <div class="status-badge status-${session.experimentStatus}">${t[session.experimentStatus === 'open' ? 'open_for_recruitment' : 'in_progress']}</div>
+                            <p class="mt-2 mb-0">${participantCount}/${session.maxParticipants} <span>${t['participants'] || 'participants'}</span></p>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }).join('');
+    }
+}
+
+// Filter and Display Experiments
+function displayFilteredExperiments() {
+    const container = document.getElementById('researcher-experiments-container');
+    if (!container) return;
+
+    let filtered = allExperiments;
+
+    // Apply status filter
+    if (currentStatusFilter !== 'all') {
+        filtered = filtered.filter(exp => exp.status === currentStatusFilter);
+    }
+
+    // Apply search filter
+    const searchInput = document.getElementById('experiment-search');
+    if (searchInput && searchInput.value.trim()) {
+        const searchTerm = searchInput.value.trim().toLowerCase();
+        filtered = filtered.filter(exp =>
+            exp.title.toLowerCase().includes(searchTerm) ||
+            exp.description.toLowerCase().includes(searchTerm) ||
+            exp.location.toLowerCase().includes(searchTerm)
+        );
+    }
+
+    // Display results
+    if (filtered.length === 0) {
+        container.innerHTML = `
+            <div class="empty-state">
+                <div class="empty-state-icon">🔍</div>
+                <p>No experiments found</p>
+            </div>
+        `;
+    } else {
+        container.innerHTML = filtered.map(exp => renderExperimentCard(exp)).join('');
+    }
+}
+
+// Filter by Status
+function filterExperimentsByStatus(status, event) {
+    currentStatusFilter = status;
+
+    // Update active tab
+    if (event) {
+        document.querySelectorAll('.tab-button').forEach(btn => {
+            btn.classList.remove('active');
+        });
+        event.target.closest('.tab-button').classList.add('active');
+    }
+
+    // Apply filter
+    displayFilteredExperiments();
+}
+
+// Search/Filter Experiments
+function filterExperiments() {
+    displayFilteredExperiments();
+}
+
+// Load Schedule View
+function loadSchedule() {
+    const container = document.getElementById('schedule-sessions-container');
+    if (!container) return;
+
+    const t = translations[currentLanguage];
+    const now = new Date();
+    const allSessions = [];
+
+    // Collect all sessions
+    allExperiments.forEach(exp => {
+        if (exp.sessions) {
+            exp.sessions.forEach(session => {
+                const sessionDate = new Date(session.startTime);
+                if (sessionDate > now) {
+                    allSessions.push({
+                        ...session,
+                        experimentId: exp._id,
+                        experimentTitle: exp.title,
+                        experimentStatus: exp.status
+                    });
+                }
+            });
+        }
+    });
+
+    // Sort by start time
+    allSessions.sort((a, b) => new Date(a.startTime) - new Date(b.startTime));
+
+    // Display all sessions
+    if (allSessions.length === 0) {
+        container.innerHTML = '<p class="text-muted">No sessions scheduled</p>';
+    } else {
+        container.innerHTML = allSessions.map(session => {
+            const participantCount = session.participants ? session.participants.filter(p => p.status !== 'cancelled').length : 0;
+            return `
+                <div class="glass-card">
+                    <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+                        <div>
+                            <h5>${session.experimentTitle}</h5>
+                            <p class="mb-1"><i class="fas fa-calendar me-2"></i>${formatDate(session.startTime)}</p>
+                            <p class="mb-0"><i class="fas fa-map-marker-alt me-2"></i>${session.location}</p>
+                        </div>
+                        <div class="text-center">
+                            <p class="mb-2">${participantCount}/${session.maxParticipants} <span>${t['participants'] || 'participants'}</span></p>
+                            <button class="glass-button" onclick="viewParticipants('${session.experimentId}', '${session._id || session.id}')" style="padding: 8px 16px; font-size: 0.875rem;">
+                                <i class="fas fa-users me-1"></i>${t['view_participants'] || 'View Participants'}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }).join('');
+    }
+}
+
+// Export All Data
+function exportAllData() {
+    showNotification(translations[currentLanguage]['export_data_placeholder'] || 'Export functionality coming soon!', 'info');
+}
+
+// Update researcher name display
+function updateResearcherName() {
+    const nameEl = document.getElementById('researcher-name');
+    if (nameEl && currentUser) {
+        nameEl.textContent = `${currentUser.firstName} ${currentUser.lastName}`;
+    }
+}
+
+// Call this when loading researcher dashboard
+function initializeResearcherDashboard() {
+    updateResearcherName();
+    loadResearcherExperiments();
 }
 
 // Experiment CRUD Functions
@@ -2257,6 +2530,70 @@ const translations = {
         'create_new_experiment': 'Create New Experiment',
         'no_experiments': 'No experiments yet. Create your first experiment to get started!',
 
+        // Navigation
+        'nav.dashboard': 'Dashboard',
+        'nav.experiments': 'Experiments',
+        'nav.schedule': 'Schedule',
+        'nav.account': 'Account',
+        'account.profile': 'Profile',
+        'account.settings': 'Settings',
+        'account.logout': 'Logout',
+
+        // Dashboard Overview
+        'dashboard.overview': 'Dashboard Overview',
+        'dashboard.activeExperiments': 'Active Experiments',
+        'dashboard.totalParticipants': 'Total Participants',
+        'dashboard.pendingApproval': 'Pending Approval',
+        'dashboard.attendanceRate': 'Attendance Rate',
+        'dashboard.upcomingSessions': 'Upcoming Sessions',
+        'dashboard.quickActions': 'Quick Actions',
+        'dashboard.recentActivity': 'Recent Activity',
+
+        // Quick Actions
+        'action.createExperiment': 'Create New Experiment',
+        'action.myExperiments': 'My Experiments',
+        'action.viewSchedule': 'View Schedule',
+        'action.exportData': 'Export Data',
+        'action.view': 'View',
+        'action.signup': 'Sign Up',
+        'action.attendance': 'Attendance',
+        'action.approve': 'Approve',
+        'action.reject': 'Reject',
+
+        // Experiments View
+        'experiments.title': 'Experiment Management',
+        'search.placeholder': 'Search experiments by title, location, or description...',
+        'tabs.allExperiments': 'All Experiments',
+        'tabs.drafts': 'Drafts',
+        'tabs.pendingApproval': 'Pending Approval',
+        'tabs.active': 'Active',
+
+        // Schedule View
+        'schedule.title': 'My Schedule',
+        'schedule.upcomingSessions': 'Upcoming Sessions',
+
+        // Roles
+        'role.researcher': 'Researcher',
+        'role.admin': 'Admin',
+        'role.participant': 'Participant',
+
+        // Status
+        'status.posted': 'Posted',
+        'status.open': 'Open',
+        'status.closed': 'Closed',
+        'status.pending': 'Pending',
+
+        // Common
+        'common.slots': 'slots',
+        'common.hoursAgo': 'hours ago',
+        'common.minutes': 'minutes',
+        'common.participants': 'participants',
+
+        // Other
+        'view_participants': 'View Participants',
+        'export_data_placeholder': 'Export functionality coming soon!',
+        'pending_review': 'Pending Review',
+
         // Subject Dashboard
         'available_experiments': 'Available Experiments',
         'available_studies': 'Available Studies',
@@ -2442,6 +2779,70 @@ const translations = {
         'researcher_dashboard': '研究人员仪表板',
         'create_new_experiment': '创建新实验',
         'no_experiments': '还没有实验。创建您的第一个实验以开始！',
+
+        // Navigation
+        'nav.dashboard': '仪表板',
+        'nav.experiments': '实验',
+        'nav.schedule': '我的日程',
+        'nav.account': '账户',
+        'account.profile': '个人资料',
+        'account.settings': '设置',
+        'account.logout': '退出登录',
+
+        // Dashboard Overview
+        'dashboard.overview': '仪表板概览',
+        'dashboard.activeExperiments': '活跃实验',
+        'dashboard.totalParticipants': '总参与者',
+        'dashboard.pendingApproval': '待审批',
+        'dashboard.attendanceRate': '出勤率',
+        'dashboard.upcomingSessions': '即将进行的会话',
+        'dashboard.quickActions': '快速操作',
+        'dashboard.recentActivity': '最近活动',
+
+        // Quick Actions
+        'action.createExperiment': '创建新实验',
+        'action.myExperiments': '我的实验',
+        'action.viewSchedule': '查看日程',
+        'action.exportData': '导出数据',
+        'action.view': '查看',
+        'action.signup': '报名',
+        'action.attendance': '出勤',
+        'action.approve': '批准',
+        'action.reject': '拒绝',
+
+        // Experiments View
+        'experiments.title': '实验管理',
+        'search.placeholder': '按标题、位置或描述搜索实验...',
+        'tabs.allExperiments': '所有实验',
+        'tabs.drafts': '草稿',
+        'tabs.pendingApproval': '待审批',
+        'tabs.active': '活跃',
+
+        // Schedule View
+        'schedule.title': '我的日程',
+        'schedule.upcomingSessions': '即将进行的会话',
+
+        // Roles
+        'role.researcher': '研究人员',
+        'role.admin': '管理员',
+        'role.participant': '参与者',
+
+        // Status
+        'status.posted': '已发布',
+        'status.open': '开放',
+        'status.closed': '已关闭',
+        'status.pending': '待审核',
+
+        // Common
+        'common.slots': '名额',
+        'common.hoursAgo': '小时前',
+        'common.minutes': '分钟',
+        'common.participants': '参与者',
+
+        // Other
+        'view_participants': '查看参与者',
+        'export_data_placeholder': '导出功能即将推出！',
+        'pending_review': '待审核',
 
         // Subject Dashboard
         'available_experiments': '可用实验',
