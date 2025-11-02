@@ -10,32 +10,83 @@
 </head>
 <body>
     <div id="app">
-        <nav class="navbar">
-            <div class="nav-container">
-                <div class="nav-brand">
-                    <h1><i class="fas fa-brain me-2"></i>HSRP</h1>
-                </div>
-                <div id="nav-menu" class="nav-menu">
-                    <a href="#" onclick="showPage('home'); return false;"><i class="fas fa-home me-1"></i>Home</a>
-                    <a href="#" id="nav-login" onclick="showPage('login'); return false;"><i class="fas fa-sign-in-alt me-1"></i>Login</a>
-                    <a href="#" id="nav-register" onclick="showPage('register'); return false;"><i class="fas fa-user-plus me-1"></i>Register</a>
-                    <a href="#" id="nav-dashboard" style="display:none;" onclick="showDashboard(); return false;"><i class="fas fa-tachometer-alt me-1"></i>Dashboard</a>
-                    <a href="#" id="nav-logout" style="display:none;" onclick="logout()"><i class="fas fa-sign-out-alt me-1"></i>Logout</a>
-                </div>
-                <div class="language-switcher" id="language-switcher">
-                    <div class="language-dropdown" id="languageDropdown">
-                        <i class="fas fa-globe"></i>
-                        <span id="currentLang">中文</span>
-                        <i class="fas fa-chevron-down"></i>
-                    </div>
-                    <div class="language-menu" id="languageMenu">
-                        <div class="language-option" data-lang="en">
-                            <i class="fas fa-flag-usa"></i>
-                            <span>English</span>
+        <!-- Navigation -->
+        <nav class="navbar navbar-expand-lg">
+            <div class="container-fluid">
+                <a class="navbar-brand" href="#" onclick="showPage('home'); return false;">
+                    <i class="fas fa-brain me-2"></i><span data-i18n="system.title">人类被试招募平台</span>
+                </a>
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+                <div class="collapse navbar-collapse" id="navbarNav">
+                    <ul class="navbar-nav me-auto" id="main-nav-items">
+                        <li class="nav-item" id="nav-home-item">
+                            <a class="nav-link" href="#" onclick="showPage('home'); return false;">
+                                <i class="fas fa-home me-1"></i><span data-i18n="nav.home">Home</span>
+                            </a>
+                        </li>
+                        <li class="nav-item" id="nav-dashboard-item" style="display:none;">
+                            <a class="nav-link" href="#" onclick="showDashboard(); return false;">
+                                <i class="fas fa-home me-1"></i><span data-i18n="nav.dashboard">仪表板</span>
+                            </a>
+                        </li>
+                        <li class="nav-item" id="nav-experiments-item" style="display:none;">
+                            <a class="nav-link" href="#" onclick="showResearcherView('experiments'); return false;">
+                                <i class="fas fa-flask me-1"></i><span data-i18n="nav.experiments">实验</span>
+                            </a>
+                        </li>
+                        <li class="nav-item" id="nav-schedule-item" style="display:none;">
+                            <a class="nav-link" href="#" onclick="showResearcherView('schedule'); return false;">
+                                <i class="fas fa-calendar me-1"></i><span data-i18n="nav.myCalendar">我的日程</span>
+                            </a>
+                        </li>
+                        <li class="nav-item dropdown" id="nav-account-dropdown" style="display:none;">
+                            <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                                <i class="fas fa-user me-1"></i><span data-i18n="nav.account">账户</span>
+                            </a>
+                            <ul class="dropdown-menu">
+                                <li><a class="dropdown-item" href="#" onclick="showResearcherView('account'); return false;"><span data-i18n="account.profile">个人资料</span></a></li>
+                                <li><a class="dropdown-item" href="#" onclick="showSettings(); return false;"><span data-i18n="account.settings">设置</span></a></li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li><a class="dropdown-item" href="#" onclick="logout(); return false;"><span data-i18n="account.logout">退出登录</span></a></li>
+                            </ul>
+                        </li>
+                    </ul>
+                    <div class="d-flex align-items-center">
+                        <!-- Auth Links (shown when not logged in) -->
+                        <div id="nav-auth-links">
+                            <a href="#" id="nav-login" class="nav-link" onclick="showPage('login'); return false;">
+                                <i class="fas fa-sign-in-alt me-1"></i><span data-i18n="login">Login</span>
+                            </a>
+                            <a href="#" id="nav-register" class="nav-link" onclick="showPage('register'); return false;">
+                                <i class="fas fa-user-plus me-1"></i><span data-i18n="register">Register</span>
+                            </a>
                         </div>
-                        <div class="language-option active" data-lang="zh">
-                            <i class="fas fa-flag"></i>
-                            <span>中文</span>
+
+                        <!-- User Info (shown when logged in) -->
+                        <div id="nav-user-info" style="display:none;" class="d-flex align-items-center">
+                            <!-- Language Switcher -->
+                            <div class="language-switcher me-3">
+                                <div class="language-dropdown" id="languageDropdown">
+                                    <i class="fas fa-globe"></i>
+                                    <span id="currentLang">中文</span>
+                                    <i class="fas fa-chevron-down"></i>
+                                </div>
+                                <div class="language-menu" id="languageMenu">
+                                    <div class="language-option active" data-lang="zh">
+                                        <i class="fas fa-flag"></i>
+                                        <span>中文</span>
+                                    </div>
+                                    <div class="language-option" data-lang="en">
+                                        <i class="fas fa-flag-usa"></i>
+                                        <span>English</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <span class="role-badge role-researcher me-3" id="nav-role-badge" data-i18n="role.researcher">研究员</span>
+                            <span class="me-3" id="nav-username">User</span>
+                            <i class="fas fa-bell"></i>
                         </div>
                     </div>
                 </div>
@@ -212,26 +263,6 @@
 
             <!-- Researcher Dashboard -->
             <div id="page-researcher-dashboard" class="page">
-                <!-- Researcher Navigation Menu -->
-                <div class="researcher-nav glass-container" style="margin-bottom: 20px; padding: 15px 25px;">
-                    <div class="d-flex align-items-center justify-content-between flex-wrap gap-3">
-                        <div class="d-flex gap-3">
-                            <button class="glass-button researcher-nav-btn active" data-view="experiments" onclick="showResearcherView('experiments')">
-                                <i class="fas fa-flask me-1"></i><span data-i18n="nav.experiments">Experiments</span>
-                            </button>
-                            <button class="glass-button researcher-nav-btn" data-view="schedule" onclick="showResearcherView('schedule')">
-                                <i class="fas fa-calendar me-1"></i><span data-i18n="nav.myCalendar">My Calendar</span>
-                            </button>
-                            <button class="glass-button researcher-nav-btn" data-view="account" onclick="showResearcherView('account')">
-                                <i class="fas fa-user me-1"></i><span data-i18n="nav.account">Account</span>
-                            </button>
-                        </div>
-                        <div>
-                            <span class="role-badge role-researcher me-2" data-i18n="role.researcher">Researcher</span>
-                            <span id="researcher-name"></span>
-                        </div>
-                    </div>
-                </div>
 
                 <!-- Dashboard View -->
                 <div id="researcher-view-dashboard" class="researcher-view">

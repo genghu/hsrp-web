@@ -107,10 +107,56 @@ function showPage(pageName) {
 }
 
 function updateNavigation(isLoggedIn) {
-    document.getElementById('nav-login').style.display = isLoggedIn ? 'none' : 'block';
-    document.getElementById('nav-register').style.display = isLoggedIn ? 'none' : 'block';
-    document.getElementById('nav-dashboard').style.display = isLoggedIn ? 'block' : 'none';
-    document.getElementById('nav-logout').style.display = isLoggedIn ? 'block' : 'none';
+    // Toggle auth links vs user info
+    const authLinks = document.getElementById('nav-auth-links');
+    const userInfo = document.getElementById('nav-user-info');
+
+    if (authLinks) authLinks.style.display = isLoggedIn ? 'none' : 'flex';
+    if (userInfo) userInfo.style.display = isLoggedIn ? 'flex' : 'none';
+
+    // Toggle navigation items based on role
+    const homeItem = document.getElementById('nav-home-item');
+    const dashboardItem = document.getElementById('nav-dashboard-item');
+    const experimentsItem = document.getElementById('nav-experiments-item');
+    const scheduleItem = document.getElementById('nav-schedule-item');
+    const accountDropdown = document.getElementById('nav-account-dropdown');
+
+    if (homeItem) homeItem.style.display = isLoggedIn ? 'none' : 'block';
+
+    if (isLoggedIn && currentUser) {
+        // Update username and role badge
+        const usernameEl = document.getElementById('nav-username');
+        const roleBadge = document.getElementById('nav-role-badge');
+
+        if (usernameEl) {
+            usernameEl.textContent = `${currentUser.firstName} ${currentUser.lastName}`;
+        }
+
+        if (roleBadge) {
+            roleBadge.className = `role-badge role-${currentUser.role} me-3`;
+            const t = translations[currentLanguage];
+            roleBadge.textContent = t[`role.${currentUser.role}`] || currentUser.role;
+        }
+
+        // Show/hide nav items based on role
+        if (currentUser.role === 'researcher') {
+            if (dashboardItem) dashboardItem.style.display = 'block';
+            if (experimentsItem) experimentsItem.style.display = 'block';
+            if (scheduleItem) scheduleItem.style.display = 'block';
+            if (accountDropdown) accountDropdown.style.display = 'block';
+        } else {
+            if (dashboardItem) dashboardItem.style.display = 'none';
+            if (experimentsItem) experimentsItem.style.display = 'none';
+            if (scheduleItem) scheduleItem.style.display = 'none';
+            if (accountDropdown) accountDropdown.style.display = 'none';
+        }
+    } else {
+        if (dashboardItem) dashboardItem.style.display = 'none';
+        if (experimentsItem) experimentsItem.style.display = 'none';
+        if (scheduleItem) scheduleItem.style.display = 'none';
+        if (accountDropdown) accountDropdown.style.display = 'none';
+    }
+
     updateFloatingButton();
 }
 
@@ -962,6 +1008,13 @@ async function handleChangePassword(event) {
         errorEl.textContent = 'An error occurred while changing password';
         errorEl.classList.add('show');
     }
+}
+
+// Settings page
+function showSettings() {
+    const t = translations[currentLanguage];
+    showNotification(t['account.settings'] || 'Settings', 'info');
+    // TODO: Implement settings page
 }
 
 // Add event listener for profile form
@@ -2643,8 +2696,12 @@ let currentLanguage = 'zh';
 
 const translations = {
     en: {
+        // System
+        'system.title': 'Human Subject Recruitment Platform',
+
         // Navigation
         'home': 'Home',
+        'nav.home': 'Home',
         'login': 'Login',
         'register': 'Register',
         'dashboard': 'Dashboard',
@@ -2912,8 +2969,12 @@ const translations = {
         'error_loading': 'Error loading experiments'
     },
     zh: {
+        // System
+        'system.title': '人类被试招募平台',
+
         // Navigation
         'home': '首页',
+        'nav.home': '首页',
         'login': '登录',
         'register': '注册',
         'dashboard': '仪表板',
