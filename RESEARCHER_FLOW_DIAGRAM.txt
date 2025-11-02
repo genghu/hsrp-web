@@ -1,0 +1,272 @@
+================================================================================
+                    RESEARCHER MODULE FLOW DIAGRAM
+================================================================================
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                         FRONTEND (Client Side)                              │
+│                     Single Page Application (SPA)                           │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+                                PUBLIC/INDEX.HTML
+                                       │
+                      ┌────────────────┼────────────────┐
+                      │                │                │
+                   Login          Register          Dashboard
+                      │                │                │
+                      └────────────────┴────────────────┘
+                                │
+                        Select Role: researcher
+                                │
+                    ┌───────────┴───────────┐
+                    │                       │
+            Enter Researcher           Regular
+            Fields (Institution,    Participant
+            Department)              Registration
+                    │                       │
+                    └───────────┬───────────┘
+                                │
+                        Login & Redirect
+                                │
+                    ┌───────────┴───────────┐
+                    │                       │
+            Researcher Dashboard    Subject Dashboard
+            (page-researcher-         (page-subject-
+             dashboard)               dashboard)
+                    │
+        ┌───────────┼───────────┬──────────────┐
+        │           │           │              │
+    [Create]   [Edit]       [Publish]     [Sessions]
+    [Experiment] [Delete]    [Withdraw]    [Manage]
+                  [Close]     [Reactivate]
+
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                        EXPERIMENT LIFECYCLE                                 │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+     CREATE (showCreateExperiment)
+            ↓
+     DRAFT ← ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ┐ (Edit/Delete allowed)
+     │ (Can edit & resubmit)      │
+     │ (Can add sessions)         │
+     ↓                            │
+PENDING_REVIEW ←─── [REJECTED] ──┘ (Edit again)
+     │ (Can withdraw)   ↑
+     │                  │ (Admin rejects)
+     ↓                  │
+  [APPROVED] ──────────┴───────────→ APPROVED
+     │ (Can delete)                    │
+     ↓                                 ↓
+  OPEN ← ─ ─ ─ ─ ─ ─ [PUBLISH] ─ ─ ─┘ (Must have sessions)
+     │ (Recruitment phase)
+     │ (Can close)
+     ↓
+IN_PROGRESS (Sessions starting)
+     │
+     ↓
+COMPLETED ← ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ┐
+     │ (Can reactivate)            │ (Can delete)
+     ↓                             │
+REACTIVATED → DRAFT ──────────────┘
+
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                      BACKEND API ENDPOINTS                                  │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+AUTHENTICATION
+  POST   /api/auth/register ───→ Create researcher account
+  POST   /api/auth/login ──────→ Login & get JWT token
+  GET    /api/auth/me ────────→ Get current user
+
+EXPERIMENTS (Researcher)
+  GET    /api/experiments ────────────→ List my experiments
+  POST   /api/experiments ───────────→ Create new experiment
+  GET    /api/experiments/:id ───────→ Get experiment details
+  PATCH  /api/experiments/:id ──────→ Update experiment
+  DELETE /api/experiments/:id ──────→ Delete experiment
+
+SESSIONS
+  POST   /api/experiments/:id/sessions ─────────→ Create session
+  PATCH  /api/experiments/:id/sessions/:sid ───→ Update session
+  DELETE /api/experiments/:id/sessions/:sid ───→ Delete session
+  
+PARTICIPANTS
+  PATCH  /api/experiments/:id/sessions/:sid/participants/:uid
+         ─────────────────────────────────────→ Update participant status
+
+IRB DOCUMENTS
+  POST   /api/experiments/:id/irb-upload ────→ Upload IRB document
+  GET    /api/experiments/:id/irb-download ──→ Download IRB document
+
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                     KEY JAVASCRIPT FUNCTIONS                                │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+NAVIGATION & INITIALIZATION
+  showPage(pageName) ─────────────→ Switch between pages
+  showDashboard() ────────────────→ Route to dashboard based on role
+  loadResearcherExperiments() ────→ Fetch & display experiments
+  updateResearcherFields() ───────→ Show/hide researcher form fields
+
+EXPERIMENT MANAGEMENT
+  showCreateExperiment() ──────────→ Open create modal
+  editExperiment(id) ──────────────→ Open edit modal
+  handleExperimentSubmit(event) ───→ Save experiment (POST or PATCH)
+  deleteExperiment(id) ────────────→ Delete experiment (DELETE)
+  publishExperiment(id) ───────────→ Publish for recruitment
+  closeExperiment(id) ─────────────→ Mark as completed
+  withdrawExperiment(id) ──────────→ Withdraw from review
+  reactivateExperiment(id) ────────→ Reactivate completed experiment
+
+SESSION MANAGEMENT
+  viewSessions(id) ────────────────→ View experiment sessions
+  showSessionModal() ──────────────→ Open session creation modal
+  handleSessionSubmit(event) ──────→ Save session
+  deleteSession(id) ───────────────→ Delete session
+
+RENDERING
+  renderExperimentCard(exp) ──────→ Generate experiment HTML
+  toggleExperimentCard(id) ───────→ Expand/collapse experiment details
+
+FILE UPLOAD
+  uploadIRBDocument(id, file) ────→ Upload IRB document
+  handleIRBFileSelect(event) ─────→ Handle file selection
+  removeIRBFile() ────────────────→ Remove selected file
+
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                     MODAL STRUCTURES                                        │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+EXPERIMENT MODAL (#experiment-modal)
+  ├─ Title field
+  ├─ Description textarea
+  ├─ Location field
+  ├─ Duration (minutes)
+  ├─ Compensation field
+  ├─ Max Participants
+  ├─ Requirements (suggested options)
+  ├─ Custom Requirements input
+  ├─ IRB Document file upload
+  ├─ Status dropdown
+  └─ Cancel/Save buttons
+
+SESSION MODAL (#session-modal)
+  ├─ Start Time (datetime-local)
+  ├─ End Time (datetime-local)
+  ├─ Location
+  ├─ Max Participants
+  ├─ Notes (optional)
+  └─ Cancel/Save buttons
+
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                     DATA MODEL RELATIONSHIPS                                │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+User (Researcher)
+  ├─ _id
+  ├─ email
+  ├─ firstName
+  ├─ lastName
+  ├─ role = "researcher"
+  ├─ institution (researcher-specific)
+  ├─ department (researcher-specific)
+  ├─ createdAt
+  └─ updatedAt
+       │
+       └─ (one-to-many)
+
+Experiment
+  ├─ _id
+  ├─ title
+  ├─ description
+  ├─ researcher ──────→ User._id
+  ├─ status
+  ├─ location
+  ├─ duration
+  ├─ compensation
+  ├─ requirements []
+  ├─ maxParticipants
+  ├─ irbDocument {}
+  ├─ adminReview {}
+  ├─ createdAt
+  ├─ updatedAt
+  └─ sessions [] ─────→ Session objects
+       │
+       └─ (one-to-many)
+
+Session
+  ├─ _id
+  ├─ experiment ──────→ Experiment._id
+  ├─ startTime
+  ├─ endTime
+  ├─ location
+  ├─ maxParticipants
+  ├─ notes
+  └─ participants []
+     └─ user ────────→ User._id
+     └─ status
+     └─ signupTime
+
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                     INTERNATIONALIZATION SUPPORT                            │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+SUPPORTED LANGUAGES:
+  ├─ English (en)
+  └─ Chinese (zh)
+
+TRANSLATION SYSTEM:
+  ├─ translations[language][key] object in app.js
+  ├─ data-i18n="key" attributes in HTML
+  ├─ applyTranslations(language) function
+  └─ Language stored in localStorage
+
+LANGUAGE-SPECIFIC BEHAVIOR:
+  ├─ Chinese: Combined name field (fullName)
+  ├─ English: Separate fields (firstName, lastName)
+  └─ Dynamic field switching on language change
+
+
+================================================================================
+                              FILE LOCATIONS
+================================================================================
+
+FRONTEND FILES:
+  /workspaces/hsrp-web/public/
+    ├─ index.html ────────── Single-page application template
+    ├─ js/
+    │  ├─ app.js ───────────── Main frontend logic (2,742 lines)
+    │  └─ api.js ───────────── API wrapper class (261 lines)
+    └─ css/
+       └─ styles.css ───────── Glass-morphism styling
+
+BACKEND FILES:
+  /workspaces/hsrp-web/src/
+    ├─ index.ts ───────────── Express server setup
+    ├─ routes/
+    │  ├─ auth.ts ────────────── Authentication endpoints
+    │  ├─ experiments.ts ──────── Experiment/session endpoints
+    │  └─ users.ts ────────────── User endpoints
+    ├─ models/
+    │  ├─ User.ts ────────────── User schema
+    │  └─ Experiment.ts ───────── Experiment schema
+    ├─ middleware/
+    │  ├─ auth.ts ────────────── JWT middleware
+    │  ├─ validation.ts ────────── Input validation
+    │  └─ upload.ts ────────────── File upload handling
+    ├─ types/
+    │  └─ index.ts ────────────── TypeScript interfaces
+    └─ utils/
+       ├─ cache.ts ───────────── Redis/cache utility
+       └─ initDatabase.ts ──────── Database initialization
+
+COMPILED OUTPUT:
+  /workspaces/hsrp-web/dist/
+    └─ (TypeScript compiled to JavaScript)
+
+================================================================================
