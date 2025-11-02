@@ -40,7 +40,7 @@ router.get('/', auth, experimentQueryValidation, async (req: AuthRequest, res: a
 
     // If user is a researcher, show only their experiments
     if (req.user?.role === UserRole.RESEARCHER) {
-      query.researcher = req.user.id;
+      query.researcher = req.user._id;
     }
 
     let experiments = await Experiment.find(query)
