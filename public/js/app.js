@@ -547,7 +547,9 @@ function showResearcherView(viewName) {
     }
 
     // Load data for the view if needed
-    if (viewName === 'experiments') {
+    if (viewName === 'dashboard') {
+        loadDashboardNotifications();
+    } else if (viewName === 'experiments') {
         displayFilteredExperiments();
     } else if (viewName === 'schedule') {
         loadSchedule();
@@ -820,6 +822,244 @@ async function exportAllData() {
     }
 }
 
+// Show Download Data Modal
+async function showDownloadDataModal() {
+    const modal = document.getElementById('download-data-modal');
+    const listContainer = document.getElementById('download-experiments-list');
+    const t = translations[currentLanguage];
+
+    modal.classList.add('show');
+    listContainer.innerHTML = '<p class="text-center"><i class="fas fa-spinner fa-spin me-2"></i>' + (t['common.loading'] || 'Loading...') + '</p>';
+
+    try {
+        const experiments = await api.getExperiments();
+
+        if (experiments.length === 0) {
+            listContainer.innerHTML = `<p class="text-muted text-center">${t['no_experiments'] || 'No experiments available'}</p>`;
+            return;
+        }
+
+        // Create checkboxes for each experiment
+        listContainer.innerHTML = experiments.map(exp => {
+            const sessionCount = exp.sessions?.length || 0;
+            const totalRegistered = exp.sessions?.reduce((sum, session) =>
+                sum + (session.participants?.filter(p => p.status !== 'cancelled').length || 0), 0) || 0;
+
+            return `
+                <div class="glass-card mb-2" style="padding: 15px;">
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" value="${exp._id}" id="exp-${exp._id}">
+                        <label class="form-check-label" for="exp-${exp._id}" style="cursor: pointer;">
+                            <strong>${exp.title}</strong>
+                            <div class="small text-muted mt-1">
+                                <i class="fas fa-calendar me-1"></i>${sessionCount} ${t['sessions'] || 'sessions'} •
+                                <i class="fas fa-users me-1"></i>${totalRegistered} ${t['participants'] || 'participants'} •
+                                <span class="badge badge-${exp.status}">${t[exp.status] || exp.status}</span>
+                            </div>
+                        </label>
+                    </div>
+                </div>
+            `;
+        }).join('');
+
+    } catch (error) {
+        listContainer.innerHTML = `<p class="text-danger text-center">${t['error_loading'] || 'Error loading experiments'}</p>`;
+    }
+}
+
+// Close Download Data Modal
+function closeDownloadDataModal() {
+    document.getElementById('download-data-modal').classList.remove('show');
+    document.getElementById('download-error').classList.remove('show');
+}
+
+// Download Selected Experiments
+async function downloadSelectedExperiments() {
+    const t = translations[currentLanguage];
+    const errorEl = document.getElementById('download-error');
+    errorEl.classList.remove('show');
+
+    // Get all checked checkboxes
+    const checkboxes = document.querySelectorAll('#download-experiments-list input[type="checkbox"]:checked');
+
+    if (checkboxes.length === 0) {
+        errorEl.textContent = t['download.selectAtLeastOne'] || 'Please select at least one experiment to download';
+        errorEl.classList.add('show');
+        return;
+    }
+
+    try {
+        // Get selected experiment IDs
+        const selectedIds = Array.from(checkboxes).map(cb => cb.value);
+
+        // Fetch all experiments
+        const allExperiments = await api.getExperiments();
+
+        // Filter to get only selected experiments
+        const selectedExperiments = allExperiments.filter(exp => selectedIds.includes(exp._id));
+
+        // Prepare detailed CSV data
+        const csvHeaders = ['Experiment Title', 'Status', 'Location', 'Duration (min)', 'Compensation', 'Max Participants', 'Sessions', 'Total Registered', 'Attended', 'No Show', 'Cancelled', 'Created Date'];
+        const csvRows = selectedExperiments.map(exp => {
+            const totalRegistered = exp.sessions?.reduce((sum, session) =>
+                sum + (session.participants?.filter(p => p.status !== 'cancelled').length || 0), 0) || 0;
+
+            const attended = exp.sessions?.reduce((sum, session) =>
+                sum + (session.participants?.filter(p => p.status === 'attended').length || 0), 0) || 0;
+
+            const noShow = exp.sessions?.reduce((sum, session) =>
+                sum + (session.participants?.filter(p => p.status === 'no_show').length || 0), 0) || 0;
+
+            const cancelled = exp.sessions?.reduce((sum, session) =>
+                sum + (session.participants?.filter(p => p.status === 'cancelled').length || 0), 0) || 0;
+
+            return [
+                `"${exp.title.replace(/"/g, '""')}"`,
+                exp.status,
+                `"${exp.location.replace(/"/g, '""')}"`,
+                exp.duration,
+                `"${exp.compensation.replace(/"/g, '""')}"`,
+                exp.maxParticipants,
+                exp.sessions?.length || 0,
+                totalRegistered,
+                attended,
+                noShow,
+                cancelled,
+                new Date(exp.createdAt).toLocaleString()
+            ].join(',');
+        });
+
+        const csvContent = [csvHeaders.join(','), ...csvRows].join('\n');
+
+        // Create and download file
+        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+        const link = document.createElement('a');
+        const url = URL.createObjectURL(blob);
+        link.setAttribute('href', url);
+        link.setAttribute('download', `selected_experiments_${new Date().toISOString().split('T')[0]}.csv`);
+        link.style.visibility = 'hidden';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+
+        showNotification(t['export_success'] || 'Data exported successfully!', 'success');
+        closeDownloadDataModal();
+    } catch (error) {
+        errorEl.textContent = t['export_error'] || 'Error exporting data';
+        errorEl.classList.add('show');
+    }
+}
+
+// Load Dashboard Notifications
+async function loadDashboardNotifications() {
+    const container = document.getElementById('dashboard-notifications-container');
+    const t = translations[currentLanguage];
+
+    try {
+        const experiments = await api.getExperiments();
+        const notifications = [];
+
+        // Check for new participants (registered in last 7 days)
+        const sevenDaysAgo = new Date();
+        sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+
+        experiments.forEach(exp => {
+            if (exp.sessions) {
+                exp.sessions.forEach(session => {
+                    if (session.participants) {
+                        session.participants.forEach(participant => {
+                            const signupDate = new Date(participant.signupTime);
+                            if (signupDate > sevenDaysAgo && participant.status !== 'cancelled') {
+                                notifications.push({
+                                    type: 'participant',
+                                    experiment: exp.title,
+                                    participantName: participant.user.firstName + ' ' + participant.user.lastName,
+                                    time: signupDate,
+                                    icon: 'user-plus',
+                                    color: 'primary'
+                                });
+                            }
+                        });
+                    }
+                });
+            }
+
+            // Check for recently approved experiments
+            if (exp.status === 'approved' || exp.status === 'open') {
+                const updatedDate = new Date(exp.updatedAt);
+                if (updatedDate > sevenDaysAgo) {
+                    notifications.push({
+                        type: 'approval',
+                        experiment: exp.title,
+                        time: updatedDate,
+                        icon: 'check-circle',
+                        color: 'success'
+                    });
+                }
+            }
+        });
+
+        // Sort by time (newest first)
+        notifications.sort((a, b) => b.time - a.time);
+
+        // Display notifications (max 5)
+        if (notifications.length === 0) {
+            container.innerHTML = `
+                <p class="text-muted text-center py-3">
+                    <i class="fas fa-bell-slash me-2"></i>${t['no_notifications'] || 'No new notifications'}
+                </p>
+            `;
+        } else {
+            container.innerHTML = notifications.slice(0, 5).map(notif => {
+                const timeAgo = getTimeAgo(notif.time);
+                if (notif.type === 'participant') {
+                    return `
+                        <div class="glass-card mb-2">
+                            <p class="mb-1">
+                                <i class="fas fa-${notif.icon} me-2 text-${notif.color}"></i>
+                                <strong>${t['notification.newParticipant'] || 'New Participant'}</strong>
+                            </p>
+                            <p class="mb-1 small">
+                                ${notif.participantName} ${t['notification.registeredFor'] || 'registered for'} "${notif.experiment}"
+                            </p>
+                            <p class="mb-0 small text-muted">${timeAgo}</p>
+                        </div>
+                    `;
+                } else {
+                    return `
+                        <div class="glass-card mb-2">
+                            <p class="mb-1">
+                                <i class="fas fa-${notif.icon} me-2 text-${notif.color}"></i>
+                                <strong>${t['notification.experimentApproved'] || 'Experiment Approved'}</strong>
+                            </p>
+                            <p class="mb-1 small">
+                                "${notif.experiment}" ${t['notification.wasApproved'] || 'has been approved'}
+                            </p>
+                            <p class="mb-0 small text-muted">${timeAgo}</p>
+                        </div>
+                    `;
+                }
+            }).join('');
+        }
+    } catch (error) {
+        container.innerHTML = `<p class="text-danger small">${t['error_loading_notifications'] || 'Error loading notifications'}</p>`;
+    }
+}
+
+// Helper function to get time ago string
+function getTimeAgo(date) {
+    const t = translations[currentLanguage];
+    const seconds = Math.floor((new Date() - date) / 1000);
+    const minutes = Math.floor(seconds / 60);
+    const hours = Math.floor(minutes / 60);
+    const days = Math.floor(hours / 24);
+
+    if (days > 0) return `${days} ${t['common.daysAgo'] || 'days ago'}`;
+    if (hours > 0) return `${hours} ${t['common.hoursAgo'] || 'hours ago'}`;
+    if (minutes > 0) return `${minutes} ${t['common.minutesAgo'] || 'minutes ago'}`;
+    return t['common.justNow'] || 'Just now';
+}
+
 // Update researcher name display
 function updateResearcherName() {
     const nameEl = document.getElementById('researcher-name');
@@ -832,7 +1072,7 @@ function updateResearcherName() {
 function initializeResearcherDashboard() {
     updateResearcherName();
     loadResearcherExperiments();
-    showResearcherView('experiments');
+    showResearcherView('dashboard');
 }
 
 // Account Page Functions
@@ -2766,7 +3006,27 @@ const translations = {
         // Messages
         'language_changed': 'Language changed to English',
         'loading': 'Loading...',
-        'error_loading': 'Error loading experiments'
+        'error_loading': 'Error loading experiments',
+        'export_success': 'Data exported successfully!',
+        'export_error': 'Error exporting data',
+        'error_loading_notifications': 'Error loading notifications',
+        'no_notifications': 'No new notifications',
+
+        // Download Actions
+        'action.downloadSpecificData': 'Download Data for Specific Experiments',
+        'action.updateAttendance': 'Update Attendance',
+        'download.selectExperiments': 'Select experiments to download their data as CSV:',
+        'download.selectAtLeastOne': 'Please select at least one experiment to download',
+        'download.download': 'Download Selected',
+
+        // Notification Messages
+        'notification.registeredFor': 'registered for',
+        'notification.wasApproved': 'has been approved',
+
+        // Common Time
+        'common.daysAgo': 'days ago',
+        'common.minutesAgo': 'minutes ago',
+        'common.justNow': 'Just now'
     },
     zh: {
         // System
@@ -3046,7 +3306,27 @@ const translations = {
         // Messages
         'language_changed': '语言已切换为中文',
         'loading': '加载中...',
-        'error_loading': '加载实验出错'
+        'error_loading': '加载实验出错',
+        'export_success': '数据导出成功！',
+        'export_error': '导出数据出错',
+        'error_loading_notifications': '加载通知出错',
+        'no_notifications': '暂无新通知',
+
+        // Download Actions
+        'action.downloadSpecificData': '下载指定实验数据',
+        'action.updateAttendance': '更新出勤情况',
+        'download.selectExperiments': '选择要下载为CSV的实验数据：',
+        'download.selectAtLeastOne': '请至少选择一个实验进行下载',
+        'download.download': '下载已选',
+
+        // Notification Messages
+        'notification.registeredFor': '已报名参加',
+        'notification.wasApproved': '已被批准',
+
+        // Common Time
+        'common.daysAgo': '天前',
+        'common.minutesAgo': '分钟前',
+        'common.justNow': '刚刚'
     }
 };
 
