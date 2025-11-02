@@ -1017,6 +1017,13 @@ function showSettings() {
     // TODO: Implement settings page
 }
 
+// Show attendance from dashboard
+function showDashboardAttendance() {
+    const t = translations[currentLanguage];
+    showNotification(t['action.updateAttendance'] || 'Update Attendance', 'info');
+    // TODO: Implement attendance tracking
+}
+
 // Add event listener for profile form
 document.addEventListener('DOMContentLoaded', () => {
     const profileForm = document.getElementById('profile-form');
@@ -2793,6 +2800,13 @@ const translations = {
         'dashboard.upcomingSessions': 'Upcoming Sessions',
         'dashboard.quickActions': 'Quick Actions',
         'dashboard.recentActivity': 'Recent Activity',
+        'dashboard.notifications': 'Notifications',
+
+        // Notifications
+        'notification.newParticipant': 'New Participant',
+        'notification.participantMessage': 'John Doe signed up for Cognitive Memory Study',
+        'notification.experimentApproved': 'Experiment Approved',
+        'notification.approvalMessage': 'Your experiment "Attention Span Study" has been approved',
 
         // Quick Actions
         'action.createExperiment': 'Create New Experiment',
@@ -3066,6 +3080,13 @@ const translations = {
         'dashboard.upcomingSessions': '即将进行的会话',
         'dashboard.quickActions': '快速操作',
         'dashboard.recentActivity': '最近活动',
+        'dashboard.notifications': '通知',
+
+        // Notifications
+        'notification.newParticipant': '新参与者',
+        'notification.participantMessage': 'John Doe 报名参加了认知记忆研究',
+        'notification.experimentApproved': '实验已批准',
+        'notification.approvalMessage': '您的实验"注意力持续时间研究"已获批准',
 
         // Quick Actions
         'action.createExperiment': '创建新实验',

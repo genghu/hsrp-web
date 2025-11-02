@@ -311,28 +311,37 @@
                         <div class="col-lg-4">
                             <!-- Quick Actions -->
                             <div class="glass-container">
-                                <h3><i class="fas fa-tasks me-2"></i><span data-i18n="dashboard.quickActions">Quick Actions</span></h3>
+                                <h3><i class="fas fa-tasks me-2"></i><span data-i18n="dashboard.quickActions">快速操作</span></h3>
                                 <div class="d-grid gap-2 mt-3">
                                     <button class="glass-button" onclick="showCreateExperiment()">
-                                        <i class="fas fa-plus me-2"></i><span data-i18n="action.createExperiment">Create New Experiment</span>
+                                        <i class="fas fa-plus me-2"></i><span data-i18n="action.createExperiment">创建新实验</span>
                                     </button>
                                     <button class="glass-button" onclick="showResearcherView('experiments')">
-                                        <i class="fas fa-list me-2"></i><span data-i18n="action.myExperiments">My Experiments</span>
+                                        <i class="fas fa-list me-2"></i><span data-i18n="action.myExperiments">我的实验</span>
                                     </button>
-                                    <button class="glass-button" onclick="showResearcherView('schedule')">
-                                        <i class="fas fa-calendar me-2"></i><span data-i18n="action.viewSchedule">View Schedule</span>
+                                    <button class="glass-button" onclick="showDashboardAttendance()">
+                                        <i class="fas fa-check-circle me-2"></i><span data-i18n="action.updateAttendance">更新出勤</span>
                                     </button>
                                     <button class="glass-button" onclick="exportAllData()">
-                                        <i class="fas fa-download me-2"></i><span data-i18n="action.exportData">Export Data</span>
+                                        <i class="fas fa-download me-2"></i><span data-i18n="action.exportData">导出数据</span>
                                     </button>
                                 </div>
                             </div>
 
-                            <!-- Recent Activity -->
+                            <!-- Notifications -->
                             <div class="glass-container mt-4">
-                                <h3><i class="fas fa-bell me-2"></i><span data-i18n="dashboard.recentActivity">Recent Activity</span></h3>
-                                <div id="recent-activity-container">
-                                    <p class="text-muted small">No recent activity</p>
+                                <h3><i class="fas fa-bell me-2"></i><span data-i18n="dashboard.notifications">通知</span></h3>
+                                <div id="dashboard-notifications-container">
+                                    <div class="glass-card">
+                                        <p class="mb-1"><strong data-i18n="notification.newParticipant">新参与者</strong></p>
+                                        <p class="mb-0 small" data-i18n="notification.participantMessage">John Doe 报名参加了认知记忆研究</p>
+                                        <p class="mb-0 small text-muted">2 <span data-i18n="common.hoursAgo">小时前</span></p>
+                                    </div>
+                                    <div class="glass-card">
+                                        <p class="mb-1"><strong data-i18n="notification.experimentApproved">实验已批准</strong></p>
+                                        <p class="mb-0 small" data-i18n="notification.approvalMessage">您的实验"注意力持续时间研究"已获批准</p>
+                                        <p class="mb-0 small text-muted">5 <span data-i18n="common.hoursAgo">小时前</span></p>
+                                    </div>
                                 </div>
                             </div>
                         </div>
