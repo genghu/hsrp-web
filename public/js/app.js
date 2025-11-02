@@ -565,6 +565,8 @@ function showResearcherView(viewName) {
         displayFilteredExperiments();
     } else if (viewName === 'schedule') {
         loadSchedule();
+    } else if (viewName === 'account') {
+        loadAccountPage();
     }
 }
 
@@ -800,6 +802,174 @@ function initializeResearcherDashboard() {
     updateResearcherName();
     loadResearcherExperiments();
 }
+
+// Account Page Functions
+function loadAccountPage() {
+    if (!currentUser) return;
+
+    const t = translations[currentLanguage];
+
+    // Populate profile information
+    document.getElementById('profile-firstName').value = currentUser.firstName || '';
+    document.getElementById('profile-lastName').value = currentUser.lastName || '';
+    document.getElementById('profile-email').value = currentUser.email || '';
+    document.getElementById('profile-institution').value = currentUser.institution || '';
+    document.getElementById('profile-department').value = currentUser.department || '';
+    document.getElementById('profile-role').value = t[`role.${currentUser.role}`] || currentUser.role || '';
+
+    // Populate statistics
+    const totalExperiments = allExperiments.length;
+    const activeSessions = allExperiments.reduce((count, exp) => {
+        if (exp.sessions) {
+            return count + exp.sessions.filter(s => new Date(s.startTime) > new Date()).length;
+        }
+        return count;
+    }, 0);
+
+    const totalParticipants = allExperiments.reduce((count, exp) => {
+        if (exp.sessions) {
+            exp.sessions.forEach(session => {
+                if (session.participants) {
+                    count += session.participants.filter(p => p.status !== 'cancelled').length;
+                }
+            });
+        }
+        return count;
+    }, 0);
+
+    document.getElementById('account-total-experiments').textContent = totalExperiments;
+    document.getElementById('account-active-sessions').textContent = activeSessions;
+    document.getElementById('account-total-participants').textContent = totalParticipants;
+
+    // Format and display creation date
+    if (currentUser.createdAt) {
+        const createdDate = new Date(currentUser.createdAt);
+        const formattedDate = createdDate.toLocaleDateString(currentLanguage === 'zh' ? 'zh-CN' : 'en-US', {
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric'
+        });
+        document.getElementById('account-created-date').textContent = formattedDate;
+    }
+}
+
+function enableEditProfile() {
+    // Make fields editable
+    document.getElementById('profile-firstName').removeAttribute('readonly');
+    document.getElementById('profile-lastName').removeAttribute('readonly');
+    document.getElementById('profile-institution').removeAttribute('readonly');
+    document.getElementById('profile-department').removeAttribute('readonly');
+
+    // Show/hide buttons
+    document.getElementById('profile-edit-section').style.display = 'block';
+    document.getElementById('profile-view-section').style.display = 'none';
+}
+
+function cancelEditProfile() {
+    // Make fields readonly again
+    document.getElementById('profile-firstName').setAttribute('readonly', true);
+    document.getElementById('profile-lastName').setAttribute('readonly', true);
+    document.getElementById('profile-institution').setAttribute('readonly', true);
+    document.getElementById('profile-department').setAttribute('readonly', true);
+
+    // Reload original values
+    loadAccountPage();
+
+    // Show/hide buttons
+    document.getElementById('profile-edit-section').style.display = 'none';
+    document.getElementById('profile-view-section').style.display = 'block';
+}
+
+async function handleProfileUpdate(event) {
+    event.preventDefault();
+
+    const updatedData = {
+        firstName: document.getElementById('profile-firstName').value,
+        lastName: document.getElementById('profile-lastName').value,
+        institution: document.getElementById('profile-institution').value,
+        department: document.getElementById('profile-department').value
+    };
+
+    try {
+        const response = await fetch('/api/auth/profile', {
+            method: 'PATCH',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${localStorage.getItem('token')}`
+            },
+            body: JSON.stringify(updatedData)
+        });
+
+        const data = await response.json();
+
+        if (response.ok && data.success) {
+            currentUser = { ...currentUser, ...updatedData };
+            updateResearcherName();
+            cancelEditProfile();
+            showNotification(translations[currentLanguage]['account.profileUpdated'] || 'Profile updated successfully!', 'success');
+        } else {
+            showNotification(data.error || 'Failed to update profile', 'error');
+        }
+    } catch (error) {
+        showNotification('An error occurred while updating profile', 'error');
+    }
+}
+
+async function handleChangePassword(event) {
+    event.preventDefault();
+
+    const currentPassword = document.getElementById('current-password').value;
+    const newPassword = document.getElementById('new-password').value;
+    const confirmPassword = document.getElementById('confirm-password').value;
+    const errorEl = document.getElementById('password-error');
+
+    // Clear previous errors
+    errorEl.textContent = '';
+    errorEl.classList.remove('show');
+
+    // Validate passwords match
+    if (newPassword !== confirmPassword) {
+        errorEl.textContent = translations[currentLanguage]['account.passwordMismatch'] || 'New passwords do not match';
+        errorEl.classList.add('show');
+        return;
+    }
+
+    try {
+        const response = await fetch('/api/auth/change-password', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${localStorage.getItem('token')}`
+            },
+            body: JSON.stringify({
+                currentPassword,
+                newPassword
+            })
+        });
+
+        const data = await response.json();
+
+        if (response.ok && data.success) {
+            // Clear form
+            document.getElementById('password-form').reset();
+            showNotification(translations[currentLanguage]['account.passwordChanged'] || 'Password changed successfully!', 'success');
+        } else {
+            errorEl.textContent = data.error || 'Failed to change password';
+            errorEl.classList.add('show');
+        }
+    } catch (error) {
+        errorEl.textContent = 'An error occurred while changing password';
+        errorEl.classList.add('show');
+    }
+}
+
+// Add event listener for profile form
+document.addEventListener('DOMContentLoaded', () => {
+    const profileForm = document.getElementById('profile-form');
+    if (profileForm) {
+        profileForm.addEventListener('submit', handleProfileUpdate);
+    }
+});
 
 // Experiment CRUD Functions
 function populateStatusOptions(currentStatus) {
@@ -2538,6 +2708,22 @@ const translations = {
         'account.profile': 'Profile',
         'account.settings': 'Settings',
         'account.logout': 'Logout',
+        'account.changePassword': 'Change Password',
+        'account.currentPassword': 'Current Password',
+        'account.newPassword': 'New Password',
+        'account.confirmPassword': 'Confirm Password',
+        'account.updatePassword': 'Update Password',
+        'account.statistics': 'Account Statistics',
+        'account.totalExperiments': 'Total Experiments',
+        'account.activeSessions': 'Active Sessions',
+        'account.memberSince': 'Member Since',
+        'account.accountStatus': 'Account Status',
+        'account.active': 'Active',
+        'account.profileUpdated': 'Profile updated successfully',
+        'account.passwordMismatch': 'New passwords do not match',
+        'account.passwordChanged': 'Password changed successfully',
+        'account.passwordError': 'Failed to change password',
+        'account.profileError': 'Failed to update profile',
 
         // Dashboard Overview
         'dashboard.overview': 'Dashboard Overview',
@@ -2559,6 +2745,8 @@ const translations = {
         'action.attendance': 'Attendance',
         'action.approve': 'Approve',
         'action.reject': 'Reject',
+        'action.saveChanges': 'Save Changes',
+        'action.editProfile': 'Edit Profile',
 
         // Experiments View
         'experiments.title': 'Experiment Management',
@@ -2788,6 +2976,22 @@ const translations = {
         'account.profile': '个人资料',
         'account.settings': '设置',
         'account.logout': '退出登录',
+        'account.changePassword': '修改密码',
+        'account.currentPassword': '当前密码',
+        'account.newPassword': '新密码',
+        'account.confirmPassword': '确认密码',
+        'account.updatePassword': '更新密码',
+        'account.statistics': '账户统计',
+        'account.totalExperiments': '实验总数',
+        'account.activeSessions': '活跃会话',
+        'account.memberSince': '注册时间',
+        'account.accountStatus': '账户状态',
+        'account.active': '活跃',
+        'account.profileUpdated': '资料更新成功',
+        'account.passwordMismatch': '新密码不匹配',
+        'account.passwordChanged': '密码修改成功',
+        'account.passwordError': '密码修改失败',
+        'account.profileError': '资料更新失败',
 
         // Dashboard Overview
         'dashboard.overview': '仪表板概览',
@@ -2809,6 +3013,8 @@ const translations = {
         'action.attendance': '出勤',
         'action.approve': '批准',
         'action.reject': '拒绝',
+        'action.saveChanges': '保存更改',
+        'action.editProfile': '编辑资料',
 
         // Experiments View
         'experiments.title': '实验管理',

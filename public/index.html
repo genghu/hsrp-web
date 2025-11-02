@@ -225,6 +225,9 @@
                             <button class="glass-button researcher-nav-btn" data-view="schedule" onclick="showResearcherView('schedule')">
                                 <i class="fas fa-calendar me-1"></i><span data-i18n="nav.schedule">Schedule</span>
                             </button>
+                            <button class="glass-button researcher-nav-btn" data-view="account" onclick="showResearcherView('account')">
+                                <i class="fas fa-user me-1"></i><span data-i18n="nav.account">Account</span>
+                            </button>
                         </div>
                         <div>
                             <span class="role-badge role-researcher me-2" data-i18n="role.researcher">Researcher</span>
@@ -351,6 +354,133 @@
                                 <h4><span data-i18n="schedule.upcomingSessions">Upcoming Sessions</span></h4>
                                 <div id="schedule-sessions-container">
                                     <p class="text-muted">No sessions scheduled</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Account/Profile View -->
+                <div id="researcher-view-account" class="researcher-view">
+                    <div class="row">
+                        <div class="col-lg-8">
+                            <!-- Profile Information -->
+                            <div class="glass-container">
+                                <h2><i class="fas fa-user-circle me-2"></i><span data-i18n="account.profile">Profile</span></h2>
+
+                                <form id="profile-form" class="mt-4">
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <div class="form-group">
+                                                <label for="profile-firstName" data-i18n="first_name">First Name</label>
+                                                <input type="text" id="profile-firstName" class="glass-input" readonly>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="form-group">
+                                                <label for="profile-lastName" data-i18n="last_name">Last Name</label>
+                                                <input type="text" id="profile-lastName" class="glass-input" readonly>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label for="profile-email" data-i18n="email">Email</label>
+                                        <input type="email" id="profile-email" class="glass-input" readonly>
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label for="profile-institution" data-i18n="institution">Institution</label>
+                                        <input type="text" id="profile-institution" class="glass-input" readonly>
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label for="profile-department" data-i18n="department">Department</label>
+                                        <input type="text" id="profile-department" class="glass-input" readonly>
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label for="profile-role" data-i18n="role">Role</label>
+                                        <input type="text" id="profile-role" class="glass-input" readonly>
+                                    </div>
+
+                                    <div id="profile-edit-section" style="display: none;">
+                                        <button type="submit" class="glass-button">
+                                            <i class="fas fa-save me-2"></i><span data-i18n="action.saveChanges">Save Changes</span>
+                                        </button>
+                                        <button type="button" class="glass-button" onclick="cancelEditProfile()">
+                                            <i class="fas fa-times me-2"></i><span data-i18n="action.cancel">Cancel</span>
+                                        </button>
+                                    </div>
+                                    <div id="profile-view-section">
+                                        <button type="button" class="glass-button" onclick="enableEditProfile()">
+                                            <i class="fas fa-edit me-2"></i><span data-i18n="action.editProfile">Edit Profile</span>
+                                        </button>
+                                    </div>
+                                </form>
+                            </div>
+
+                            <!-- Change Password -->
+                            <div class="glass-container mt-4">
+                                <h3><i class="fas fa-key me-2"></i><span data-i18n="account.changePassword">Change Password</span></h3>
+
+                                <form id="password-form" onsubmit="handleChangePassword(event)" class="mt-3">
+                                    <div class="form-group">
+                                        <label for="current-password" data-i18n="account.currentPassword">Current Password</label>
+                                        <input type="password" id="current-password" class="glass-input" required>
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label for="new-password" data-i18n="account.newPassword">New Password</label>
+                                        <input type="password" id="new-password" class="glass-input" required minlength="6">
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label for="confirm-password" data-i18n="account.confirmPassword">Confirm New Password</label>
+                                        <input type="password" id="confirm-password" class="glass-input" required minlength="6">
+                                    </div>
+
+                                    <div id="password-error" class="error-message"></div>
+
+                                    <button type="submit" class="glass-button">
+                                        <i class="fas fa-check me-2"></i><span data-i18n="account.updatePassword">Update Password</span>
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+
+                        <div class="col-lg-4">
+                            <!-- Account Statistics -->
+                            <div class="glass-container">
+                                <h3><i class="fas fa-chart-bar me-2"></i><span data-i18n="account.statistics">Account Statistics</span></h3>
+                                <div class="mt-3">
+                                    <div class="glass-card text-center">
+                                        <h4 id="account-total-experiments">0</h4>
+                                        <p data-i18n="account.totalExperiments">Total Experiments</p>
+                                    </div>
+                                    <div class="glass-card text-center">
+                                        <h4 id="account-active-sessions">0</h4>
+                                        <p data-i18n="account.activeSessions">Active Sessions</p>
+                                    </div>
+                                    <div class="glass-card text-center">
+                                        <h4 id="account-total-participants">0</h4>
+                                        <p data-i18n="account.totalParticipants">Total Participants</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Account Settings -->
+                            <div class="glass-container mt-4">
+                                <h3><i class="fas fa-cog me-2"></i><span data-i18n="account.settings">Settings</span></h3>
+                                <div class="mt-3">
+                                    <div class="glass-card">
+                                        <h6 data-i18n="account.memberSince">Member Since</h6>
+                                        <p id="account-created-date" class="mb-0">-</p>
+                                    </div>
+                                    <div class="glass-card">
+                                        <h6 data-i18n="account.accountStatus">Account Status</h6>
+                                        <p class="mb-0"><span class="status-badge status-open" data-i18n="account.active">Active</span></p>
+                                    </div>
                                 </div>
                             </div>
                         </div>
