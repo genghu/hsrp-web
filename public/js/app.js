@@ -3013,7 +3013,7 @@ const translations = {
         'no_notifications': 'No new notifications',
 
         // Download Actions
-        'action.downloadSpecificData': 'Download Data for Specific Experiments',
+        'action.downloadSpecificData': 'Export Data',
         'action.updateAttendance': 'Update Attendance',
         'download.selectExperiments': 'Select experiments to download their data as CSV:',
         'download.selectAtLeastOne': 'Please select at least one experiment to download',
@@ -3313,8 +3313,8 @@ const translations = {
         'no_notifications': '暂无新通知',
 
         // Download Actions
-        'action.downloadSpecificData': '下载指定实验数据',
-        'action.updateAttendance': '更新出勤情况',
+        'action.downloadSpecificData': '导出数据',
+        'action.updateAttendance': '更新出勤',
         'download.selectExperiments': '选择要下载为CSV的实验数据：',
         'download.selectAtLeastOne': '请至少选择一个实验进行下载',
         'download.download': '下载已选',
