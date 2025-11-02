@@ -216,14 +216,11 @@
                 <div class="researcher-nav glass-container" style="margin-bottom: 20px; padding: 15px 25px;">
                     <div class="d-flex align-items-center justify-content-between flex-wrap gap-3">
                         <div class="d-flex gap-3">
-                            <button class="glass-button researcher-nav-btn active" data-view="dashboard" onclick="showResearcherView('dashboard')">
-                                <i class="fas fa-home me-1"></i><span data-i18n="nav.dashboard">Dashboard</span>
-                            </button>
-                            <button class="glass-button researcher-nav-btn" data-view="experiments" onclick="showResearcherView('experiments')">
+                            <button class="glass-button researcher-nav-btn active" data-view="experiments" onclick="showResearcherView('experiments')">
                                 <i class="fas fa-flask me-1"></i><span data-i18n="nav.experiments">Experiments</span>
                             </button>
                             <button class="glass-button researcher-nav-btn" data-view="schedule" onclick="showResearcherView('schedule')">
-                                <i class="fas fa-calendar me-1"></i><span data-i18n="nav.schedule">Schedule</span>
+                                <i class="fas fa-calendar me-1"></i><span data-i18n="nav.myCalendar">My Calendar</span>
                             </button>
                             <button class="glass-button researcher-nav-btn" data-view="account" onclick="showResearcherView('account')">
                                 <i class="fas fa-user me-1"></i><span data-i18n="nav.account">Account</span>
@@ -237,7 +234,7 @@
                 </div>
 
                 <!-- Dashboard View -->
-                <div id="researcher-view-dashboard" class="researcher-view active">
+                <div id="researcher-view-dashboard" class="researcher-view">
                     <div class="row">
                         <div class="col-lg-8">
                             <!-- Statistics Overview -->
@@ -312,7 +309,7 @@
                 </div>
 
                 <!-- Experiments View -->
-                <div id="researcher-view-experiments" class="researcher-view">
+                <div id="researcher-view-experiments" class="researcher-view active">
                     <div class="glass-container">
                         <h2><i class="fas fa-flask me-2"></i><span data-i18n="experiments.title">Experiment Management</span></h2>
 

@@ -801,6 +801,7 @@ function updateResearcherName() {
 function initializeResearcherDashboard() {
     updateResearcherName();
     loadResearcherExperiments();
+    showResearcherView('experiments');
 }
 
 // Account Page Functions
@@ -2704,6 +2705,7 @@ const translations = {
         'nav.dashboard': 'Dashboard',
         'nav.experiments': 'Experiments',
         'nav.schedule': 'Schedule',
+        'nav.myCalendar': 'My Calendar',
         'nav.account': 'Account',
         'account.profile': 'Profile',
         'account.settings': 'Settings',
@@ -2972,6 +2974,7 @@ const translations = {
         'nav.dashboard': '仪表板',
         'nav.experiments': '实验',
         'nav.schedule': '我的日程',
+        'nav.myCalendar': '我的日程',
         'nav.account': '账户',
         'account.profile': '个人资料',
         'account.settings': '设置',
