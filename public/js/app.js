@@ -367,9 +367,24 @@ function updateNameFields() {
 }
 
 function logout() {
+    // Remove token and clear user
     localStorage.removeItem('token');
     currentUser = null;
+
+    // Clear all active states from researcher views
+    document.querySelectorAll('.researcher-view').forEach(view => {
+        view.classList.remove('active');
+    });
+
+    // Clear all active navigation states
+    document.querySelectorAll('.nav-link, .nav-menu a').forEach(link => {
+        link.classList.remove('active');
+    });
+
+    // Update navigation to logged out state
     updateNavigation(false);
+
+    // Show home page
     showPage('home');
 }
 
@@ -1269,14 +1284,44 @@ async function handleChangePassword(event) {
     }
 }
 
+// Account profile page
+function showAccountProfile() {
+    if (!currentUser) {
+        showPage('login');
+        return;
+    }
+
+    // Ensure we're on the researcher dashboard page
+    if (currentUser.role === 'researcher') {
+        showPage('researcher-dashboard');
+        // Small delay to ensure page is shown before switching view
+        setTimeout(() => {
+            showResearcherView('account');
+        }, 10);
+    }
+}
+
 // Settings page
 function showSettings() {
-    // Navigate to account page which contains settings
-    showResearcherView('account');
-    // Scroll to settings section if exists
-    const settingsSection = document.querySelector('#password-form');
-    if (settingsSection) {
-        settingsSection.scrollIntoView({ behavior: 'smooth' });
+    if (!currentUser) {
+        showPage('login');
+        return;
+    }
+
+    // Ensure we're on the researcher dashboard page
+    if (currentUser.role === 'researcher') {
+        showPage('researcher-dashboard');
+        // Small delay to ensure page is shown before switching view
+        setTimeout(() => {
+            showResearcherView('account');
+            // Scroll to settings section if exists
+            setTimeout(() => {
+                const settingsSection = document.querySelector('#password-form');
+                if (settingsSection) {
+                    settingsSection.scrollIntoView({ behavior: 'smooth' });
+                }
+            }, 100);
+        }, 10);
     }
 }
 
