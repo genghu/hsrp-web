@@ -7,11 +7,11 @@
 body {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif, 'Microsoft YaHei', '微软雅黑', sans-serif;
     min-height: 100vh;
-    /* Vibrant professional liquid palette: deep blues, teals, and purples */
-    background: linear-gradient(-45deg, #0f172a, #1e3a8a, #0e7490, #7c3aed, #1e40af, #0891b2);
+    /* Desaturated professional palette: muted blues, greys, and soft purples */
+    background: linear-gradient(-45deg, #1e293b, #334155, #475569, #64748b, #475569, #334155);
     background-size: 400% 400%;
     animation: gradientFlow 30s ease infinite;
-    color: #f8fafc;
+    color: #f1f5f9;
     overflow-x: hidden;
     text-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
 }
@@ -48,8 +48,8 @@ body {
     height: 200%;
     background: linear-gradient(45deg,
         transparent,
-        rgba(96, 165, 250, 0.15),
-        rgba(168, 85, 247, 0.15),
+        rgba(148, 163, 184, 0.1),
+        rgba(203, 213, 225, 0.1),
         transparent);
     transform: rotate(45deg);
     transition: all 0.8s cubic-bezier(0.34, 1.56, 0.64, 1);
@@ -69,16 +69,16 @@ body {
 
 .glass-container:hover {
     transform: translateY(-10px) scale(1.02);
-    box-shadow: 0 20px 60px 0 rgba(59, 130, 246, 0.5),
-                0 0 40px rgba(168, 85, 247, 0.3),
+    box-shadow: 0 20px 60px 0 rgba(100, 116, 139, 0.4),
+                0 0 40px rgba(148, 163, 184, 0.2),
                 inset 0 1px 0 0 rgba(255, 255, 255, 0.2);
-    border-color: rgba(96, 165, 250, 0.6);
+    border-color: rgba(148, 163, 184, 0.5);
 }
 
 .glass-button {
-    background: linear-gradient(135deg, rgba(59, 130, 246, 0.8), rgba(147, 51, 234, 0.8));
-    backdrop-filter: blur(10px) saturate(180%);
-    border: 1px solid rgba(255, 255, 255, 0.3);
+    background: linear-gradient(135deg, rgba(100, 116, 139, 0.7), rgba(148, 163, 184, 0.7));
+    backdrop-filter: blur(10px) saturate(120%);
+    border: 1px solid rgba(255, 255, 255, 0.25);
     color: #ffffff;
     padding: 12px 28px;
     border-radius: 50px;
@@ -88,7 +88,7 @@ body {
     position: relative;
     overflow: hidden;
     text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
-    box-shadow: 0 4px 15px rgba(59, 130, 246, 0.4);
+    box-shadow: 0 4px 15px rgba(71, 85, 105, 0.3);
 }
 
 .glass-button::before {
@@ -112,10 +112,10 @@ body {
 
 .glass-button:hover {
     transform: translateY(-4px) scale(1.05);
-    box-shadow: 0 8px 30px rgba(59, 130, 246, 0.6),
-                0 0 40px rgba(168, 85, 247, 0.4);
-    border-color: rgba(255, 255, 255, 0.5);
-    background: linear-gradient(135deg, rgba(59, 130, 246, 1), rgba(147, 51, 234, 1));
+    box-shadow: 0 8px 30px rgba(100, 116, 139, 0.5),
+                0 0 40px rgba(148, 163, 184, 0.3);
+    border-color: rgba(255, 255, 255, 0.4);
+    background: linear-gradient(135deg, rgba(100, 116, 139, 0.9), rgba(148, 163, 184, 0.9));
 }
 
 .glass-input {
@@ -136,9 +136,9 @@ body {
 .glass-input:focus {
     outline: none;
     background: rgba(255, 255, 255, 0.15);
-    border-color: rgba(96, 165, 250, 0.8);
-    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.3),
-                0 8px 20px rgba(59, 130, 246, 0.4);
+    border-color: rgba(148, 163, 184, 0.6);
+    box-shadow: 0 0 0 3px rgba(100, 116, 139, 0.2),
+                0 8px 20px rgba(100, 116, 139, 0.3);
     transform: translateY(-2px);
 }
 
@@ -158,15 +158,15 @@ body {
 .glass-card:hover {
     background: rgba(255, 255, 255, 0.12);
     transform: translateX(10px) scale(1.02);
-    box-shadow: 0 8px 30px rgba(59, 130, 246, 0.4),
-                0 0 20px rgba(168, 85, 247, 0.3);
-    border-color: rgba(96, 165, 250, 0.5);
+    box-shadow: 0 8px 30px rgba(100, 116, 139, 0.3),
+                0 0 20px rgba(148, 163, 184, 0.2);
+    border-color: rgba(148, 163, 184, 0.4);
 }
 
 .navbar {
-    background: rgba(15, 23, 42, 0.8);
-    backdrop-filter: blur(20px) saturate(180%);
-    border-bottom: 1px solid rgba(96, 165, 250, 0.3);
+    background: rgba(30, 41, 59, 0.85);
+    backdrop-filter: blur(20px) saturate(120%);
+    border-bottom: 1px solid rgba(148, 163, 184, 0.25);
     padding: 15px 30px;
     position: relative;
     z-index: 1000;
@@ -176,15 +176,15 @@ body {
 .navbar-brand {
     font-size: 1.6rem;
     font-weight: bold;
-    background: linear-gradient(135deg, #60a5fa, #a78bfa, #c084fc);
+    background: linear-gradient(135deg, #94a3b8, #cbd5e1, #e2e8f0);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
-    filter: drop-shadow(0 2px 4px rgba(96, 165, 250, 0.5));
+    filter: drop-shadow(0 2px 4px rgba(148, 163, 184, 0.4));
 }
 
 .nav-link {
-    color: #e0e7ff !important;
+    color: #cbd5e1 !important;
     margin: 0 12px;
     transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
     position: relative;
@@ -197,11 +197,11 @@ body {
     left: 50%;
     width: 0;
     height: 3px;
-    background: linear-gradient(90deg, #3b82f6, #a855f7);
+    background: linear-gradient(90deg, #94a3b8, #cbd5e1);
     transform: translateX(-50%);
     transition: width 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
     border-radius: 2px;
-    box-shadow: 0 0 10px rgba(59, 130, 246, 0.6);
+    box-shadow: 0 0 10px rgba(148, 163, 184, 0.4);
 }
 
 .nav-link:hover::after {
@@ -214,19 +214,19 @@ body {
 }
 
 .dropdown-menu {
-    background: rgba(15, 23, 42, 0.95) !important;
-    backdrop-filter: blur(20px) saturate(180%) !important;
-    -webkit-backdrop-filter: blur(20px) saturate(180%) !important;
-    border: 1px solid rgba(96, 165, 250, 0.3) !important;
+    background: rgba(30, 41, 59, 0.95) !important;
+    backdrop-filter: blur(20px) saturate(120%) !important;
+    -webkit-backdrop-filter: blur(20px) saturate(120%) !important;
+    border: 1px solid rgba(148, 163, 184, 0.25) !important;
     border-radius: 16px !important;
     box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4),
-                0 0 30px rgba(59, 130, 246, 0.3) !important;
+                0 0 30px rgba(100, 116, 139, 0.2) !important;
     z-index: 1050 !important;
     margin-top: 10px !important;
 }
 
 .dropdown-item {
-    color: #e0e7ff !important;
+    color: #cbd5e1 !important;
     transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) !important;
     padding: 12px 20px !important;
     border-radius: 10px !important;
@@ -234,13 +234,13 @@ body {
 }
 
 .dropdown-item:hover {
-    background: linear-gradient(135deg, rgba(59, 130, 246, 0.3), rgba(168, 85, 247, 0.3)) !important;
+    background: linear-gradient(135deg, rgba(100, 116, 139, 0.3), rgba(148, 163, 184, 0.3)) !important;
     color: #ffffff !important;
     transform: translateX(8px);
 }
 
 .dropdown-divider {
-    border-color: rgba(96, 165, 250, 0.2) !important;
+    border-color: rgba(148, 163, 184, 0.2) !important;
 }
 
 .status-badge {
@@ -254,35 +254,35 @@ body {
 }
 
 .status-open {
-    background: linear-gradient(135deg, rgba(34, 197, 94, 0.8), rgba(16, 185, 129, 0.8));
-    border-color: rgba(34, 197, 94, 0.8);
+    background: linear-gradient(135deg, rgba(74, 222, 128, 0.6), rgba(34, 197, 94, 0.6));
+    border-color: rgba(74, 222, 128, 0.6);
     color: #ffffff;
     text-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
-    box-shadow: 0 4px 15px rgba(34, 197, 94, 0.3);
+    box-shadow: 0 4px 15px rgba(74, 222, 128, 0.2);
 }
 
 .status-pending {
-    background: linear-gradient(135deg, rgba(251, 191, 36, 0.8), rgba(245, 158, 11, 0.8));
-    border-color: rgba(251, 191, 36, 0.8);
+    background: linear-gradient(135deg, rgba(250, 204, 21, 0.6), rgba(234, 179, 8, 0.6));
+    border-color: rgba(250, 204, 21, 0.6);
     color: #ffffff;
     text-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
-    box-shadow: 0 4px 15px rgba(251, 191, 36, 0.3);
+    box-shadow: 0 4px 15px rgba(250, 204, 21, 0.2);
 }
 
 .status-posted {
-    background: linear-gradient(135deg, rgba(59, 130, 246, 0.8), rgba(37, 99, 235, 0.8));
-    border-color: rgba(59, 130, 246, 0.8);
+    background: linear-gradient(135deg, rgba(125, 211, 252, 0.6), rgba(56, 189, 248, 0.6));
+    border-color: rgba(125, 211, 252, 0.6);
     color: #ffffff;
     text-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
-    box-shadow: 0 4px 15px rgba(59, 130, 246, 0.3);
+    box-shadow: 0 4px 15px rgba(125, 211, 252, 0.2);
 }
 
 .status-closed {
-    background: linear-gradient(135deg, rgba(239, 68, 68, 0.8), rgba(220, 38, 38, 0.8));
-    border-color: rgba(239, 68, 68, 0.8);
+    background: linear-gradient(135deg, rgba(248, 113, 113, 0.6), rgba(239, 68, 68, 0.6));
+    border-color: rgba(248, 113, 113, 0.6);
     color: #ffffff;
     text-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
-    box-shadow: 0 4px 15px rgba(239, 68, 68, 0.3);
+    box-shadow: 0 4px 15px rgba(248, 113, 113, 0.2);
 }
 
 .role-badge {
@@ -296,21 +296,21 @@ body {
 }
 
 .role-admin {
-    background: linear-gradient(135deg, rgba(239, 68, 68, 0.8), rgba(220, 38, 38, 0.8));
+    background: linear-gradient(135deg, rgba(248, 113, 113, 0.6), rgba(239, 68, 68, 0.6));
     color: #ffffff;
-    box-shadow: 0 4px 15px rgba(239, 68, 68, 0.3);
+    box-shadow: 0 4px 15px rgba(248, 113, 113, 0.2);
 }
 
 .role-researcher {
-    background: linear-gradient(135deg, rgba(59, 130, 246, 0.8), rgba(37, 99, 235, 0.8));
+    background: linear-gradient(135deg, rgba(125, 211, 252, 0.6), rgba(56, 189, 248, 0.6));
     color: #ffffff;
-    box-shadow: 0 4px 15px rgba(59, 130, 246, 0.3);
+    box-shadow: 0 4px 15px rgba(125, 211, 252, 0.2);
 }
 
 .role-participant {
-    background: linear-gradient(135deg, rgba(168, 85, 247, 0.8), rgba(147, 51, 234, 0.8));
+    background: linear-gradient(135deg, rgba(196, 181, 253, 0.6), rgba(167, 139, 250, 0.6));
     color: #ffffff;
-    box-shadow: 0 4px 15px rgba(168, 85, 247, 0.3);
+    box-shadow: 0 4px 15px rgba(196, 181, 253, 0.2);
 }
 
 .experiment-card {
@@ -712,7 +712,7 @@ body {
     display: block;
     margin-bottom: 0.5rem;
     font-weight: 600;
-    color: #e0e7ff;
+    color: #cbd5e1;
     text-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
 }
 
@@ -741,9 +741,9 @@ body {
 .form-group textarea:focus {
     outline: none;
     background: rgba(255, 255, 255, 0.15);
-    border-color: rgba(96, 165, 250, 0.8);
-    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.3),
-                0 8px 20px rgba(59, 130, 246, 0.4);
+    border-color: rgba(148, 163, 184, 0.6);
+    box-shadow: 0 0 0 3px rgba(100, 116, 139, 0.2),
+                0 8px 20px rgba(100, 116, 139, 0.3);
     transform: translateY(-2px);
 }
 
@@ -792,24 +792,24 @@ body {
 .hero h1 {
     font-size: 3rem;
     margin-bottom: 0.5rem;
-    background: linear-gradient(135deg, #60a5fa, #a78bfa, #c084fc);
+    background: linear-gradient(135deg, #94a3b8, #cbd5e1, #e2e8f0);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
-    filter: drop-shadow(0 4px 8px rgba(96, 165, 250, 0.5));
+    filter: drop-shadow(0 4px 8px rgba(148, 163, 184, 0.4));
     animation: pulse 3s ease-in-out infinite;
 }
 
 .hero .subtitle {
     font-size: 1.5rem;
-    color: #e0e7ff;
+    color: #cbd5e1;
     margin-bottom: 1rem;
     text-shadow: 0 2px 4px rgba(0, 0, 0, 0.4);
 }
 
 .hero p {
     font-size: 1.125rem;
-    color: #cbd5e1;
+    color: #94a3b8;
     margin-bottom: 2rem;
     text-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
 }
