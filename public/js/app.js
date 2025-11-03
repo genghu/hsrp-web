@@ -96,14 +96,14 @@ function showPage(pageName) {
 
     pageElement.classList.add('active');
 
-    // Update active state on navigation links
-    document.querySelectorAll('.nav-link, .nav-menu a').forEach(link => {
-        link.classList.remove('active');
-    });
-
-    // Add active class to the matching navigation link
+    // Update active state on navigation links - only if there's a matching nav link
     const activeLink = document.querySelector(`.nav-link[onclick*="'${pageName}'"], .nav-menu a[onclick*="'${pageName}'"]`);
     if (activeLink) {
+        // Clear all active states
+        document.querySelectorAll('.nav-link, .nav-menu a').forEach(link => {
+            link.classList.remove('active');
+        });
+        // Set active on the matching link
         activeLink.classList.add('active');
     }
 
