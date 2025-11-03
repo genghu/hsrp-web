@@ -369,6 +369,8 @@ function updateNameFields() {
 function logout() {
     // Remove token and redirect to home (full page refresh)
     localStorage.removeItem('token');
+    console.log('Token removed, redirecting...');
+    console.log('Token after removal:', localStorage.getItem('token'));
     window.location.href = '/';
 }
 
