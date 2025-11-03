@@ -7,8 +7,8 @@
 body {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif, 'Microsoft YaHei', '微软雅黑', sans-serif;
     min-height: 100vh;
-    /* Lighter liquid palette: soft pastels with flowing gradients */
-    background: linear-gradient(-45deg, #e0f2fe, #ddd6fe, #fae8ff, #fbcfe8, #fce7f3, #ddd6fe, #e0f2fe);
+    /* Professional lighter liquid palette: blues, purples, and teals */
+    background: linear-gradient(-45deg, #dbeafe, #e0e7ff, #ddd6fe, #c7d2fe, #bfdbfe, #e0e7ff, #dbeafe);
     background-size: 400% 400%;
     animation: gradientFlow 20s ease-in-out infinite;
     color: #1e293b;
@@ -179,11 +179,11 @@ body {
 .navbar-brand {
     font-size: 1.6rem;
     font-weight: bold;
-    background: linear-gradient(135deg, #6366f1, #a855f7, #ec4899);
+    background: linear-gradient(135deg, #3b82f6, #6366f1, #8b5cf6);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
-    filter: drop-shadow(0 2px 4px rgba(167, 139, 250, 0.5));
+    filter: drop-shadow(0 2px 4px rgba(99, 102, 241, 0.5));
 }
 
 .nav-link {
@@ -201,11 +201,11 @@ body {
     left: 50%;
     width: 0;
     height: 3px;
-    background: linear-gradient(90deg, #6366f1, #a855f7, #ec4899);
+    background: linear-gradient(90deg, #3b82f6, #6366f1, #8b5cf6);
     transform: translateX(-50%);
     transition: width 0.5s cubic-bezier(0.23, 1, 0.32, 1);
     border-radius: 2px;
-    box-shadow: 0 0 15px rgba(167, 139, 250, 0.6);
+    box-shadow: 0 0 15px rgba(99, 102, 241, 0.6);
 }
 
 .nav-link:hover::after {
@@ -804,11 +804,11 @@ body {
 .hero h1 {
     font-size: 3rem;
     margin-bottom: 0.5rem;
-    background: linear-gradient(135deg, #6366f1, #a855f7, #ec4899);
+    background: linear-gradient(135deg, #3b82f6, #6366f1, #8b5cf6);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
-    filter: drop-shadow(0 4px 8px rgba(167, 139, 250, 0.5));
+    filter: drop-shadow(0 4px 8px rgba(99, 102, 241, 0.5));
     animation: pulse 3s ease-in-out infinite;
 }
 
@@ -1055,9 +1055,9 @@ body {
 }
 
 .badge-confirmed {
-    background: rgba(240, 147, 251, 0.3);
-    color: #fae8ff;
-    border: 1px solid rgba(240, 147, 251, 0.5);
+    background: rgba(139, 92, 246, 0.3);
+    color: #ede9fe;
+    border: 1px solid rgba(139, 92, 246, 0.5);
     text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
 }
 
@@ -1206,12 +1206,12 @@ body {
 .nav-brand h1 {
     font-size: 1.6rem;
     font-weight: bold;
-    background: linear-gradient(135deg, #6366f1, #a855f7, #ec4899);
+    background: linear-gradient(135deg, #3b82f6, #6366f1, #8b5cf6);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
     margin: 0;
-    filter: drop-shadow(0 2px 4px rgba(167, 139, 250, 0.5));
+    filter: drop-shadow(0 2px 4px rgba(99, 102, 241, 0.5));
 }
 
 .nav-menu {
@@ -1239,10 +1239,10 @@ body {
     left: 50%;
     width: 0;
     height: 3px;
-    background: linear-gradient(90deg, #6366f1, #a855f7, #ec4899);
+    background: linear-gradient(90deg, #3b82f6, #6366f1, #8b5cf6);
     transform: translateX(-50%);
     transition: width 0.5s cubic-bezier(0.23, 1, 0.32, 1);
-    box-shadow: 0 0 15px rgba(167, 139, 250, 0.6);
+    box-shadow: 0 0 15px rgba(99, 102, 241, 0.6);
     border-radius: 2px;
 }
 
@@ -1334,7 +1334,7 @@ body {
 .stat-card h3 {
     font-size: 2.5rem;
     margin-bottom: 0.5rem;
-    background: linear-gradient(135deg, #6366f1, #a855f7, #ec4899);
+    background: linear-gradient(135deg, #3b82f6, #6366f1, #8b5cf6);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
