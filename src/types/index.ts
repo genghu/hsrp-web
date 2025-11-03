@@ -5,6 +5,13 @@ export enum UserRole {
   ADMIN = 'admin'
 }
 
+// User account status enum
+export enum AccountStatus {
+  ACTIVE = 'active',
+  CANCELLED = 'cancelled',
+  SUSPENDED = 'suspended'
+}
+
 // User interface
 export interface IUser {
   email: string;
@@ -16,6 +23,8 @@ export interface IUser {
   department?: string;
   wechatId?: string;
   qqId?: string;
+  accountStatus: AccountStatus;
+  cancelledAt?: Date;
   createdAt: Date;
   updatedAt: Date;
 }

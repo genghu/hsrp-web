@@ -2,7 +2,7 @@ import express from 'express';
 import { User } from '../models/User';
 import { auth } from '../middleware/auth';
 import jwt from 'jsonwebtoken';
-import { LoginCredentials, AuthResponse, UserRole } from '../types';
+import { LoginCredentials, AuthResponse, UserRole, AccountStatus } from '../types';
 import { registerValidation, loginValidation } from '../middleware/validation';
 import crypto from 'crypto';
 import { QRCodeState, setQRState, getQRState, deleteQRState } from '../utils/cache';
@@ -87,6 +87,14 @@ router.post('/login', loginValidation, async (req: any, res: any) => {
       return res.status(401).json({
         success: false,
         error: 'Invalid credentials'
+      });
+    }
+
+    // Check if account is active
+    if (user.accountStatus !== AccountStatus.ACTIVE) {
+      return res.status(403).json({
+        success: false,
+        error: 'Your account has been cancelled or suspended. Please contact support.'
       });
     }
 

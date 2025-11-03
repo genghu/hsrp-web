@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
-import { IUser } from '../types';
+import { IUser, AccountStatus } from '../types';
 import { User } from '../models/User';
 import { getCachedUser, cacheUser } from '../utils/cache';
 
@@ -32,6 +32,14 @@ export const auth = async (req: AuthRequest, res: Response, next: NextFunction) 
 
       // Cache the user for 5 minutes
       await cacheUser(decoded.id, user, 300);
+    }
+
+    // Check if account is active
+    if (user.accountStatus !== AccountStatus.ACTIVE) {
+      return res.status(403).json({
+        success: false,
+        error: 'Account is not active. Please contact support.'
+      });
     }
 
     req.user = user;

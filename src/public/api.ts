@@ -360,6 +360,19 @@ class API {
       throw error;
     }
   }
+
+  async cancelAccount(): Promise<{ success: boolean; message: string }> {
+    try {
+      const response = await fetch('/api/users/me', {
+        method: 'DELETE',
+        headers: this.getHeaders(true)
+      });
+
+      return this.handleResponse<{ success: boolean; message: string }>(response);
+    } catch (error) {
+      throw error;
+    }
+  }
 }
 
 // Export a singleton instance

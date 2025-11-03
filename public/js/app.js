@@ -350,6 +350,38 @@ function logout() {
     showPage('home');
 }
 
+// Account cancellation
+async function confirmCancelAccount() {
+    const t = translations[currentLanguage];
+    const confirmMessage = t['account.cancelConfirm'] || 'Are you sure you want to cancel your account? This action cannot be undone and you will lose access to your account.';
+
+    if (!confirm(confirmMessage)) {
+        return;
+    }
+
+    // Double confirmation
+    const doubleConfirmMessage = t['account.cancelDoubleConfirm'] || 'This is your last chance. Type "DELETE" to confirm account cancellation.';
+    const userInput = prompt(doubleConfirmMessage);
+
+    if (userInput !== 'DELETE') {
+        showNotification(t['account.cancelAborted'] || 'Account cancellation aborted.', 'info');
+        return;
+    }
+
+    try {
+        const response = await api.cancelAccount();
+        if (response.success) {
+            showNotification(t['account.cancelSuccess'] || 'Your account has been cancelled successfully. You will now be logged out.', 'success');
+            // Wait a moment for user to see the message
+            setTimeout(() => {
+                logout();
+            }, 2000);
+        }
+    } catch (error) {
+        showNotification(error.message || (t['account.cancelError'] || 'Failed to cancel account'), 'error');
+    }
+}
+
 // Researcher Dashboard Functions
 async function loadResearcherExperiments() {
     const container = document.getElementById('researcher-experiments-container');
@@ -2816,6 +2848,14 @@ const translations = {
         'account.passwordChanged': 'Password changed successfully',
         'account.passwordError': 'Failed to change password',
         'account.profileError': 'Failed to update profile',
+        'account.cancelAccount': 'Cancel Account',
+        'account.cancelWarning': 'Once you cancel your account, you will no longer be able to log in. Your data will be preserved but you won\'t have access to it.',
+        'account.cancelAccountButton': 'Cancel My Account',
+        'account.cancelConfirm': 'Are you sure you want to cancel your account? This action cannot be undone and you will lose access to your account.',
+        'account.cancelDoubleConfirm': 'This is your last chance. Type "DELETE" to confirm account cancellation.',
+        'account.cancelAborted': 'Account cancellation aborted.',
+        'account.cancelSuccess': 'Your account has been cancelled successfully. You will now be logged out.',
+        'account.cancelError': 'Failed to cancel account',
 
         // Dashboard Overview
         'dashboard.overview': 'Dashboard Overview',
@@ -3116,6 +3156,14 @@ const translations = {
         'account.passwordChanged': '密码修改成功',
         'account.passwordError': '密码修改失败',
         'account.profileError': '资料更新失败',
+        'account.cancelAccount': '注销账户',
+        'account.cancelWarning': '一旦注销账户，您将无法再登录。您的数据将被保留，但您将无法访问它。',
+        'account.cancelAccountButton': '注销我的账户',
+        'account.cancelConfirm': '您确定要注销账户吗？此操作无法撤销，您将失去对账户的访问权限。',
+        'account.cancelDoubleConfirm': '这是您的最后机会。输入"DELETE"以确认注销账户。',
+        'account.cancelAborted': '账户注销已取消。',
+        'account.cancelSuccess': '您的账户已成功注销。您现在将被登出。',
+        'account.cancelError': '注销账户失败',
 
         // Dashboard Overview
         'dashboard.overview': '仪表板概览',

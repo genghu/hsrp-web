@@ -1,7 +1,7 @@
 import express from 'express';
 import { User } from '../models/User';
 import { auth, AuthRequest, checkRole } from '../middleware/auth';
-import { UserRole } from '../types';
+import { UserRole, AccountStatus } from '../types';
 
 const router = express.Router();
 
@@ -130,6 +130,43 @@ router.get('/subjects', auth, checkRole([UserRole.RESEARCHER, UserRole.ADMIN]), 
     res.status(500).json({
       success: false,
       error: 'Error fetching subjects'
+    });
+  }
+});
+
+// Cancel user account
+router.delete('/me', auth, async (req: AuthRequest, res) => {
+  try {
+    const user = await User.findById(req.user!._id);
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        error: 'User not found'
+      });
+    }
+
+    // Check if account is already cancelled
+    if (user.accountStatus === AccountStatus.CANCELLED) {
+      return res.status(400).json({
+        success: false,
+        error: 'Account is already cancelled'
+      });
+    }
+
+    // Update account status to cancelled
+    user.accountStatus = AccountStatus.CANCELLED;
+    user.cancelledAt = new Date();
+    await user.save();
+
+    res.json({
+      success: true,
+      message: 'Account cancelled successfully'
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      error: 'Error cancelling account'
     });
   }
 });

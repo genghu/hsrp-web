@@ -314,6 +314,20 @@ class API {
             }
         });
     }
+    cancelAccount() {
+        return __awaiter(this, void 0, void 0, function* () {
+            try {
+                const response = yield fetch('/api/users/me', {
+                    method: 'DELETE',
+                    headers: this.getHeaders(true)
+                });
+                return this.handleResponse(response);
+            }
+            catch (error) {
+                throw error;
+            }
+        });
+    }
 }
 // Export a singleton instance
 const api = new API();

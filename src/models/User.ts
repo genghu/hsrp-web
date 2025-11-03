@@ -1,5 +1,5 @@
 import mongoose, { Schema, Document } from 'mongoose';
-import { IUser, UserRole } from '../types';
+import { IUser, UserRole, AccountStatus } from '../types';
 import bcrypt from 'bcryptjs';
 import { getFullName, formatName } from '../utils/nameUtils';
 
@@ -54,6 +54,14 @@ const userSchema = new Schema({
     type: String,
     sparse: true,
     unique: true
+  },
+  accountStatus: {
+    type: String,
+    enum: Object.values(AccountStatus),
+    default: AccountStatus.ACTIVE
+  },
+  cancelledAt: {
+    type: Date
   }
 }, {
   timestamps: true
