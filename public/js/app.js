@@ -68,10 +68,13 @@ async function initializeApp() {
             return;
         } catch (error) {
             console.error('Error checking auth:', error);
+            // If token is invalid, clear it
+            localStorage.removeItem('token');
         }
     }
 
-    // Show home page by default
+    // Show home page with logged-out navigation
+    updateNavigation(false);
     showPage('home');
 }
 
