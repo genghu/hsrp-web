@@ -215,6 +215,14 @@ body {
     transform: translateY(-2px);
 }
 
+.nav-link.active::after {
+    width: 90%;
+}
+
+.nav-link.active {
+    color: #ffffff !important;
+}
+
 .dropdown-menu {
     background: rgba(15, 23, 42, 0.85) !important;
     backdrop-filter: blur(16px) saturate(110%) !important;
@@ -1245,6 +1253,14 @@ body {
 .nav-menu a:hover {
     color: white;
     transform: translateY(-2px);
+}
+
+.nav-menu a.active::after {
+    width: 80%;
+}
+
+.nav-menu a.active {
+    color: white;
 }
 
 /* Modal adjustments */

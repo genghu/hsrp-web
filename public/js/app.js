@@ -95,6 +95,18 @@ function showPage(pageName) {
     });
 
     pageElement.classList.add('active');
+
+    // Update active state on navigation links
+    document.querySelectorAll('.nav-link, .nav-menu a').forEach(link => {
+        link.classList.remove('active');
+    });
+
+    // Add active class to the matching navigation link
+    const activeLink = document.querySelector(`.nav-link[onclick*="'${pageName}'"], .nav-menu a[onclick*="'${pageName}'"]`);
+    if (activeLink) {
+        activeLink.classList.add('active');
+    }
+
     console.log(`Switched to page: ${pageName}`);
 }
 
