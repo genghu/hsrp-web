@@ -170,6 +170,17 @@ function showDashboard() {
         return;
     }
 
+    // Update active state on navigation links
+    document.querySelectorAll('.nav-link').forEach(link => {
+        link.classList.remove('active');
+    });
+
+    // Add active class to the Dashboard navigation link
+    const dashboardLink = document.querySelector(`.nav-link[onclick*="showDashboard()"]`);
+    if (dashboardLink) {
+        dashboardLink.classList.add('active');
+    }
+
     if (currentUser.role === 'researcher') {
         showPage('researcher-dashboard');
         initializeResearcherDashboard();
@@ -588,6 +599,17 @@ function showResearcherView(viewName) {
     const selectedView = document.getElementById(`researcher-view-${viewName}`);
     if (selectedView) {
         selectedView.classList.add('active');
+    }
+
+    // Update active state on navigation links
+    document.querySelectorAll('.nav-link').forEach(link => {
+        link.classList.remove('active');
+    });
+
+    // Add active class to the matching navigation link
+    const activeLink = document.querySelector(`.nav-link[onclick*="showResearcherView('${viewName}')"]`);
+    if (activeLink) {
+        activeLink.classList.add('active');
     }
 
     // Load data for the view if needed
