@@ -11,9 +11,9 @@ body {
     background: linear-gradient(-45deg, #dbeafe, #e0e7ff, #ddd6fe, #c7d2fe, #bfdbfe, #e0e7ff, #dbeafe);
     background-size: 400% 400%;
     animation: gradientFlow 20s ease-in-out infinite;
-    color: #1e293b;
+    color: #0f172a;
     overflow-x: hidden;
-    text-shadow: 0 1px 2px rgba(255, 255, 255, 0.5);
+    text-shadow: none;
 }
 
 @keyframes gradientFlow {
@@ -82,15 +82,15 @@ body {
     background: linear-gradient(135deg, rgba(191, 219, 254, 0.8), rgba(167, 139, 250, 0.8));
     backdrop-filter: blur(15px) saturate(140%);
     border: 2px solid rgba(255, 255, 255, 0.9);
-    color: #1e293b;
+    color: #0f172a;
     padding: 12px 28px;
     border-radius: 50px;
     cursor: pointer;
     transition: all 0.5s cubic-bezier(0.23, 1, 0.32, 1);
-    font-weight: 600;
+    font-weight: 700;
     position: relative;
     overflow: hidden;
-    text-shadow: 0 1px 2px rgba(255, 255, 255, 0.8);
+    text-shadow: none;
     box-shadow: 0 6px 20px rgba(167, 139, 250, 0.3);
 }
 
@@ -126,14 +126,14 @@ body {
     border: 2px solid rgba(255, 255, 255, 0.9);
     border-radius: 18px;
     padding: 12px 18px;
-    color: #1e293b;
+    color: #0f172a;
     width: 100%;
     transition: all 0.5s cubic-bezier(0.23, 1, 0.32, 1);
     backdrop-filter: blur(15px);
 }
 
 .glass-input::placeholder {
-    color: rgba(30, 41, 59, 0.5);
+    color: rgba(15, 23, 42, 0.5);
 }
 
 .glass-input:focus {
@@ -187,11 +187,11 @@ body {
 }
 
 .nav-link {
-    color: #6366f1 !important;
+    color: #1e40af !important;
     margin: 0 12px;
     transition: all 0.5s cubic-bezier(0.23, 1, 0.32, 1);
     position: relative;
-    font-weight: 500;
+    font-weight: 600;
 }
 
 .nav-link::after {
@@ -213,7 +213,7 @@ body {
 }
 
 .nav-link:hover {
-    color: #a855f7 !important;
+    color: #4338ca !important;
     transform: translateY(-3px);
 }
 
@@ -230,17 +230,17 @@ body {
 }
 
 .dropdown-item {
-    color: #6366f1 !important;
+    color: #1e40af !important;
     transition: all 0.5s cubic-bezier(0.23, 1, 0.32, 1) !important;
     padding: 12px 20px !important;
     border-radius: 12px !important;
     margin: 4px 8px !important;
-    font-weight: 500;
+    font-weight: 600;
 }
 
 .dropdown-item:hover {
     background: linear-gradient(135deg, rgba(191, 219, 254, 0.6), rgba(167, 139, 250, 0.6)) !important;
-    color: #a855f7 !important;
+    color: #4338ca !important;
     transform: translateX(10px) scale(1.02);
 }
 
@@ -711,8 +711,8 @@ body {
 .auth-container h2 {
     text-align: center;
     margin-bottom: 1.5rem;
-    color: #6366f1;
-    text-shadow: 0 2px 4px rgba(255, 255, 255, 0.8);
+    color: #1e40af;
+    text-shadow: none;
     font-weight: 700;
 }
 
@@ -724,8 +724,8 @@ body {
     display: block;
     margin-bottom: 0.5rem;
     font-weight: 700;
-    color: #6366f1;
-    text-shadow: 0 1px 2px rgba(255, 255, 255, 0.8);
+    color: #1e40af;
+    text-shadow: none;
 }
 
 .form-group input,
@@ -736,7 +736,7 @@ body {
     background: rgba(255, 255, 255, 0.7);
     border: 2px solid rgba(255, 255, 255, 0.9);
     border-radius: 18px;
-    color: #1e293b;
+    color: #0f172a;
     font-size: 1rem;
     font-family: inherit;
     transition: all 0.5s cubic-bezier(0.23, 1, 0.32, 1);
@@ -745,7 +745,7 @@ body {
 
 .form-group input::placeholder,
 .form-group textarea::placeholder {
-    color: rgba(30, 41, 59, 0.5);
+    color: rgba(15, 23, 42, 0.5);
 }
 
 .form-group input:focus,
@@ -814,17 +814,18 @@ body {
 
 .hero .subtitle {
     font-size: 1.5rem;
-    color: #6366f1;
+    color: #1e40af;
     margin-bottom: 1rem;
-    text-shadow: 0 2px 4px rgba(255, 255, 255, 0.8);
-    font-weight: 600;
+    text-shadow: none;
+    font-weight: 700;
 }
 
 .hero p {
     font-size: 1.125rem;
-    color: #4c1d95;
+    color: #1e293b;
     margin-bottom: 2rem;
-    text-shadow: 0 1px 2px rgba(255, 255, 255, 0.8);
+    text-shadow: none;
+    font-weight: 500;
 }
 
 .hero-buttons {
@@ -859,14 +860,15 @@ body {
 
 .feature h3 {
     margin-bottom: 0.75rem;
-    color: #6366f1;
-    text-shadow: 0 1px 2px rgba(255, 255, 255, 0.8);
+    color: #1e40af;
+    text-shadow: none;
     font-weight: 700;
 }
 
 .feature p {
-    color: #4c1d95;
-    text-shadow: 0 1px 2px rgba(255, 255, 255, 0.5);
+    color: #1e293b;
+    text-shadow: none;
+    font-weight: 500;
 }
 
 /* Button styles */
@@ -950,9 +952,9 @@ body {
 }
 
 .card-title {
-    color: #6366f1;
+    color: #1e40af;
     margin: 0 0 0.5rem 0;
-    text-shadow: 0 1px 2px rgba(255, 255, 255, 0.8);
+    text-shadow: none;
     font-weight: 700;
 }
 
@@ -964,17 +966,17 @@ body {
 
 .session-time {
     font-weight: 700;
-    color: #a855f7;
+    color: #4338ca;
     display: block;
     margin-bottom: 0.5rem;
-    text-shadow: 0 1px 2px rgba(255, 255, 255, 0.8);
+    text-shadow: none;
 }
 
 .session-info {
-    color: #4c1d95;
+    color: #1e293b;
     font-size: 0.9rem;
     margin: 0.25rem 0;
-    text-shadow: 0 1px 2px rgba(255, 255, 255, 0.5);
+    text-shadow: none;
 }
 
 .sessions-container {
@@ -1092,7 +1094,7 @@ body {
 .empty-state {
     text-align: center;
     padding: 3rem 2rem;
-    color: #6366f1;
+    color: #1e40af;
     font-weight: 600;
 }
 
@@ -1223,7 +1225,7 @@ body {
 }
 
 .nav-menu a {
-    color: #6366f1;
+    color: #1e40af;
     text-decoration: none;
     font-weight: 600;
     transition: all 0.5s cubic-bezier(0.23, 1, 0.32, 1);
@@ -1251,7 +1253,7 @@ body {
 }
 
 .nav-menu a:hover {
-    color: #a855f7;
+    color: #4338ca;
     transform: translateY(-3px);
 }
 
@@ -1303,8 +1305,8 @@ body {
 }
 
 .dashboard-header h2 {
-    color: #6366f1;
-    text-shadow: 0 2px 4px rgba(255, 255, 255, 0.8);
+    color: #1e40af;
+    text-shadow: none;
     font-weight: 700;
 }
 
@@ -1342,7 +1344,7 @@ body {
 }
 
 .stat-card p {
-    color: #4c1d95;
+    color: #1e293b;
     font-size: 0.95rem;
     font-weight: 600;
 }
@@ -1630,7 +1632,7 @@ body {
 
 /* Text Muted */
 .text-muted {
-    color: rgba(99, 102, 241, 0.7);
+    color: rgba(30, 41, 59, 0.7);
 }
 
 /* Tabs Styling */
