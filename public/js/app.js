@@ -367,25 +367,9 @@ function updateNameFields() {
 }
 
 function logout() {
-    // Remove token and clear user
+    // Remove token and redirect to home (full page refresh)
     localStorage.removeItem('token');
-    currentUser = null;
-
-    // Clear all active states from researcher views
-    document.querySelectorAll('.researcher-view').forEach(view => {
-        view.classList.remove('active');
-    });
-
-    // Clear all active navigation states
-    document.querySelectorAll('.nav-link, .nav-menu a').forEach(link => {
-        link.classList.remove('active');
-    });
-
-    // Update navigation to logged out state
-    updateNavigation(false);
-
-    // Show home page
-    showPage('home');
+    window.location.href = '/';
 }
 
 // Account cancellation

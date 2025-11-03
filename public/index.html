@@ -48,6 +48,25 @@
                         </li>
                     </ul>
                     <div class="d-flex align-items-center">
+                        <!-- Language Switcher - always visible -->
+                        <div class="language-switcher me-3">
+                            <div class="language-dropdown" id="languageDropdown">
+                                <i class="fas fa-globe"></i>
+                                <span id="currentLang">中文</span>
+                                <i class="fas fa-chevron-down"></i>
+                            </div>
+                            <div class="language-menu" id="languageMenu">
+                                <div class="language-option active" data-lang="zh">
+                                    <i class="fas fa-flag"></i>
+                                    <span>中文</span>
+                                </div>
+                                <div class="language-option" data-lang="en">
+                                    <i class="fas fa-flag-usa"></i>
+                                    <span>English</span>
+                                </div>
+                            </div>
+                        </div>
+
                         <!-- Auth Links (shown when not logged in) -->
                         <div id="nav-auth-links">
                             <a href="#" id="nav-login" class="nav-link" onclick="showPage('login'); return false;">
@@ -60,24 +79,6 @@
 
                         <!-- User Info (shown when logged in) -->
                         <div id="nav-user-info" style="display:none;" class="d-flex align-items-center">
-                            <!-- Language Switcher -->
-                            <div class="language-switcher me-3">
-                                <div class="language-dropdown" id="languageDropdown">
-                                    <i class="fas fa-globe"></i>
-                                    <span id="currentLang">中文</span>
-                                    <i class="fas fa-chevron-down"></i>
-                                </div>
-                                <div class="language-menu" id="languageMenu">
-                                    <div class="language-option active" data-lang="zh">
-                                        <i class="fas fa-flag"></i>
-                                        <span>中文</span>
-                                    </div>
-                                    <div class="language-option" data-lang="en">
-                                        <i class="fas fa-flag-usa"></i>
-                                        <span>English</span>
-                                    </div>
-                                </div>
-                            </div>
                             <span class="role-badge role-researcher me-3" id="nav-role-badge" data-i18n="role.researcher">研究员</span>
 
                             <!-- User Dropdown with Account Functions -->
