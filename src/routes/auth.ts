@@ -1,4 +1,5 @@
 import express from 'express';
+import axios from 'axios';
 import { User } from '../models/User';
 import { auth, AuthRequest } from '../middleware/auth';
 import { Request, Response } from 'express';
@@ -8,6 +9,8 @@ import { LoginCredentials, AuthResponse, UserRole, AccountStatus } from '../type
 import { registerValidation, loginValidation } from '../middleware/validation';
 import crypto from 'crypto';
 import { setQRState, getQRState, deleteQRState } from '../utils/cache';
+import { sanitizeUser } from '../utils/sanitizeUser';
+import { getWechatConfig, getQQConfig } from '../config/oauth';
 
 const router = express.Router();
 
@@ -49,8 +52,7 @@ router.post('/register', registerValidation, async (req: Request, res: Response)
     );
 
     // Remove password from response
-    const userResponse: any = user.toObject();
-    delete userResponse.password;
+    const userResponse = sanitizeUser(user);
 
     const response: AuthResponse = {
       success: true,
@@ -110,8 +112,7 @@ router.post('/login', loginValidation, loginRateLimiter, async (req: Request, re
     );
 
     // Remove password from response
-    const userResponse: any = user.toObject();
-    delete userResponse.password;
+    const userResponse = sanitizeUser(user);
 
     const response: AuthResponse = {
       success: true,
@@ -186,20 +187,18 @@ router.get('/wechat/qr', async (req: Request, res: Response) => {
     // Generate a unique ticket
     const ticket = crypto.randomBytes(32).toString('hex');
 
-    // TODO: Integrate with WeChat Open Platform
-    // 1. Get WeChat App ID and App Secret from environment variables
-    // 2. Call WeChat API to generate QR code: https://developers.weixin.qq.com/doc/oplatform/Website_App/WeChat_Login/Wechat_Login.html
-    // 3. Use the returned code to construct QR code URL
-    //
-    // Example WeChat OAuth URL:
-    // const wechatAppId = process.env.WECHAT_APP_ID;
-    // const redirectUri = encodeURIComponent(`${process.env.APP_URL}/api/auth/wechat/callback`);
-    // const state = ticket;
-    // const qrUrl = `https://open.weixin.qq.com/connect/qrconnect?appid=${wechatAppId}&redirect_uri=${redirectUri}&response_type=code&scope=snsapi_login&state=${state}#wechat_redirect`;
-    // const qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=240x240&data=${encodeURIComponent(qrUrl)}`;
+    const wechatConfig = getWechatConfig();
 
-    // For development: Generate a placeholder QR code
-    const mockQRUrl = `https://api.qrserver.com/v1/create-qr-code/?size=240x240&data=${encodeURIComponent(`wechat-login:${ticket}`)}`;
+    let qrCodeUrl: string;
+    if (wechatConfig) {
+      const qrUrl = `https://open.weixin.qq.com/connect/qrconnect?appid=${wechatConfig.appId}&redirect_uri=${encodeURIComponent(wechatConfig.redirectUri)}&response_type=code&scope=snsapi_login&state=${ticket}#wechat_redirect`;
+      qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=240x240&data=${encodeURIComponent(qrUrl)}`;
+    } else {
+      // Dev fallback: WeChat isn't configured in this environment, so render a
+      // placeholder QR code that encodes the ticket only. This keeps local
+      // development/demo flows working without live WeChat credentials.
+      qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=240x240&data=${encodeURIComponent(`wechat-login:${ticket}`)}`;
+    }
 
     // Store QR code state in Redis/cache (PERFORMANCE OPTIMIZATION)
     await setQRState(ticket, {
@@ -213,7 +212,7 @@ router.get('/wechat/qr', async (req: Request, res: Response) => {
       success: true,
       data: {
         ticket,
-        qrCodeUrl: mockQRUrl,
+        qrCodeUrl,
         expiresIn: 300 // 5 minutes
       }
     });
@@ -291,45 +290,77 @@ router.get('/wechat/callback', async (req: Request, res: Response) => {
       });
     }
 
-    // TODO: Integrate with WeChat Open Platform
-    // 1. Exchange code for access token
-    // const tokenResponse = await axios.get('https://api.weixin.qq.com/sns/oauth2/access_token', {
-    //   params: {
-    //     appid: process.env.WECHAT_APP_ID,
-    //     secret: process.env.WECHAT_APP_SECRET,
-    //     code,
-    //     grant_type: 'authorization_code'
-    //   }
-    // });
-    //
-    // 2. Get user info from WeChat
-    // const userInfoResponse = await axios.get('https://api.weixin.qq.com/sns/userinfo', {
-    //   params: {
-    //     access_token: tokenResponse.data.access_token,
-    //     openid: tokenResponse.data.openid
-    //   }
-    // });
-    //
-    // const wechatUserInfo = userInfoResponse.data;
+    const wechatConfig = getWechatConfig();
+    if (!wechatConfig) {
+      return res.status(503).json({
+        success: false,
+        error: 'WeChat login is not configured on this server'
+      });
+    }
 
-    // For development: Mock user data
-    const mockWechatUser = {
-      openid: `wx_${Date.now()}`,
-      nickname: 'WeChat User',
-      headimgurl: ''
-    };
+    // 1. Exchange code for access token
+    let tokenData: { access_token?: string; openid?: string; errcode?: number; errmsg?: string };
+    try {
+      const tokenResponse = await axios.get('https://api.weixin.qq.com/sns/oauth2/access_token', {
+        params: {
+          appid: wechatConfig.appId,
+          secret: wechatConfig.appSecret,
+          code,
+          grant_type: 'authorization_code'
+        }
+      });
+      tokenData = tokenResponse.data;
+    } catch (err) {
+      console.error('WeChat token exchange network error:', err);
+      return res.status(502).json({ success: false, error: 'Failed to reach WeChat OAuth service' });
+    }
+
+    // WeChat returns HTTP 200 with an { errcode, errmsg } payload on failure.
+    if (!tokenData.access_token || !tokenData.openid || tokenData.errcode) {
+      console.error('WeChat token exchange error:', tokenData);
+      return res.status(502).json({
+        success: false,
+        error: `WeChat OAuth error: ${tokenData.errmsg || 'unknown error'}`
+      });
+    }
+
+    // 2. Get user info from WeChat
+    let wechatUserInfo: { openid?: string; nickname?: string; headimgurl?: string; errcode?: number; errmsg?: string };
+    try {
+      const userInfoResponse = await axios.get('https://api.weixin.qq.com/sns/userinfo', {
+        params: {
+          access_token: tokenData.access_token,
+          openid: tokenData.openid
+        }
+      });
+      wechatUserInfo = userInfoResponse.data;
+    } catch (err) {
+      console.error('WeChat userinfo network error:', err);
+      return res.status(502).json({ success: false, error: 'Failed to reach WeChat OAuth service' });
+    }
+
+    if (!wechatUserInfo.openid || wechatUserInfo.errcode) {
+      console.error('WeChat userinfo error:', wechatUserInfo);
+      return res.status(502).json({
+        success: false,
+        error: `WeChat OAuth error: ${wechatUserInfo.errmsg || 'unknown error'}`
+      });
+    }
 
     // Find or create user based on WeChat OpenID
-    let user = await User.findOne({ wechatId: mockWechatUser.openid });
+    let user = await User.findOne({ wechatId: wechatUserInfo.openid });
 
     if (!user) {
       // Create new user with WeChat info
       user = new User({
-        email: `${mockWechatUser.openid}@wechat.placeholder`, // Placeholder email
-        firstName: mockWechatUser.nickname,
-        lastName: '',
+        email: `${wechatUserInfo.openid}@wechat.placeholder`, // Placeholder email
+        // WeChat only provides a single nickname; the User schema requires both
+        // firstName and lastName (non-empty), so use the nickname as firstName
+        // and a fixed provider label as lastName.
+        firstName: wechatUserInfo.nickname || 'WeChat',
+        lastName: 'User',
         role: UserRole.SUBJECT,
-        wechatId: mockWechatUser.openid,
+        wechatId: wechatUserInfo.openid,
         password: crypto.randomBytes(32).toString('hex') // Random password for OAuth users
       });
 
@@ -344,8 +375,7 @@ router.get('/wechat/callback', async (req: Request, res: Response) => {
     );
 
     // Remove password from response
-    const userResponse: any = user.toObject();
-    delete userResponse.password;
+    const userResponse = sanitizeUser(user);
 
     // Update QR code state in cache
     const qrState = await getQRState(state as string);
@@ -384,20 +414,18 @@ router.get('/qq/qr', async (req: Request, res: Response) => {
     // Generate a unique ticket
     const ticket = crypto.randomBytes(32).toString('hex');
 
-    // TODO: Integrate with QQ Connect
-    // 1. Get QQ App ID and App Key from environment variables
-    // 2. Call QQ Connect API to generate QR code: https://wiki.connect.qq.com/
-    // 3. Use the returned code to construct QR code URL
-    //
-    // Example QQ OAuth URL:
-    // const qqAppId = process.env.QQ_APP_ID;
-    // const redirectUri = encodeURIComponent(`${process.env.APP_URL}/api/auth/qq/callback`);
-    // const state = ticket;
-    // const qrUrl = `https://graph.qq.com/oauth2.0/authorize?response_type=code&client_id=${qqAppId}&redirect_uri=${redirectUri}&state=${state}&scope=get_user_info`;
-    // const qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=240x240&data=${encodeURIComponent(qrUrl)}`;
+    const qqConfig = getQQConfig();
 
-    // For development: Generate a placeholder QR code
-    const mockQRUrl = `https://api.qrserver.com/v1/create-qr-code/?size=240x240&data=${encodeURIComponent(`qq-login:${ticket}`)}`;
+    let qrCodeUrl: string;
+    if (qqConfig) {
+      const qrUrl = `https://graph.qq.com/oauth2.0/authorize?response_type=code&client_id=${qqConfig.appId}&redirect_uri=${encodeURIComponent(qqConfig.redirectUri)}&state=${ticket}&scope=get_user_info`;
+      qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=240x240&data=${encodeURIComponent(qrUrl)}`;
+    } else {
+      // Dev fallback: QQ isn't configured in this environment, so render a
+      // placeholder QR code that encodes the ticket only. This keeps local
+      // development/demo flows working without live QQ credentials.
+      qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=240x240&data=${encodeURIComponent(`qq-login:${ticket}`)}`;
+    }
 
     // Store QR code state in Redis/cache (PERFORMANCE OPTIMIZATION)
     await setQRState(ticket, {
@@ -411,7 +439,7 @@ router.get('/qq/qr', async (req: Request, res: Response) => {
       success: true,
       data: {
         ticket,
-        qrCodeUrl: mockQRUrl,
+        qrCodeUrl,
         expiresIn: 300 // 5 minutes
       }
     });
@@ -489,52 +517,102 @@ router.get('/qq/callback', async (req: Request, res: Response) => {
       });
     }
 
-    // TODO: Integrate with QQ Connect
-    // 1. Exchange code for access token
-    // const tokenResponse = await axios.get('https://graph.qq.com/oauth2.0/token', {
-    //   params: {
-    //     grant_type: 'authorization_code',
-    //     client_id: process.env.QQ_APP_ID,
-    //     client_secret: process.env.QQ_APP_KEY,
-    //     code,
-    //     redirect_uri: `${process.env.APP_URL}/api/auth/qq/callback`
-    //   }
-    // });
-    //
-    // 2. Get OpenID
-    // const openIdResponse = await axios.get('https://graph.qq.com/oauth2.0/me', {
-    //   params: {
-    //     access_token: tokenResponse.data.access_token
-    //   }
-    // });
-    //
-    // 3. Get user info
-    // const userInfoResponse = await axios.get('https://graph.qq.com/user/get_user_info', {
-    //   params: {
-    //     access_token: tokenResponse.data.access_token,
-    //     oauth_consumer_key: process.env.QQ_APP_ID,
-    //     openid: openIdResponse.data.openid
-    //   }
-    // });
+    const qqConfig = getQQConfig();
+    if (!qqConfig) {
+      return res.status(503).json({
+        success: false,
+        error: 'QQ login is not configured on this server'
+      });
+    }
 
-    // For development: Mock user data
-    const mockQQUser = {
-      openid: `qq_${Date.now()}`,
-      nickname: 'QQ User',
-      figureurl: ''
-    };
+    // 1. Exchange code for access token
+    let tokenData: { access_token?: string; error?: number; error_description?: string };
+    try {
+      const tokenResponse = await axios.get('https://graph.qq.com/oauth2.0/token', {
+        params: {
+          grant_type: 'authorization_code',
+          client_id: qqConfig.appId,
+          client_secret: qqConfig.appKey,
+          code,
+          redirect_uri: qqConfig.redirectUri
+        }
+      });
+      tokenData = tokenResponse.data;
+    } catch (err) {
+      console.error('QQ token exchange network error:', err);
+      return res.status(502).json({ success: false, error: 'Failed to reach QQ OAuth service' });
+    }
+
+    // QQ returns HTTP 200 with an { error, error_description } payload on failure.
+    if (!tokenData.access_token || tokenData.error) {
+      console.error('QQ token exchange error:', tokenData);
+      return res.status(502).json({
+        success: false,
+        error: `QQ OAuth error: ${tokenData.error_description || 'unknown error'}`
+      });
+    }
+
+    // 2. Get OpenID
+    let openIdData: { openid?: string; error?: number; error_description?: string };
+    try {
+      const openIdResponse = await axios.get('https://graph.qq.com/oauth2.0/me', {
+        params: {
+          access_token: tokenData.access_token
+        }
+      });
+      openIdData = openIdResponse.data;
+    } catch (err) {
+      console.error('QQ openid network error:', err);
+      return res.status(502).json({ success: false, error: 'Failed to reach QQ OAuth service' });
+    }
+
+    if (!openIdData.openid || openIdData.error) {
+      console.error('QQ openid error:', openIdData);
+      return res.status(502).json({
+        success: false,
+        error: `QQ OAuth error: ${openIdData.error_description || 'unknown error'}`
+      });
+    }
+
+    // 3. Get user info
+    let qqUserInfo: { nickname?: string; figureurl?: string; ret?: number; msg?: string };
+    try {
+      const userInfoResponse = await axios.get('https://graph.qq.com/user/get_user_info', {
+        params: {
+          access_token: tokenData.access_token,
+          oauth_consumer_key: qqConfig.appId,
+          openid: openIdData.openid
+        }
+      });
+      qqUserInfo = userInfoResponse.data;
+    } catch (err) {
+      console.error('QQ userinfo network error:', err);
+      return res.status(502).json({ success: false, error: 'Failed to reach QQ OAuth service' });
+    }
+
+    // QQ's user/get_user_info returns { ret, msg } where ret !== 0 indicates an error.
+    if (qqUserInfo.ret) {
+      console.error('QQ userinfo error:', qqUserInfo);
+      return res.status(502).json({
+        success: false,
+        error: `QQ OAuth error: ${qqUserInfo.msg || 'unknown error'}`
+      });
+    }
 
     // Find or create user based on QQ OpenID
-    let user = await User.findOne({ qqId: mockQQUser.openid });
+    let user = await User.findOne({ qqId: openIdData.openid });
 
     if (!user) {
       // Create new user with QQ info
       user = new User({
-        email: `${mockQQUser.openid}@qq.placeholder`, // Placeholder email
-        firstName: mockQQUser.nickname,
-        lastName: '',
+        email: `${openIdData.openid}@qq.placeholder`, // Placeholder email
+        // QQ only provides a single nickname; the User schema requires both
+        // firstName and lastName (non-empty), so use the nickname as firstName
+        // and a fixed provider label as lastName.
+        firstName: qqUserInfo.nickname || 'QQ',
+        lastName: 'User',
         role: UserRole.SUBJECT,
-        qqId: mockQQUser.openid,
+        qqId: openIdData.openid,
         password: crypto.randomBytes(32).toString('hex') // Random password for OAuth users
       });
 
@@ -549,8 +627,7 @@ router.get('/qq/callback', async (req: Request, res: Response) => {
     );
 
     // Remove password from response
-    const userResponse: any = user.toObject();
-    delete userResponse.password;
+    const userResponse = sanitizeUser(user);
 
     // Update QR code state in cache
     const qrState = await getQRState(state as string);

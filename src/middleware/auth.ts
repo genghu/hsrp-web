@@ -14,7 +14,11 @@ export interface AuthRequest extends Request {
 
 export const auth = async (req: AuthRequest, res: Response, next: NextFunction) => {
   try {
-    // Support both 'Authorization: Bearer TOKEN' and 'x-auth-token: TOKEN'
+    // Token lookup precedence:
+    //  1. Authorization header (Bearer scheme) — preferred mechanism used by all current
+    //     clients (public/js/api.ts, src/public/api.ts).
+    //  2. x-auth-token header — legacy fallback kept for backward compatibility with
+    //     older/external clients. Do not remove without a client audit + deprecation notice.
     const token = req.header('Authorization')?.replace('Bearer ', '') || req.header('x-auth-token');
 
     if (!token) {

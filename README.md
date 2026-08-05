@@ -216,6 +216,33 @@ MONGODB_URI=mongodb://localhost:27017/hsrp
 JWT_SECRET=your-super-secret-jwt-key-change-this-in-production
 ```
 
+### WeChat / QQ OAuth setup (optional) | 微信 / QQ 登录设置（可选）
+
+**English:** WeChat and QQ login are optional integrations. Without credentials configured, the
+`/api/auth/wechat/callback` and `/api/auth/qq/callback` endpoints return `503 Service Unavailable`
+instead of creating placeholder accounts. To enable them, obtain credentials from:
+- WeChat Open Platform: https://developers.weixin.qq.com/doc/oplatform/Website_App/WeChat_Login/Wechat_Login.html
+- QQ Connect: https://wiki.connect.qq.com/
+
+Then set the following env vars in `.env`:
+
+```env
+WECHAT_APP_ID=
+WECHAT_APP_SECRET=
+WECHAT_REDIRECT_URI=http://localhost:3000/api/auth/wechat/callback
+
+QQ_APP_ID=
+QQ_APP_KEY=
+QQ_REDIRECT_URI=http://localhost:3000/api/auth/qq/callback
+```
+
+**中文:** 微信和QQ登录是可选的第三方登录集成。如果未配置相应凭据，`/api/auth/wechat/callback` 和
+`/api/auth/qq/callback` 接口将返回 `503 Service Unavailable`，而不会创建占位账户。要启用它们，请从以下网址获取凭据：
+- 微信开放平台：https://developers.weixin.qq.com/doc/oplatform/Website_App/WeChat_Login/Wechat_Login.html
+- QQ互联：https://wiki.connect.qq.com/
+
+然后在 `.env` 中设置上述 6 个环境变量。
+
 ### 4. Start MongoDB | 启动 MongoDB
 
 **English:** If running locally:
