@@ -1,4 +1,4 @@
-// API Response interface
+﻿// API Response interface
 interface ApiResponse<T = any> {
   success: boolean;
   data?: T;
@@ -73,6 +73,7 @@ class API {
 
     return headers;
   }
+
 
   private async handleResponse<T>(response: Response): Promise<T> {
     const data: ApiResponse<T> = await response.json();

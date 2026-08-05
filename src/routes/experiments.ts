@@ -1,4 +1,4 @@
-import express from 'express';
+import express, { Response } from 'express';
 import { Experiment } from '../models/Experiment';
 import { auth, AuthRequest } from '../middleware/auth';
 import { checkRole } from '../middleware/auth';
@@ -20,7 +20,7 @@ import fs from 'fs';
 const router = express.Router();
 
 // Get all experiments (with filters)
-router.get('/', auth, experimentQueryValidation, async (req: AuthRequest, res: any) => {
+router.get('/', auth, experimentQueryValidation, async (req: AuthRequest, res: Response) => {
   try {
     const { status, search } = req.query;
     const query: any = {};
@@ -134,7 +134,7 @@ router.get('/', auth, experimentQueryValidation, async (req: AuthRequest, res: a
 });
 
 // Create new experiment (researchers only)
-router.post('/', auth, checkRole([UserRole.RESEARCHER]), createExperimentValidation, async (req: AuthRequest, res: any) => {
+router.post('/', auth, checkRole([UserRole.RESEARCHER]), createExperimentValidation, async (req: AuthRequest, res: Response) => {
   try {
     // Validate that experiments cannot be OPEN without sessions
     if (req.body.status === ExperimentStatus.OPEN) {
@@ -146,7 +146,7 @@ router.post('/', auth, checkRole([UserRole.RESEARCHER]), createExperimentValidat
 
     const experiment = new Experiment({
       ...req.body,
-      researcher: req.user!.id
+      researcher: req.user!._id
     });
 
     await experiment.save();
@@ -165,7 +165,7 @@ router.post('/', auth, checkRole([UserRole.RESEARCHER]), createExperimentValidat
 });
 
 // Get subject's registered sessions (must be before /:id route)
-router.get('/my-sessions', auth, checkRole([UserRole.SUBJECT]), async (req: AuthRequest, res: any) => {
+router.get('/my-sessions', auth, checkRole([UserRole.SUBJECT]), async (req: AuthRequest, res: Response) => {
   try {
     const experiments = await Experiment.find({
       'sessions.participants.user': req.user!._id
@@ -202,7 +202,7 @@ router.get('/my-sessions', auth, checkRole([UserRole.SUBJECT]), async (req: Auth
 });
 
 // Get experiment by ID
-router.get('/:id', auth, idValidation, async (req: any, res: any) => {
+router.get('/:id', auth, idValidation, async (req: AuthRequest, res: Response) => {
   try {
     const experiment = await Experiment.findById(req.params.id)
       .populate('researcher', '-password')
@@ -228,11 +228,11 @@ router.get('/:id', auth, idValidation, async (req: any, res: any) => {
 });
 
 // Update experiment (researchers only)
-router.patch('/:id', auth, checkRole([UserRole.RESEARCHER]), updateExperimentValidation, async (req: AuthRequest, res: any) => {
+router.patch('/:id', auth, checkRole([UserRole.RESEARCHER]), updateExperimentValidation, async (req: AuthRequest, res: Response) => {
   try {
     const experiment = await Experiment.findOne({
       _id: req.params.id,
-      researcher: req.user!.id
+      researcher: req.user!._id
     });
 
     if (!experiment) {
@@ -243,7 +243,8 @@ router.patch('/:id', auth, checkRole([UserRole.RESEARCHER]), updateExperimentVal
     }
 
     // Validate that experiments cannot be set to OPEN without sessions
-    if (req.body.status === ExperimentStatus.OPEN && experiment.sessions.length === 0) {
+    // Allow opening only if the experiment has been approved by admin
+    if (req.body.status === ExperimentStatus.OPEN && experiment.sessions.length === 0 && experiment.status !== ExperimentStatus.APPROVED) {
       return res.status(400).json({
         success: false,
         error: 'Cannot open experiment without sessions. Please add sessions first.'
@@ -267,7 +268,7 @@ router.patch('/:id', auth, checkRole([UserRole.RESEARCHER]), updateExperimentVal
 });
 
 // Delete experiment (researchers only)
-router.delete('/:id', auth, checkRole([UserRole.RESEARCHER]), idValidation, async (req: AuthRequest, res: any) => {
+router.delete('/:id', auth, checkRole([UserRole.RESEARCHER]), idValidation, async (req: AuthRequest, res: Response) => {
   try {
     const experiment = await Experiment.findOneAndDelete({
       _id: req.params.id,
@@ -294,7 +295,7 @@ router.delete('/:id', auth, checkRole([UserRole.RESEARCHER]), idValidation, asyn
 });
 
 // Add session to experiment (researchers only)
-router.post('/:id/sessions', auth, checkRole([UserRole.RESEARCHER]), createSessionValidation, async (req: AuthRequest, res: any) => {
+router.post('/:id/sessions', auth, checkRole([UserRole.RESEARCHER]), createSessionValidation, async (req: AuthRequest, res: Response) => {
   try {
     const experiment = await Experiment.findOne({
       _id: req.params.id,
@@ -336,7 +337,7 @@ router.post('/:id/sessions', auth, checkRole([UserRole.RESEARCHER]), createSessi
 });
 
 // Update session (researchers only)
-router.patch('/:id/sessions/:sessionId', auth, checkRole([UserRole.RESEARCHER]), updateSessionValidation, async (req: AuthRequest, res: any) => {
+router.patch('/:id/sessions/:sessionId', auth, checkRole([UserRole.RESEARCHER]), updateSessionValidation, async (req: AuthRequest, res: Response) => {
   try {
     const experiment = await Experiment.findOne({
       _id: req.params.id,
@@ -375,7 +376,7 @@ router.patch('/:id/sessions/:sessionId', auth, checkRole([UserRole.RESEARCHER]),
 });
 
 // Delete session (researchers only)
-router.delete('/:id/sessions/:sessionId', auth, checkRole([UserRole.RESEARCHER]), sessionIdValidation, async (req: AuthRequest, res: any) => {
+router.delete('/:id/sessions/:sessionId', auth, checkRole([UserRole.RESEARCHER]), sessionIdValidation, async (req: AuthRequest, res: Response) => {
   try {
     const experiment = await Experiment.findOne({
       _id: req.params.id,
@@ -420,7 +421,7 @@ router.delete('/:id/sessions/:sessionId', auth, checkRole([UserRole.RESEARCHER])
 });
 
 // Register for experiment session (subjects only)
-router.post('/:id/sessions/:sessionId/register', auth, checkRole([UserRole.SUBJECT]), sessionIdValidation, async (req: AuthRequest, res: any) => {
+router.post('/:id/sessions/:sessionId/register', auth, checkRole([UserRole.SUBJECT]), sessionIdValidation, async (req: AuthRequest, res: Response) => {
   try {
     const experiment = await Experiment.findById(req.params.id);
     if (!experiment) {
@@ -483,7 +484,7 @@ router.post('/:id/sessions/:sessionId/register', auth, checkRole([UserRole.SUBJE
 });
 
 // Cancel registration (subjects only)
-router.delete('/:id/sessions/:sessionId/register', auth, checkRole([UserRole.SUBJECT]), sessionIdValidation, async (req: AuthRequest, res: any) => {
+router.delete('/:id/sessions/:sessionId/register', auth, checkRole([UserRole.SUBJECT]), sessionIdValidation, async (req: AuthRequest, res: Response) => {
   try {
     const experiment = await Experiment.findById(req.params.id);
     if (!experiment) {
@@ -528,7 +529,7 @@ router.delete('/:id/sessions/:sessionId/register', auth, checkRole([UserRole.SUB
 });
 
 // Update participant status (researchers only)
-router.patch('/:id/sessions/:sessionId/participants/:userId', auth, checkRole([UserRole.RESEARCHER]), updateParticipantValidation, async (req: AuthRequest, res: any) => {
+router.patch('/:id/sessions/:sessionId/participants/:userId', auth, checkRole([UserRole.RESEARCHER]), updateParticipantValidation, async (req: AuthRequest, res: Response) => {
   try {
     const experiment = await Experiment.findOne({
       _id: req.params.id,
@@ -590,7 +591,7 @@ router.patch('/:id/sessions/:sessionId/participants/:userId', auth, checkRole([U
 });
 
 // Get participants for a session (researchers only)
-router.get('/:id/sessions/:sessionId/participants', auth, checkRole([UserRole.RESEARCHER]), async (req: AuthRequest, res: any) => {
+router.get('/:id/sessions/:sessionId/participants', auth, checkRole([UserRole.RESEARCHER]), async (req: AuthRequest, res: Response) => {
   try {
     console.log('GET participants - params:', req.params);
     console.log('GET participants - experimentId:', req.params.id, 'sessionId:', req.params.sessionId);
@@ -650,7 +651,7 @@ router.get('/:id/sessions/:sessionId/participants', auth, checkRole([UserRole.RE
 // ====== IRB Document Upload Routes ======
 
 // Upload IRB document for an experiment
-router.post('/:id/irb-upload', auth, checkRole([UserRole.RESEARCHER]), upload.single('irbDocument'), async (req: AuthRequest, res: any) => {
+router.post('/:id/irb-upload', auth, checkRole([UserRole.RESEARCHER]), upload.single('irbDocument'), async (req: AuthRequest, res: Response) => {
   try {
     const experiment = await Experiment.findById(req.params.id);
 
@@ -721,7 +722,7 @@ router.post('/:id/irb-upload', auth, checkRole([UserRole.RESEARCHER]), upload.si
 });
 
 // Download IRB document
-router.get('/:id/irb-download', auth, async (req: AuthRequest, res: any) => {
+router.get('/:id/irb-download', auth, async (req: AuthRequest, res: Response) => {
   try {
     const experiment = await Experiment.findById(req.params.id);
 
@@ -775,7 +776,7 @@ router.get('/:id/irb-download', auth, async (req: AuthRequest, res: any) => {
 // ====== Admin Routes ======
 
 // Get pending experiments (admin only)
-router.get('/admin/pending', auth, checkRole([UserRole.ADMIN]), async (req: AuthRequest, res: any) => {
+router.get('/admin/pending', auth, checkRole([UserRole.ADMIN]), async (req: AuthRequest, res: Response) => {
   try {
     const experiments = await Experiment.find({ status: ExperimentStatus.PENDING_REVIEW })
       .populate('researcher', '-password')
@@ -794,7 +795,7 @@ router.get('/admin/pending', auth, checkRole([UserRole.ADMIN]), async (req: Auth
 });
 
 // Get all experiments for admin
-router.get('/admin/all', auth, checkRole([UserRole.ADMIN]), async (req: AuthRequest, res: any) => {
+router.get('/admin/all', auth, checkRole([UserRole.ADMIN]), async (req: AuthRequest, res: Response) => {
   try {
     const experiments = await Experiment.find()
       .populate('researcher', '-password')
@@ -814,7 +815,7 @@ router.get('/admin/all', auth, checkRole([UserRole.ADMIN]), async (req: AuthRequ
 });
 
 // Approve experiment (admin only)
-router.post('/:id/approve', auth, checkRole([UserRole.ADMIN]), async (req: AuthRequest, res: any) => {
+router.post('/:id/approve', auth, checkRole([UserRole.ADMIN]), async (req: AuthRequest, res: Response) => {
   try {
     const { notes } = req.body;
     const experiment = await Experiment.findById(req.params.id);
@@ -860,7 +861,7 @@ router.post('/:id/approve', auth, checkRole([UserRole.ADMIN]), async (req: AuthR
 });
 
 // Reject experiment (admin only)
-router.post('/:id/reject', auth, checkRole([UserRole.ADMIN]), async (req: AuthRequest, res: any) => {
+router.post('/:id/reject', auth, checkRole([UserRole.ADMIN]), async (req: AuthRequest, res: Response) => {
   try {
     const { notes } = req.body;
 

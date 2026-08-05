@@ -1,11 +1,13 @@
 import express from 'express';
 import { User } from '../models/User';
-import { auth } from '../middleware/auth';
+import { auth, AuthRequest } from '../middleware/auth';
+import { Request, Response } from 'express';
+import { loginRateLimiter } from '../middleware/rateLimiter';
 import jwt from 'jsonwebtoken';
 import { LoginCredentials, AuthResponse, UserRole, AccountStatus } from '../types';
 import { registerValidation, loginValidation } from '../middleware/validation';
 import crypto from 'crypto';
-import { QRCodeState, setQRState, getQRState, deleteQRState } from '../utils/cache';
+import { setQRState, getQRState, deleteQRState } from '../utils/cache';
 
 const router = express.Router();
 
@@ -13,7 +15,7 @@ const router = express.Router();
 // No more in-memory Map - prevents memory leaks and supports horizontal scaling
 
 // Register new user
-router.post('/register', registerValidation, async (req: any, res: any) => {
+router.post('/register', registerValidation, async (req: Request, res: Response) => {
   try {
     const { email, password, firstName, lastName, role, institution, department } = req.body;
 
@@ -68,7 +70,7 @@ router.post('/register', registerValidation, async (req: any, res: any) => {
 });
 
 // Login user
-router.post('/login', loginValidation, async (req: any, res: any) => {
+router.post('/login', loginValidation, loginRateLimiter, async (req: Request, res: Response) => {
   try {
     const { email, password }: LoginCredentials = req.body;
 
@@ -90,8 +92,10 @@ router.post('/login', loginValidation, async (req: any, res: any) => {
       });
     }
 
-    // Check if account is active
-    if (user.accountStatus !== AccountStatus.ACTIVE) {
+    // Check if account is active. Treat a MISSING accountStatus as active
+    // (the User schema defaults to ACTIVE); only explicitly cancelled/suspended
+    // accounts are blocked. Tolerates legacy users created without the field.
+    if (user.accountStatus && user.accountStatus !== AccountStatus.ACTIVE) {
       return res.status(403).json({
         success: false,
         error: 'Your account has been cancelled or suspended. Please contact support.'
@@ -127,7 +131,7 @@ router.post('/login', loginValidation, async (req: any, res: any) => {
 });
 
 // Get current user
-router.get('/me', auth, async (req: any, res) => {
+router.get('/me', auth, async (req: AuthRequest, res: Response) => {
   try {
     res.json({
       success: true,
@@ -141,10 +145,43 @@ router.get('/me', auth, async (req: any, res) => {
   }
 });
 
+// Change current user's password (role-agnostic — any authenticated user)
+router.post('/change-password', auth, async (req: AuthRequest, res: Response) => {
+  try {
+    const { currentPassword, newPassword } = req.body;
+
+    if (!currentPassword || typeof newPassword !== 'string' || newPassword.length < 6) {
+      return res.status(400).json({
+        success: false,
+        error: 'New password must be at least 6 characters'
+      });
+    }
+
+    const user = await User.findById(req.user!._id);
+    if (!user) {
+      return res.status(404).json({ success: false, error: 'User not found' });
+    }
+
+    const isMatch = await user.comparePassword(currentPassword);
+    if (!isMatch) {
+      return res.status(400).json({ success: false, error: 'Current password is incorrect' });
+    }
+
+    // Use .save() so the pre-save hook in User.ts hashes the new password.
+    // (findByIdAndUpdate would skip hashing and store the plaintext password.)
+    user.password = newPassword;
+    await user.save();
+
+    res.json({ success: true, data: { message: 'Password changed successfully' } });
+  } catch (error) {
+    res.status(500).json({ success: false, error: 'Error changing password' });
+  }
+});
+
 // ====== WeChat OAuth Routes ======
 
 // Generate WeChat QR code for login/registration
-router.get('/wechat/qr', async (req: any, res: any) => {
+router.get('/wechat/qr', async (req: Request, res: Response) => {
   try {
     // Generate a unique ticket
     const ticket = crypto.randomBytes(32).toString('hex');
@@ -190,7 +227,7 @@ router.get('/wechat/qr', async (req: any, res: any) => {
 });
 
 // Check WeChat QR code scan status
-router.get('/wechat/check', async (req: any, res: any) => {
+router.get('/wechat/check', async (req: Request, res: Response) => {
   try {
     const { ticket } = req.query;
 
@@ -243,7 +280,7 @@ router.get('/wechat/check', async (req: any, res: any) => {
 });
 
 // WeChat OAuth callback (called by WeChat after user scans QR code)
-router.get('/wechat/callback', async (req: any, res: any) => {
+router.get('/wechat/callback', async (req: Request, res: Response) => {
   try {
     const { code, state } = req.query;
 
@@ -342,7 +379,7 @@ router.get('/wechat/callback', async (req: any, res: any) => {
 // ====== QQ OAuth Routes ======
 
 // Generate QQ QR code for login/registration
-router.get('/qq/qr', async (req: any, res: any) => {
+router.get('/qq/qr', async (req: Request, res: Response) => {
   try {
     // Generate a unique ticket
     const ticket = crypto.randomBytes(32).toString('hex');
@@ -388,7 +425,7 @@ router.get('/qq/qr', async (req: any, res: any) => {
 });
 
 // Check QQ QR code scan status
-router.get('/qq/check', async (req: any, res: any) => {
+router.get('/qq/check', async (req: Request, res: Response) => {
   try {
     const { ticket } = req.query;
 
@@ -441,7 +478,7 @@ router.get('/qq/check', async (req: any, res: any) => {
 });
 
 // QQ OAuth callback (called by QQ after user scans QR code)
-router.get('/qq/callback', async (req: any, res: any) => {
+router.get('/qq/callback', async (req: Request, res: Response) => {
   try {
     const { code, state } = req.query;
 

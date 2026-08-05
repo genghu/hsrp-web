@@ -127,6 +127,7 @@ function updateNavigation(isLoggedIn) {
     const dashboardItem = document.getElementById('nav-dashboard-item');
     const experimentsItem = document.getElementById('nav-experiments-item');
     const scheduleItem = document.getElementById('nav-schedule-item');
+    const subjectExperimentsItem = document.getElementById('nav-subject-experiments-item');
 
     if (homeItem) homeItem.style.display = isLoggedIn ? 'none' : 'block';
 
@@ -145,23 +146,41 @@ function updateNavigation(isLoggedIn) {
             roleBadge.textContent = t[`role.${currentUser.role}`] || currentUser.role;
         }
 
+        // Researcher-only UI (institution/department fields + experiment stats
+        // on the account page) — hidden for subjects/admins.
+        const isResearcher = currentUser.role === 'researcher';
+        document.querySelectorAll('.researcher-only').forEach(el => {
+            el.style.display = isResearcher ? '' : 'none';
+        });
+
+        // The User dropdown's Profile/Settings items open the shared account
+        // page, usable by both researchers and subjects. Hidden for admin.
+        const hasAccountPage = currentUser.role === 'researcher' || currentUser.role === 'subject';
+        document.querySelectorAll('.account-menu-item').forEach(el => {
+            el.style.display = hasAccountPage ? '' : 'none';
+        });
+
         // Show/hide nav items based on role
         if (currentUser.role === 'researcher') {
             if (homeLink) homeLink.style.display = 'block';
             if (dashboardItem) dashboardItem.style.display = 'block';
             if (experimentsItem) experimentsItem.style.display = 'block';
             if (scheduleItem) scheduleItem.style.display = 'block';
+            if (subjectExperimentsItem) subjectExperimentsItem.style.display = 'none';
         } else {
             if (homeLink) homeLink.style.display = 'none';
             if (dashboardItem) dashboardItem.style.display = 'none';
             if (experimentsItem) experimentsItem.style.display = 'none';
             if (scheduleItem) scheduleItem.style.display = 'none';
+            // Subjects get an "Experiments" nav item to reach/return to their dashboard.
+            if (subjectExperimentsItem) subjectExperimentsItem.style.display = currentUser.role === 'subject' ? 'block' : 'none';
         }
     } else {
         if (homeLink) homeLink.style.display = 'none';
         if (dashboardItem) dashboardItem.style.display = 'none';
         if (experimentsItem) experimentsItem.style.display = 'none';
         if (scheduleItem) scheduleItem.style.display = 'none';
+        if (subjectExperimentsItem) subjectExperimentsItem.style.display = 'none';
     }
 
     updateFloatingButton();
@@ -623,8 +642,6 @@ function showResearcherView(viewName) {
         displayFilteredExperiments();
     } else if (viewName === 'schedule') {
         loadSchedule();
-    } else if (viewName === 'account') {
-        loadAccountPage();
     }
 }
 
@@ -1227,13 +1244,16 @@ async function handleProfileUpdate(event) {
 
     const updatedData = {
         firstName: document.getElementById('profile-firstName').value,
-        lastName: document.getElementById('profile-lastName').value,
-        institution: document.getElementById('profile-institution').value,
-        department: document.getElementById('profile-department').value
+        lastName: document.getElementById('profile-lastName').value
     };
+    // institution/department are researcher-only fields (hidden for subjects)
+    if (currentUser && currentUser.role === 'researcher') {
+        updatedData.institution = document.getElementById('profile-institution').value;
+        updatedData.department = document.getElementById('profile-department').value;
+    }
 
     try {
-        const data = await api.updateProfile(updatedData);
+        const data = await api.updateUserProfile(updatedData);
         currentUser = { ...currentUser, ...data };
         updateResearcherName();
         cancelEditProfile();
@@ -1280,13 +1300,10 @@ function showAccountProfile() {
         return;
     }
 
-    // Ensure we're on the researcher dashboard page
-    if (currentUser.role === 'researcher') {
-        showPage('researcher-dashboard');
-        // Small delay to ensure page is shown before switching view
-        setTimeout(() => {
-            showResearcherView('account');
-        }, 10);
+    // The account page is shared by researchers and subjects.
+    if (currentUser.role === 'researcher' || currentUser.role === 'subject') {
+        showPage('account');
+        loadAccountPage();
     }
 }
 
@@ -1297,20 +1314,16 @@ function showSettings() {
         return;
     }
 
-    // Ensure we're on the researcher dashboard page
-    if (currentUser.role === 'researcher') {
-        showPage('researcher-dashboard');
-        // Small delay to ensure page is shown before switching view
+    if (currentUser.role === 'researcher' || currentUser.role === 'subject') {
+        showPage('account');
+        loadAccountPage();
+        // Scroll to the change-password section once it's rendered.
         setTimeout(() => {
-            showResearcherView('account');
-            // Scroll to settings section if exists
-            setTimeout(() => {
-                const settingsSection = document.querySelector('#password-form');
-                if (settingsSection) {
-                    settingsSection.scrollIntoView({ behavior: 'smooth' });
-                }
-            }, 100);
-        }, 10);
+            const passwordForm = document.getElementById('password-form');
+            if (passwordForm) {
+                passwordForm.scrollIntoView({ behavior: 'smooth' });
+            }
+        }, 50);
     }
 }
 
@@ -2970,6 +2983,7 @@ const translations = {
         // Roles
         'role.researcher': 'Researcher',
         'role.admin': 'Admin',
+        'role.subject': 'Participant',
         'role.participant': 'Participant',
 
         // Status
@@ -3278,6 +3292,7 @@ const translations = {
         // Roles
         'role.researcher': '研究人员',
         'role.admin': '管理员',
+        'role.subject': '被试',
         'role.participant': '参与者',
 
         // Status
@@ -3507,6 +3522,11 @@ function switchLanguage(lang) {
 
     // Apply translations to the entire site
     applyTranslations(lang);
+
+    // Re-render role-aware elements (e.g. the role badge, nav items) in the new
+    // language. The role badge has no data-i18n attribute because its text is
+    // dynamic per the logged-in user's role, so it must be refreshed here.
+    updateNavigation(currentUser !== null);
 
     // Show notification
     showNotification(translations[lang]['language_changed']);

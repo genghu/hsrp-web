@@ -4,9 +4,12 @@ import { IUser, AccountStatus } from '../types';
 import { User } from '../models/User';
 import { getCachedUser, cacheUser } from '../utils/cache';
 
+
 export interface AuthRequest extends Request {
-  user?: any;
-  file?: any;
+  // user is the cached/lean user object (password removed)
+  user?: Omit<IUser, 'password'> & { _id?: any };
+  // file is added by multer for single file uploads
+  file?: Express.Multer.File;
 }
 
 export const auth = async (req: AuthRequest, res: Response, next: NextFunction) => {
@@ -34,8 +37,11 @@ export const auth = async (req: AuthRequest, res: Response, next: NextFunction) 
       await cacheUser(decoded.id, user, 300);
     }
 
-    // Check if account is active
-    if (user.accountStatus !== AccountStatus.ACTIVE) {
+    // Check if account is active. Treat a MISSING accountStatus as active,
+    // because the User schema defaults to ACTIVE — only an explicitly
+    // non-active value (cancelled/suspended) should block access. This also
+    // tolerates legacy users created without the accountStatus field.
+    if (user.accountStatus && user.accountStatus !== AccountStatus.ACTIVE) {
       return res.status(403).json({
         success: false,
         error: 'Account is not active. Please contact support.'

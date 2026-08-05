@@ -9,9 +9,17 @@ let redisClient: RedisClientType | null = null;
 let isRedisAvailable = false;
 
 export async function initializeCache() {
+  // Only attempt Redis when explicitly configured (REDIS_URL set). Otherwise
+  // use the in-memory cache directly, so we don't spam the log with connection
+  // errors for a Redis server that isn't running locally.
+  if (!process.env.REDIS_URL) {
+    console.log('ℹ️  REDIS_URL not set — using in-memory cache');
+    return null;
+  }
+
   try {
     redisClient = createClient({
-      url: process.env.REDIS_URL || 'redis://localhost:6379'
+      url: process.env.REDIS_URL
     });
 
     redisClient.on('error', (err) => {
@@ -209,7 +217,8 @@ export async function getCachedAPIResponse(endpoint: string, queryParams: any): 
   return await cacheGet(key);
 }
 
-export async function invalidateAPICache(pattern: string): Promise<void> {
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+export async function invalidateAPICache(_pattern: string): Promise<void> {
   // For Redis, we'd use SCAN + DEL
   // For in-memory, clear everything matching pattern
   if (isRedisConnected() && redisClient) {

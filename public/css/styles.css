@@ -12,7 +12,7 @@ body {
     background-size: 400% 400%;
     animation: gradientFlow 25s ease-in-out infinite;
     color: #f8fafc;
-    overflow-x: hidden;
+    overflow-x: clip;
     text-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
 }
 
@@ -170,7 +170,8 @@ body {
     backdrop-filter: blur(16px) saturate(110%);
     border-bottom: 1px solid rgba(96, 165, 250, 0.3);
     padding: 15px 30px;
-    position: relative;
+    position: sticky;
+    top: 0;
     z-index: 1000;
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
 }

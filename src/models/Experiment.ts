@@ -1,5 +1,5 @@
 import mongoose, { Schema, Document } from 'mongoose';
-import { IExperiment, ExperimentStatus, ISession, ParticipantStatus } from '../types';
+import { IExperiment, ExperimentStatus, ParticipantStatus } from '../types';
 
 const sessionSchema = new Schema({
   experiment: {

@@ -1,4 +1,4 @@
-import request from 'supertest';
+﻿import request from 'supertest';
 import express from 'express';
 import authRouter from '../../routes/auth';
 import { User } from '../../models/User';
@@ -6,6 +6,7 @@ import { UserRole } from '../../types';
 
 const app = express();
 app.use(express.json());
+// test harness
 app.use('/api/auth', authRouter);
 
 describe('Auth Routes', () => {
@@ -222,13 +223,78 @@ describe('Auth Routes', () => {
       expect(response.body.success).toBe(false);
     });
 
-    it('should reject request with invalid token', async () => {
+    it('should reject request with invalid tokenX', async () => {
       const response = await request(app)
         .get('/api/auth/me')
-        .set('Authorization', 'Bearer invalid-token')
+        .set('Authorization', 'Bearer invalidtoken')
+        .expect(401);
+
+      expect(response.body.success).toBe(false);
+    });
+  });
+
+  describe('POST /api/auth/change-password', () => {
+    let token: string;
+
+    beforeEach(async () => {
+      const response = await request(app)
+        .post('/api/auth/register')
+        .send({
+          email: 'changepw@test.com',
+          password: 'password123',
+          firstName: 'Test',
+          lastName: 'User',
+          role: UserRole.SUBJECT,
+        });
+      token = response.body.data.token;
+    });
+
+    it('should change password when current password is correct', async () => {
+      const response = await request(app)
+        .post('/api/auth/change-password')
+        .set('Authorization', `Bearer ${token}`)
+        .send({ currentPassword: 'password123', newPassword: 'newpassword456' })
+        .expect(200);
+
+      expect(response.body.success).toBe(true);
+
+      // The new password should now log the subject in (proves it was really changed).
+      await request(app)
+        .post('/api/auth/login')
+        .send({ email: 'changepw@test.com', password: 'newpassword456' })
+        .expect(200);
+    });
+
+    it('should reject when current password is wrong', async () => {
+      const response = await request(app)
+        .post('/api/auth/change-password')
+        .set('Authorization', `Bearer ${token}`)
+        .send({ currentPassword: 'wrongpassword', newPassword: 'newpassword456' })
+        .expect(400);
+
+      expect(response.body.success).toBe(false);
+      expect(response.body.error).toContain('incorrect');
+    });
+
+    it('should reject a new password shorter than 6 characters', async () => {
+      const response = await request(app)
+        .post('/api/auth/change-password')
+        .set('Authorization', `Bearer ${token}`)
+        .send({ currentPassword: 'password123', newPassword: '12345' })
+        .expect(400);
+
+      expect(response.body.success).toBe(false);
+    });
+
+    it('should reject without an auth token', async () => {
+      const response = await request(app)
+        .post('/api/auth/change-password')
+        .send({ currentPassword: 'password123', newPassword: 'newpassword456' })
         .expect(401);
 
       expect(response.body.success).toBe(false);
     });
   });
 });
+
+

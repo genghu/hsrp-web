@@ -1,4 +1,4 @@
-import express from 'express';
+import express, { Response } from 'express';
 import { User } from '../models/User';
 import { auth, AuthRequest, checkRole } from '../middleware/auth';
 import { UserRole, AccountStatus } from '../types';
@@ -6,7 +6,7 @@ import { UserRole, AccountStatus } from '../types';
 const router = express.Router();
 
 // Get user profile
-router.get('/me', auth, async (req: AuthRequest, res) => {
+router.get('/me', auth, async (req: AuthRequest, res: Response) => {
   try {
     const user = await User.findById(req.user!._id).select('-password');
 
@@ -30,7 +30,7 @@ router.get('/me', auth, async (req: AuthRequest, res) => {
 });
 
 // Update user profile
-router.put('/me', auth, async (req: AuthRequest, res) => {
+router.put('/me', auth, async (req: AuthRequest, res: Response) => {
   try {
     const allowedUpdates = ['firstName', 'lastName', 'institution', 'department'];
     const updates: any = {};
@@ -67,7 +67,7 @@ router.put('/me', auth, async (req: AuthRequest, res) => {
 });
 
 // Get all researchers (for admin/public purposes) - PERFORMANCE: Added pagination
-router.get('/researchers', auth, async (req: AuthRequest, res) => {
+router.get('/researchers', auth, async (req: AuthRequest, res: Response) => {
   try {
     const page = parseInt(req.query.page as string) || 1;
     const limit = parseInt(req.query.limit as string) || 20;
@@ -101,7 +101,7 @@ router.get('/researchers', auth, async (req: AuthRequest, res) => {
 });
 
 // Get all subjects (for researcher purposes) - PERFORMANCE: Added pagination
-router.get('/subjects', auth, checkRole([UserRole.RESEARCHER, UserRole.ADMIN]), async (req: AuthRequest, res) => {
+router.get('/subjects', auth, checkRole([UserRole.RESEARCHER, UserRole.ADMIN]), async (req: AuthRequest, res: Response) => {
   try {
     const page = parseInt(req.query.page as string) || 1;
     const limit = parseInt(req.query.limit as string) || 20;
@@ -135,7 +135,7 @@ router.get('/subjects', auth, checkRole([UserRole.RESEARCHER, UserRole.ADMIN]), 
 });
 
 // Cancel user account
-router.delete('/me', auth, async (req: AuthRequest, res) => {
+router.delete('/me', auth, async (req: AuthRequest, res: Response) => {
   try {
     const user = await User.findById(req.user!._id);
 

@@ -6,7 +6,7 @@
     <title>HSRP - Human Subject Recruitment Platform</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="/css/styles.css">
+    <link rel="stylesheet" href="/css/styles.css?v=20260804">
 </head>
 <body>
     <div id="app">
@@ -24,6 +24,11 @@
                         <li class="nav-item" id="nav-home-item">
                             <a class="nav-link" href="#" onclick="showPage('home'); return false;">
                                 <i class="fas fa-home me-1"></i><span data-i18n="nav.home">Home</span>
+                            </a>
+                        </li>
+                        <li class="nav-item" id="nav-subject-experiments-item" style="display:none;">
+                            <a class="nav-link" href="#" onclick="showDashboard(); return false;">
+                                <i class="fas fa-flask me-1"></i><span data-i18n="nav.experiments">实验</span>
                             </a>
                         </li>
                         <li class="nav-item" id="nav-home-link" style="display:none;">
@@ -78,8 +83,12 @@
                         </div>
 
                         <!-- User Info (shown when logged in) -->
-                        <div id="nav-user-info" style="display:none;" class="d-flex align-items-center">
-                            <span class="role-badge role-researcher me-3" id="nav-role-badge" data-i18n="role.researcher">研究员</span>
+                        <!-- NOTE: do NOT add `d-flex` here — Bootstrap's `.d-flex{display:flex!important}`
+                             would override both the inline `display:none` and the JS toggle in
+                             updateNavigation(), keeping user info visible even when logged out.
+                             display is controlled inline by app.js (flex when shown). -->
+                        <div id="nav-user-info" style="display:none;" class="align-items-center">
+                            <span class="role-badge role-researcher me-3" id="nav-role-badge">研究员</span>
 
                             <!-- User Dropdown with Account Functions -->
                             <div class="dropdown">
@@ -88,9 +97,11 @@
                                     <span id="nav-username">User</span>
                                 </a>
                                 <ul class="dropdown-menu dropdown-menu-end">
-                                    <li><a class="dropdown-item" href="#" onclick="showAccountProfile(); return false;"><i class="fas fa-user-circle me-2"></i><span data-i18n="account.profile">个人资料</span></a></li>
-                                    <li><a class="dropdown-item" href="#" onclick="showSettings(); return false;"><i class="fas fa-cog me-2"></i><span data-i18n="account.settings">设置</span></a></li>
-                                    <li><hr class="dropdown-divider"></li>
+                                    <!-- researcher-only: the account/profile view only exists in the
+                                         researcher dashboard, so hide these for subjects/admins -->
+                                    <li class="account-menu-item"><a class="dropdown-item" href="#" onclick="showAccountProfile(); return false;"><i class="fas fa-user-circle me-2"></i><span data-i18n="account.profile">个人资料</span></a></li>
+                                    <li class="account-menu-item"><a class="dropdown-item" href="#" onclick="showSettings(); return false;"><i class="fas fa-cog me-2"></i><span data-i18n="account.settings">设置</span></a></li>
+                                    <li class="account-menu-item"><hr class="dropdown-divider"></li>
                                     <li><a class="dropdown-item" href="#" onclick="logout(); return false;"><i class="fas fa-sign-out-alt me-2"></i><span data-i18n="account.logout">退出登录</span></a></li>
                                 </ul>
                             </div>
@@ -399,8 +410,38 @@
                     </div>
                 </div>
 
-                <!-- Account/Profile View -->
-                <div id="researcher-view-account" class="researcher-view">
+            </div>
+
+            <!-- Subject Dashboard -->
+            <div id="page-subject-dashboard" class="page">
+                <div class="glass-container">
+                    <h2 data-i18n="available_experiments"><i class="fas fa-flask me-2"></i>Available Experiments</h2>
+                    <div class="tabs">
+                        <button class="tab-button active" onclick="showSubjectTab('available', event)"><i class="fas fa-list me-1"></i><span data-i18n="available_studies">Available Studies</span></button>
+                        <button class="tab-button" onclick="showSubjectTab('registered', event)"><i class="fas fa-check-circle me-1"></i><span data-i18n="my_registrations">My Registrations</span></button>
+                    </div>
+                    <div id="subject-available-container" class="tab-content active"></div>
+                    <div id="subject-registered-container" class="tab-content"></div>
+                </div>
+            </div>
+
+            <!-- Admin Dashboard -->
+            <div id="page-admin-dashboard" class="page">
+                <div class="glass-container">
+                    <div class="dashboard-header">
+                        <h2 data-i18n="admin_dashboard"><i class="fas fa-user-shield me-2"></i>Admin Dashboard</h2>
+                    </div>
+                    <div class="tabs">
+                        <button class="tab-button active" onclick="showAdminTab('pending', event)"><i class="fas fa-clock me-1"></i><span data-i18n="pending_review">Pending Review</span></button>
+                        <button class="tab-button" onclick="showAdminTab('all', event)"><i class="fas fa-list me-1"></i><span data-i18n="all_experiments">All Experiments</span></button>
+                    </div>
+                    <div id="admin-pending-container" class="tab-content active"></div>
+                    <div id="admin-all-container" class="tab-content"></div>
+                </div>
+            </div>
+
+            <!-- Account Page (shared by researcher and subject; reached via User dropdown) -->
+                <div id="page-account" class="page">
                     <div class="row">
                         <div class="col-lg-8">
                             <!-- Profile Information -->
@@ -428,12 +469,12 @@
                                         <input type="email" id="profile-email" class="glass-input" readonly>
                                     </div>
 
-                                    <div class="form-group">
+                                    <div class="form-group researcher-only">
                                         <label for="profile-institution" data-i18n="institution">Institution</label>
                                         <input type="text" id="profile-institution" class="glass-input" readonly>
                                     </div>
 
-                                    <div class="form-group">
+                                    <div class="form-group researcher-only">
                                         <label for="profile-department" data-i18n="department">Department</label>
                                         <input type="text" id="profile-department" class="glass-input" readonly>
                                     </div>
@@ -489,8 +530,8 @@
                         </div>
 
                         <div class="col-lg-4">
-                            <!-- Account Statistics -->
-                            <div class="glass-container">
+                            <!-- Account Statistics (researcher-only) -->
+                            <div class="glass-container researcher-only">
                                 <h3><i class="fas fa-chart-bar me-2"></i><span data-i18n="account.statistics">Account Statistics</span></h3>
                                 <div class="mt-3">
                                     <div class="glass-card text-center">
@@ -532,35 +573,6 @@
                         </div>
                     </div>
                 </div>
-            </div>
-
-            <!-- Subject Dashboard -->
-            <div id="page-subject-dashboard" class="page">
-                <div class="glass-container">
-                    <h2 data-i18n="available_experiments"><i class="fas fa-flask me-2"></i>Available Experiments</h2>
-                    <div class="tabs">
-                        <button class="tab-button active" onclick="showSubjectTab('available', event)"><i class="fas fa-list me-1"></i><span data-i18n="available_studies">Available Studies</span></button>
-                        <button class="tab-button" onclick="showSubjectTab('registered', event)"><i class="fas fa-check-circle me-1"></i><span data-i18n="my_registrations">My Registrations</span></button>
-                    </div>
-                    <div id="subject-available-container" class="tab-content active"></div>
-                    <div id="subject-registered-container" class="tab-content"></div>
-                </div>
-            </div>
-
-            <!-- Admin Dashboard -->
-            <div id="page-admin-dashboard" class="page">
-                <div class="glass-container">
-                    <div class="dashboard-header">
-                        <h2 data-i18n="admin_dashboard"><i class="fas fa-user-shield me-2"></i>Admin Dashboard</h2>
-                    </div>
-                    <div class="tabs">
-                        <button class="tab-button active" onclick="showAdminTab('pending', event)"><i class="fas fa-clock me-1"></i><span data-i18n="pending_review">Pending Review</span></button>
-                        <button class="tab-button" onclick="showAdminTab('all', event)"><i class="fas fa-list me-1"></i><span data-i18n="all_experiments">All Experiments</span></button>
-                    </div>
-                    <div id="admin-pending-container" class="tab-content active"></div>
-                    <div id="admin-all-container" class="tab-content"></div>
-                </div>
-            </div>
 
             <!-- Create/Edit Experiment Modal -->
             <div id="experiment-modal" class="modal">
@@ -762,7 +774,7 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="/js/api.js"></script>
-    <script src="/js/app.js"></script>
+    <script src="/js/api.js?v=20260804"></script>
+    <script src="/js/app.js?v=20260804"></script>
 </body>
 </html>
