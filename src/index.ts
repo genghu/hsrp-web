@@ -56,7 +56,21 @@ app.use(helmet({
 app.use(compression()); // PERFORMANCE: Gzip compression
 app.use(morgan('dev'));
 app.use(express.json());
-app.use(express.static(path.join(__dirname, '../public')));
+
+const staticCacheDuration = process.env.NODE_ENV === 'production' ? '1h' : 0;
+app.use(express.static(path.join(__dirname, '../public'), {
+  maxAge: staticCacheDuration,
+  etag: true,
+  lastModified: true,
+  setHeaders: (res, filePath) => {
+    const extension = path.extname(filePath).toLowerCase();
+    if (extension === '.html') {
+      res.setHeader('Cache-Control', 'no-store');
+    } else {
+      res.setHeader('Cache-Control', `public, max-age=${staticCacheDuration === 0 ? 0 : 3600}`);
+    }
+  }
+}));
 
 // Initialize cache (Redis or in-memory fallback)
 initializeCache().catch((err) => console.error('Cache initialization warning:', err));

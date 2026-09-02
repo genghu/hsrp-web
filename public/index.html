@@ -6,14 +6,14 @@
     <title>HSRP - Human Subject Recruitment Platform</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="/css/styles.css?v=20260804">
+    <link rel="stylesheet" href="/css/styles.css?v=20260805">
 </head>
 <body>
     <div id="app">
         <!-- Navigation -->
         <nav class="navbar navbar-expand-lg">
             <div class="container-fluid">
-                <a class="navbar-brand" href="#" onclick="showPage('home'); return false;">
+                <a class="navbar-brand" href="#" onclick="navigateToPage('home'); return false;">
                     <i class="fas fa-brain me-2"></i><span data-i18n="system.title">人类被试招募平台</span>
                 </a>
                 <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
@@ -22,7 +22,7 @@
                 <div class="collapse navbar-collapse" id="navbarNav">
                     <ul class="navbar-nav me-auto" id="main-nav-items">
                         <li class="nav-item" id="nav-home-item">
-                            <a class="nav-link" href="#" onclick="showPage('home'); return false;">
+                                                    <a class="nav-link" href="#" onclick="navigateToPage('home'); return false;">
                                 <i class="fas fa-home me-1"></i><span data-i18n="nav.home">Home</span>
                             </a>
                         </li>
@@ -32,7 +32,7 @@
                             </a>
                         </li>
                         <li class="nav-item" id="nav-home-link" style="display:none;">
-                            <a class="nav-link" href="#" onclick="showPage('home'); return false;">
+                                                    <a class="nav-link" href="#" onclick="navigateToPage('home'); return false;">
                                 <i class="fas fa-home me-1"></i><span data-i18n="nav.home">首页</span>
                             </a>
                         </li>
@@ -74,10 +74,10 @@
 
                         <!-- Auth Links (shown when not logged in) -->
                         <div id="nav-auth-links">
-                            <a href="#" id="nav-login" class="nav-link" onclick="showPage('login'); return false;">
+                            <a href="#" id="nav-login" class="nav-link" onclick="navigateToPage('login'); return false;">
                                 <i class="fas fa-sign-in-alt me-1"></i><span data-i18n="login">Login</span>
                             </a>
-                            <a href="#" id="nav-register" class="nav-link" onclick="showPage('register'); return false;">
+                            <a href="#" id="nav-register" class="nav-link" onclick="navigateToPage('register'); return false;">
                                 <i class="fas fa-user-plus me-1"></i><span data-i18n="register">Register</span>
                             </a>
                         </div>
@@ -121,8 +121,8 @@
                     <p class="subtitle" data-i18n="welcome_subtitle">Human Subject Recruitment Platform</p>
                     <p data-i18n="welcome_description">Connect researchers with participants for scientific studies</p>
                     <div class="hero-buttons">
-                        <button class="glass-button" onclick="showPage('register')" data-i18n="get_started"><i class="fas fa-rocket me-2"></i>Get Started</button>
-                        <button class="glass-button" onclick="showPage('login')" data-i18n="sign_in"><i class="fas fa-sign-in-alt me-2"></i>Sign In</button>
+                        <button class="glass-button" onclick="navigateToPage('register')" data-i18n="get_started"><i class="fas fa-rocket me-2"></i>Get Started</button>
+                        <button class="glass-button" onclick="navigateToPage('login')" data-i18n="sign_in"><i class="fas fa-sign-in-alt me-2"></i>Sign In</button>
                     </div>
                 </div>
 
@@ -158,7 +158,7 @@
                         <div id="login-error" class="error-message"></div>
                         <button type="submit" class="glass-button" style="width:100%;" data-i18n="login"><i class="fas fa-sign-in-alt me-2"></i>Login</button>
                     </form>
-                    <p class="auth-link"><span data-i18n="no_account">Don't have an account?</span> <a href="#" onclick="showPage('register')" data-i18n="register">Register</a></p>
+                    <p class="auth-link"><span data-i18n="no_account">Don't have an account?</span> <a href="#" onclick="navigateToPage('register')" data-i18n="register">Register</a></p>
                 </div>
             </div>
 
@@ -277,7 +277,7 @@
                         </div>
                     </div>
 
-                    <p class="auth-link"><span data-i18n="already_have_account">Already have an account?</span> <a href="#" onclick="showPage('login')" data-i18n="login">Login</a></p>
+                    <p class="auth-link"><span data-i18n="already_have_account">Already have an account?</span> <a href="#" onclick="navigateToPage('login')" data-i18n="login">Login</a></p>
                 </div>
             </div>
 
@@ -774,7 +774,7 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="/js/api.js?v=20260804"></script>
-    <script src="/js/app.js?v=20260804"></script>
+    <script src="/js/api.js?v=20260805"></script>
+    <script src="/js/app.js?v=20260805"></script>
 </body>
 </html>

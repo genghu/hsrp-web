@@ -10,7 +10,7 @@ import { registerValidation, loginValidation } from '../middleware/validation';
 import crypto from 'crypto';
 import { setQRState, getQRState, deleteQRState } from '../utils/cache';
 import { sanitizeUser } from '../utils/sanitizeUser';
-import { getWechatConfig, getQQConfig } from '../config/oauth';
+import { getWechatConfig, getQQConfig, isWechatConfigured, isQQConfigured } from '../config/oauth';
 
 const router = express.Router();
 
@@ -213,7 +213,8 @@ router.get('/wechat/qr', async (req: Request, res: Response) => {
       data: {
         ticket,
         qrCodeUrl,
-        expiresIn: 300 // 5 minutes
+        expiresIn: 300, // 5 minutes
+        configured: isWechatConfigured()
       }
     });
   } catch (error) {
@@ -440,7 +441,8 @@ router.get('/qq/qr', async (req: Request, res: Response) => {
       data: {
         ticket,
         qrCodeUrl,
-        expiresIn: 300 // 5 minutes
+        expiresIn: 300, // 5 minutes
+        configured: isQQConfigured()
       }
     });
   } catch (error) {

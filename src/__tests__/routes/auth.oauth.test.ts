@@ -86,6 +86,68 @@ describe('WeChat/QQ OAuth callback routes', () => {
     });
   });
 
+  describe('GET /api/auth/wechat/qr', () => {
+    it('returns configured: false when WeChat env vars are cleared', async () => {
+      clearEnvVars(WECHAT_ENV_VARS);
+
+      const response = await request(app)
+        .get('/api/auth/wechat/qr')
+        .expect(200);
+
+      expect(response.body.success).toBe(true);
+      expect(response.body.data.configured).toBe(false);
+      expect(response.body.data.ticket).toBeDefined();
+      expect(response.body.data.qrCodeUrl).toBeDefined();
+      expect(response.body.data.expiresIn).toBe(300);
+    });
+
+    it('returns configured: true when WeChat env vars are set', async () => {
+      process.env.WECHAT_APP_ID = 'test-wechat-app-id';
+      process.env.WECHAT_APP_SECRET = 'test-wechat-app-secret';
+      process.env.WECHAT_REDIRECT_URI = 'http://localhost:3000/api/auth/wechat/callback';
+
+      const response = await request(app)
+        .get('/api/auth/wechat/qr')
+        .expect(200);
+
+      expect(response.body.success).toBe(true);
+      expect(response.body.data.configured).toBe(true);
+      expect(response.body.data.ticket).toBeDefined();
+      expect(response.body.data.qrCodeUrl).toBeDefined();
+    });
+  });
+
+  describe('GET /api/auth/qq/qr', () => {
+    it('returns configured: false when QQ env vars are cleared', async () => {
+      clearEnvVars(QQ_ENV_VARS);
+
+      const response = await request(app)
+        .get('/api/auth/qq/qr')
+        .expect(200);
+
+      expect(response.body.success).toBe(true);
+      expect(response.body.data.configured).toBe(false);
+      expect(response.body.data.ticket).toBeDefined();
+      expect(response.body.data.qrCodeUrl).toBeDefined();
+      expect(response.body.data.expiresIn).toBe(300);
+    });
+
+    it('returns configured: true when QQ env vars are set', async () => {
+      process.env.QQ_APP_ID = 'test-qq-app-id';
+      process.env.QQ_APP_KEY = 'test-qq-app-key';
+      process.env.QQ_REDIRECT_URI = 'http://localhost:3000/api/auth/qq/callback';
+
+      const response = await request(app)
+        .get('/api/auth/qq/qr')
+        .expect(200);
+
+      expect(response.body.success).toBe(true);
+      expect(response.body.data.configured).toBe(true);
+      expect(response.body.data.ticket).toBeDefined();
+      expect(response.body.data.qrCodeUrl).toBeDefined();
+    });
+  });
+
   describe('GET /api/auth/qq/callback', () => {
     it('returns 503 and creates no User when QQ is not configured', async () => {
       clearEnvVars(QQ_ENV_VARS);

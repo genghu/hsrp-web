@@ -54,6 +54,55 @@ document.addEventListener('DOMContentLoaded', () => {
     initializeApp();
 });
 
+function getRouteNameFromPath(path = window.location.pathname) {
+    const normalizedPath = (path || '/').replace(/^\/+|\/+$/g, '');
+    if (!normalizedPath || normalizedPath === 'index.html' || normalizedPath === 'home') {
+        return 'home';
+    }
+    return normalizedPath;
+}
+
+function resolveRouteFromLocation() {
+    const routeName = getRouteNameFromPath();
+    const dashboardRouteNames = ['dashboard', 'researcher-dashboard', 'subject-dashboard', 'admin-dashboard'];
+
+    if (currentUser) {
+        if (routeName === 'home' || routeName === 'login' || routeName === 'register') {
+            showDashboard();
+            return;
+        }
+
+        if (routeName === 'account') {
+            showPage('account');
+            return;
+        }
+
+        if (dashboardRouteNames.includes(routeName)) {
+            showDashboard();
+            return;
+        }
+
+        showDashboard();
+        return;
+    }
+
+    if (dashboardRouteNames.includes(routeName) || routeName === 'account') {
+        showPage('login');
+        return;
+    }
+
+    if (routeName === 'home' || routeName === 'login' || routeName === 'register') {
+        showPage(routeName);
+        return;
+    }
+
+    showPage('home');
+}
+
+window.addEventListener('popstate', () => {
+    resolveRouteFromLocation();
+});
+
 async function initializeApp() {
     // Apply initial language translations
     applyTranslations(currentLanguage);
@@ -64,7 +113,7 @@ async function initializeApp() {
         try {
             currentUser = await api.getCurrentUser();
             updateNavigation(true);
-            showDashboard();
+            resolveRouteFromLocation();
             return;
         } catch (error) {
             console.error('Error checking auth:', error);
@@ -73,19 +122,45 @@ async function initializeApp() {
         }
     }
 
-    // Show home page with logged-out navigation
+    // Show the appropriate public page based on the current URL
     updateNavigation(false);
-    showPage('home');
+    resolveRouteFromLocation();
 }
 
 // Navigation functions
+function navigateToPage(pageName) {
+    if (currentUser && ['home', 'login', 'register'].includes(pageName)) {
+        showDashboard();
+        return;
+    }
+
+    showPage(pageName);
+}
+
 function showPage(pageName) {
     console.log('showPage called with:', pageName);
+
+    if (currentUser && pageName === 'home') {
+        showDashboard();
+        return;
+    }
 
     const pageElement = document.getElementById(`page-${pageName}`);
     if (!pageElement) {
         console.error(`Page not found: page-${pageName}`);
         return;
+    }
+
+    const pathMap = {
+        home: '/',
+        login: '/login',
+        register: '/register',
+        dashboard: '/dashboard',
+        account: '/account'
+    };
+    const targetPath = pathMap[pageName] || '/';
+    if (window.location.pathname !== targetPath) {
+        window.history.pushState({}, '', targetPath);
     }
 
     // Cleanup QR polling when leaving registration page
@@ -190,6 +265,11 @@ function showDashboard() {
     if (!currentUser) {
         showPage('login');
         return;
+    }
+
+    const targetPath = '/dashboard';
+    if (window.location.pathname !== targetPath) {
+        window.history.pushState({}, '', targetPath);
     }
 
     // Update active state on navigation links
@@ -1759,11 +1839,18 @@ function switchRegisterTab(tabName) {
 // WeChat QR Code Management
 let wechatQRPolling = null;
 let wechatQRCode = null;
+let wechatQRRequestSequence = 0;
 
 async function initWeChatQR() {
     try {
         const qrContainer = document.getElementById('wechat-qr-code');
         const statusEl = document.getElementById('wechat-qr-status');
+        const requestSequence = ++wechatQRRequestSequence;
+
+        if (wechatQRPolling) {
+            clearInterval(wechatQRPolling);
+            wechatQRPolling = null;
+        }
 
         // Show loading state
         qrContainer.innerHTML = `
@@ -1782,8 +1869,29 @@ async function initWeChatQR() {
 
         const result = await response.json();
 
+        if (requestSequence !== wechatQRRequestSequence) {
+            return;
+        }
+
         if (result.success && result.data.qrCodeUrl) {
             wechatQRCode = result.data;
+
+            // Backward-compatible: treat missing `configured` as configured/true
+            const isConfigured = result.data.configured !== false;
+
+            if (!isConfigured) {
+                // Provider not configured on this server: show a clear notice
+                // and skip QR display/polling entirely.
+                qrContainer.innerHTML = `
+                    <div class="qr-not-configured oauth-notice">
+                        <i class="fas fa-exclamation-circle"></i>
+                        <p>${translations[currentLanguage].oauth_not_configured || 'This login method is not configured on this server.'}</p>
+                    </div>
+                `;
+                statusEl.textContent = '';
+                statusEl.className = 'qr-status';
+                return;
+            }
 
             // Display QR code
             qrContainer.innerHTML = `<img src="${result.data.qrCodeUrl}" alt="WeChat QR Code">`;
@@ -1816,16 +1924,26 @@ function startWeChatQRPolling(ticket) {
     }
 
     const statusEl = document.getElementById('wechat-qr-status');
+    const pollDeadline = Date.now() + 5 * 60 * 1000;
     statusEl.textContent = translations[currentLanguage].waiting_for_scan || 'Waiting for scan...';
     statusEl.className = 'qr-status waiting';
 
     wechatQRPolling = setInterval(async () => {
+        if (Date.now() >= pollDeadline) {
+            clearInterval(wechatQRPolling);
+            wechatQRPolling = null;
+            statusEl.textContent = translations[currentLanguage].qr_expired || 'QR Code expired. Please refresh.';
+            statusEl.className = 'qr-status error';
+            return;
+        }
+
         try {
             const response = await fetch(`${API_URL}/api/auth/wechat/check?ticket=${ticket}`);
             const result = await response.json();
 
             if (result.success && result.data.status === 'scanned') {
                 clearInterval(wechatQRPolling);
+                wechatQRPolling = null;
                 statusEl.textContent = translations[currentLanguage].qr_scanned || 'QR Code Scanned! Completing registration...';
                 statusEl.className = 'qr-status success';
 
@@ -1837,11 +1955,16 @@ function startWeChatQRPolling(ticket) {
                 }
             } else if (result.data.status === 'expired') {
                 clearInterval(wechatQRPolling);
+                wechatQRPolling = null;
                 statusEl.textContent = translations[currentLanguage].qr_expired || 'QR Code expired. Please refresh.';
                 statusEl.className = 'qr-status error';
             }
         } catch (error) {
+            clearInterval(wechatQRPolling);
+            wechatQRPolling = null;
             console.error('Polling error:', error);
+            statusEl.textContent = translations[currentLanguage].qr_expired || 'QR Code expired. Please refresh.';
+            statusEl.className = 'qr-status error';
         }
     }, 2000); // Poll every 2 seconds
 }
@@ -1856,11 +1979,18 @@ function refreshWeChatQR() {
 // QQ QR Code Management
 let qqQRPolling = null;
 let qqQRCode = null;
+let qqQRRequestSequence = 0;
 
 async function initQQQR() {
     try {
         const qrContainer = document.getElementById('qq-qr-code');
         const statusEl = document.getElementById('qq-qr-status');
+        const requestSequence = ++qqQRRequestSequence;
+
+        if (qqQRPolling) {
+            clearInterval(qqQRPolling);
+            qqQRPolling = null;
+        }
 
         // Show loading state
         qrContainer.innerHTML = `
@@ -1879,8 +2009,29 @@ async function initQQQR() {
 
         const result = await response.json();
 
+        if (requestSequence !== qqQRRequestSequence) {
+            return;
+        }
+
         if (result.success && result.data.qrCodeUrl) {
             qqQRCode = result.data;
+
+            // Backward-compatible: treat missing `configured` as configured/true
+            const isConfigured = result.data.configured !== false;
+
+            if (!isConfigured) {
+                // Provider not configured on this server: show a clear notice
+                // and skip QR display/polling entirely.
+                qrContainer.innerHTML = `
+                    <div class="qr-not-configured oauth-notice">
+                        <i class="fas fa-exclamation-circle"></i>
+                        <p>${translations[currentLanguage].oauth_not_configured || 'This login method is not configured on this server.'}</p>
+                    </div>
+                `;
+                statusEl.textContent = '';
+                statusEl.className = 'qr-status';
+                return;
+            }
 
             // Display QR code
             qrContainer.innerHTML = `<img src="${result.data.qrCodeUrl}" alt="QQ QR Code">`;
@@ -1913,16 +2064,26 @@ function startQQQRPolling(ticket) {
     }
 
     const statusEl = document.getElementById('qq-qr-status');
+    const pollDeadline = Date.now() + 5 * 60 * 1000;
     statusEl.textContent = translations[currentLanguage].waiting_for_scan || 'Waiting for scan...';
     statusEl.className = 'qr-status waiting';
 
     qqQRPolling = setInterval(async () => {
+        if (Date.now() >= pollDeadline) {
+            clearInterval(qqQRPolling);
+            qqQRPolling = null;
+            statusEl.textContent = translations[currentLanguage].qr_expired || 'QR Code expired. Please refresh.';
+            statusEl.className = 'qr-status error';
+            return;
+        }
+
         try {
             const response = await fetch(`${API_URL}/api/auth/qq/check?ticket=${ticket}`);
             const result = await response.json();
 
             if (result.success && result.data.status === 'scanned') {
                 clearInterval(qqQRPolling);
+                qqQRPolling = null;
                 statusEl.textContent = translations[currentLanguage].qr_scanned || 'QR Code Scanned! Completing registration...';
                 statusEl.className = 'qr-status success';
 
@@ -1934,11 +2095,16 @@ function startQQQRPolling(ticket) {
                 }
             } else if (result.data.status === 'expired') {
                 clearInterval(qqQRPolling);
+                qqQRPolling = null;
                 statusEl.textContent = translations[currentLanguage].qr_expired || 'QR Code expired. Please refresh.';
                 statusEl.className = 'qr-status error';
             }
         } catch (error) {
+            clearInterval(qqQRPolling);
+            qqQRPolling = null;
             console.error('Polling error:', error);
+            statusEl.textContent = translations[currentLanguage].qr_expired || 'QR Code expired. Please refresh.';
+            statusEl.className = 'qr-status error';
         }
     }, 2000); // Poll every 2 seconds
 }
@@ -2898,6 +3064,7 @@ const translations = {
         'waiting_for_scan': 'Waiting for scan...',
         'qr_scanned': 'QR Code Scanned! Completing registration...',
         'qr_expired': 'QR Code expired. Please refresh.',
+        'oauth_not_configured': 'This login method is not configured on this server. Please use another method or contact the administrator.',
 
         // Researcher Dashboard
         'researcher_dashboard': 'Researcher Dashboard',
@@ -3207,6 +3374,7 @@ const translations = {
         'waiting_for_scan': '等待扫描...',
         'qr_scanned': '二维码已扫描！正在完成注册...',
         'qr_expired': '二维码已过期。请刷新。',
+        'oauth_not_configured': '此登录方式在本服务器上尚未配置，请使用其他方式或联系管理员。',
 
         // Researcher Dashboard
         'researcher_dashboard': '研究人员仪表板',
